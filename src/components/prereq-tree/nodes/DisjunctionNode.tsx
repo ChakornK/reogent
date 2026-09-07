@@ -2,7 +2,8 @@
 
 import { Icon } from "@/src/components/icons";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import { Handle, Position, useStore, type NodeProps } from "reactflow";
+import { useStore, type NodeProps } from "reactflow";
+import { NodeHandles, nodeSurfaceClasses } from "./CourseNode";
 
 /** One branch in a disjunction (an `Or` AST node child), flattened for display
  *  via `displayExpr` — every option is listed, including nested And/Or branches. */
@@ -36,28 +37,6 @@ export interface EitherOrData {
   options: EitherOrOption[];
   selectedIdx: number;
   onChange: (idx: number) => void;
-}
-
-// Handles on all four sides so prereq edges attach left/right and coreq chain
-// edges top/bottom. Visually hidden.
-const HIDDEN_HANDLE = {
-  opacity: 0,
-  width: 8,
-  height: 8,
-  border: "none",
-  background: "transparent",
-  pointerEvents: "none",
-} as const;
-
-function FourHandles() {
-  return (
-    <>
-      <Handle type="target" id="right-target" position={Position.Right} style={HIDDEN_HANDLE} />
-      <Handle type="target" id="top-target" position={Position.Top} style={HIDDEN_HANDLE} />
-      <Handle type="source" id="left-source" position={Position.Left} style={HIDDEN_HANDLE} />
-      <Handle type="source" id="bottom-source" position={Position.Bottom} style={HIDDEN_HANDLE} />
-    </>
-  );
 }
 
 /** `Or` node rendered "one of A, B, C" (REQ-9.1). Custom dropdown — not
@@ -153,10 +132,10 @@ export function DropdownDisjunctionNode({ id, data }: NodeProps<DisjunctionData>
     <section
       data-node-id={id}
       data-variant="dropdown"
-      className="neu-raised bg-tertiary-container text-on-tertiary-container border-border relative min-w-[140px] rounded-lg border px-3 py-2"
+      className={`${nodeSurfaceClasses()} relative min-w-[140px] px-3 py-2`}
     >
-      <FourHandles />
-      <div className="text-xs tracking-wide uppercase opacity-70">one of</div>
+      <NodeHandles />
+      <div className="text-muted text-xs tracking-wide uppercase">one of</div>
       <div ref={menuRef} className="relative">
         <button
           type="button"
@@ -169,7 +148,7 @@ export function DropdownDisjunctionNode({ id, data }: NodeProps<DisjunctionData>
             e.stopPropagation();
             setOpen((o) => !o);
           }}
-          className="neu-inset focus-visible:ring-primary/40 bg-surface text-on-surface mt-1 flex w-full items-center gap-1 rounded-md px-2 py-1 text-left font-mono text-sm focus-visible:ring-2 focus-visible:ring-offset-1"
+          className="neu-inset focus-visible:ring-primary/40 bg-surface-container-low text-on-surface mt-1 flex w-full items-center gap-1 rounded-md px-2 py-1 text-left font-mono text-sm focus-visible:ring-2 focus-visible:ring-offset-1"
         >
           <span className="min-w-0 flex-1 truncate">{current}</span>
           <Icon
@@ -217,9 +196,7 @@ export function DropdownDisjunctionNode({ id, data }: NodeProps<DisjunctionData>
       {detail && (
         <div
           className={`border-border mt-1.5 border-t pt-1.5 text-xs leading-snug ${
-            detail.kind === "literal" || detail.title === null
-              ? "text-on-tertiary-container/70 italic"
-              : "text-on-tertiary-container/80"
+            detail.kind === "literal" || detail.title === null ? "text-muted italic" : "text-on-surface-variant"
           }`}
         >
           {detail.kind === "course" ? (detail.title ?? "(not in calendar)") : detail.text}
@@ -229,19 +206,14 @@ export function DropdownDisjunctionNode({ id, data }: NodeProps<DisjunctionData>
   );
 }
 
-/** `Or` node rendered "Either (a) … or (b) …" (REQ-9.2). Radio-style stacked
- *  options: selected row is raised, unselected rows dimmed. Selecting a row
- *  triggers a graph rebuild so the upstream subtree reflects the choice. */
+/** Renders stacked either/or choices with a raised selected row and readable alternatives.
+ *  Selecting a row rebuilds the graph to show its upstream prerequisites. */
 export function StackedDisjunctionNode({ id, data }: NodeProps<EitherOrData>) {
   const { options, selectedIdx, onChange } = data;
   return (
-    <section
-      data-node-id={id}
-      data-variant="stacked"
-      className="neu-raised bg-tertiary-container text-on-tertiary-container border-border min-w-[160px] rounded-lg border px-3 py-2"
-    >
-      <FourHandles />
-      <div className="text-xs tracking-wide uppercase opacity-70">either</div>
+    <section data-node-id={id} data-variant="stacked" className={`${nodeSurfaceClasses()} min-w-[160px] px-3 py-2`}>
+      <NodeHandles />
+      <div className="text-muted text-xs tracking-wide uppercase">either</div>
       <div className="mt-1 flex flex-col gap-1">
         {options.map((opt, i) => {
           const isSelected = i === selectedIdx;
@@ -253,10 +225,11 @@ export function StackedDisjunctionNode({ id, data }: NodeProps<EitherOrData>) {
               onPointerDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={() => onChange(i)}
+              aria-pressed={isSelected}
               className={`flex items-start gap-2 rounded-md border px-2 py-1 text-left ${
                 isSelected
                   ? "neu-raised border-border-subtle bg-surface text-on-surface"
-                  : "border-transparent opacity-45"
+                  : "text-on-surface-variant hover:bg-surface-container-low border-transparent"
               }`}
             >
               {opt.label && <span className="text-on-surface-variant shrink-0 text-xs font-medium">({opt.label})</span>}

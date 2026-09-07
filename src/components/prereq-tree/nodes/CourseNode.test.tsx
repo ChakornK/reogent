@@ -41,11 +41,12 @@ describe("CourseNode variants (REQ-9.4)", () => {
     expect(renderNode({ text: "Third-year standing", variant: "note" })).toMatchSnapshot();
   });
 
-  it("renders coreq-column known nodes with the secondary-container tint", () => {
+  it("uses neutral course material for corequisites", () => {
     const el = renderNode({ code: "MATH 200", title: "Calculus III", variant: "known", coreq: true }).querySelector(
       "section",
     );
-    expect(el?.className).toContain("bg-secondary-container");
+    expect(el?.classList.contains("bg-surface")).toBe(true);
+    expect(el?.className).not.toContain("bg-secondary-container");
   });
 
   it("carries data-node-id, data-variant, and a border matching the edge stroke", () => {

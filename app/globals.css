@@ -1278,14 +1278,10 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
   box-shadow: none;
   background: transparent;
 }
-/* Card outline matches the edge stroke (--outline-variant) and carries a
-   primary-tinted glow so blocks lift off the dotted canvas in both themes. */
+/* Match node outlines to the graph edge color and weight. */
 [data-pane="prereq-tree"] .react-flow__node > section {
   border-color: var(--outline-variant);
-  border-width: 1.5px; /* match the edge stroke weight */
-  box-shadow:
-    0 0 16px color-mix(in srgb, var(--primary) 24%, transparent),
-    var(--neu-surface-shadow);
+  border-width: 1.5px;
 }
 [data-pane="prereq-tree"] .react-flow__edge-path {
   stroke: var(--outline-variant);

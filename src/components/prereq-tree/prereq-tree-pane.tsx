@@ -10,6 +10,7 @@ import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { useWorkspaceHost } from "@/src/components/shell/workspace-host";
 import { Button } from "@/src/components/ui/button";
 import { RetryAlert } from "@/src/components/ui/feedback";
+import { Heading } from "@/src/components/ui/heading";
 import { InlineAction } from "@/src/components/ui/inline-action";
 import { announce } from "@/src/components/ui/live-region";
 import { SkeletonList } from "@/src/components/ui/skeleton";
@@ -281,13 +282,10 @@ class PaneErrorBoundary extends Component<{ children: ReactNode; fallback: React
 
 function NotFoundAlert({ code, onPick }: { code: string; onPick: (code: string) => void }) {
   return (
-    <p
-      role="alert"
-      className="border-error/30 bg-error-container text-on-error-container rounded-lg border px-3 py-2 text-sm"
-    >
+    <RetryAlert>
       {code} isn't in the catalog. Try <InlineAction onClick={() => onPick("CPSC 110")}>CPSC 110</InlineAction> or{" "}
       <InlineAction onClick={() => onPick("MATH 200")}>MATH 200</InlineAction>.
-    </p>
+    </RetryAlert>
   );
 }
 
@@ -760,7 +758,7 @@ export function PrereqTreePane({
   const noPrereqState = (
     <div className="m-auto flex max-w-md flex-col items-center gap-3 px-6 text-center">
       <div>
-        <h2 className="text-on-surface text-base font-medium">{activeCode} has no listed prerequisites</h2>
+        <Heading>{activeCode} has no listed prerequisites</Heading>
         <p className="text-on-surface-variant mt-1 text-sm">
           The UBC calendar does not list prerequisites or corequisites for this course.
         </p>

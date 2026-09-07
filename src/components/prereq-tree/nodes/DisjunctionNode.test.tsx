@@ -39,6 +39,14 @@ describe("DropdownDisjunctionNode (REQ-9.1)", () => {
     expect(screen.queryByRole("listbox")).toBeNull();
   });
 
+  it("uses neutral material and readable supporting text for choices", () => {
+    const { container } = render(
+      <DropdownDisjunctionNode id="neutral" data={{ options, selectedIdx: 0, onChange: vi.fn(), detail }} />,
+    );
+    expect(container.querySelector("section")?.classList.contains("bg-surface")).toBe(true);
+    expect(screen.getByText("Differential Calculus with Applications").className).toContain("text-on-surface-variant");
+  });
+
   it("shows the selected course's title as the detail row (dropdown absorption)", () => {
     render(<DropdownDisjunctionNode id="d1" data={{ options, selectedIdx: 0, onChange: vi.fn(), detail }} />);
     expect(screen.getByText("Differential Calculus with Applications")).toBeTruthy();
@@ -116,6 +124,17 @@ describe("StackedDisjunctionNode (REQ-9.2)", () => {
     expect(buttons).toHaveLength(3);
     fireEvent.click(buttons[1]);
     expect(onChange).toHaveBeenCalledWith(1);
+  });
+
+  it("exposes the selected choice without dimming available alternatives", () => {
+    const { container } = render(
+      <StackedDisjunctionNode id="neutral" data={{ options: stackedOptions, selectedIdx: 1, onChange: vi.fn() }} />,
+    );
+    expect(container.querySelector("section")?.classList.contains("bg-surface")).toBe(true);
+    const choices = screen.getAllByRole("button");
+    expect(choices.map((choice) => choice.getAttribute("aria-pressed"))).toEqual(["false", "true", "false"]);
+    expect(choices[0].className).toContain("text-on-surface-variant");
+    expect(choices[0].className).not.toContain("opacity-45");
   });
 
   it("matches the stacked snapshot with the selected row highlighted (REQ-9.4)", () => {
