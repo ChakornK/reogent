@@ -105,7 +105,9 @@ function SidebarDrawer() {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSidebarOpen(false);
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      if (event.target instanceof Element && event.target.closest("[data-floating-panel], [data-dialog-root]")) return;
+      setSidebarOpen(false);
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
@@ -161,6 +163,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const animateRoute = hasNavigated || routeIdentity !== initialRouteIdentityRef.current;
   const [sessionsCollapsed, setSessionsCollapsed] = useSidebarCollapsed();
   const sidebarOpenRef = useRef<HTMLButtonElement>(null);
+  const desktopSidebarQuery = mode === "tools" ? "(min-width: 1280px)" : "(min-width: 1024px)";
   const reduce = useReducedMotion();
 
   useEffect(() => {
@@ -173,12 +176,28 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const sheetInert = mode === "ai" && answerSheetOpen && !canvasInline;
 
-  // Restore focus to the sidebar drawer trigger when it closes.
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const media = window.matchMedia(desktopSidebarQuery);
+    const closeOnDesktop = () => {
+      if (media.matches) setSidebarOpen(false);
+    };
+    closeOnDesktop();
+    media.addEventListener("change", closeOnDesktop);
+    return () => media.removeEventListener("change", closeOnDesktop);
+  }, [desktopSidebarQuery, sidebarOpen, setSidebarOpen]);
+
+  // Restore focus to the sidebar control visible at the current breakpoint.
   const prevSidebarOpen = useRef(false);
   useEffect(() => {
-    if (prevSidebarOpen.current && !sidebarOpen) sidebarOpenRef.current?.focus();
+    if (prevSidebarOpen.current && !sidebarOpen) {
+      const target = window.matchMedia(desktopSidebarQuery).matches
+        ? document.getElementById("desktop-session-collapse")
+        : sidebarOpenRef.current;
+      target?.focus();
+    }
     prevSidebarOpen.current = sidebarOpen;
-  }, [sidebarOpen]);
+  }, [desktopSidebarQuery, sidebarOpen]);
 
   function collapseSessions() {
     setSessionsCollapsed(true);

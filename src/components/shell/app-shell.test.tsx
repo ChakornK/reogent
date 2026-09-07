@@ -20,8 +20,17 @@ vi.mock("@/src/components/calendar/calendar-pane", () => ({
 vi.mock("@/src/components/course-lookup/course-lookup-pane", () => ({ CourseLookupPane: () => null }));
 vi.mock("@/src/components/shell/session-sidebar", () => ({
   useSidebarCollapsed: () => [false, () => {}],
-  BrandHeader: () => null,
-  SessionSidebar: ({ footer }: { footer?: ReactNode }) => <div data-testid="session-list">{footer}</div>,
+  BrandHeader: ({ trailing }: { trailing?: ReactNode }) => trailing,
+  SessionSidebar: ({ footer, onCollapse }: { footer?: ReactNode; onCollapse?: () => void }) => (
+    <div data-testid="session-list">
+      {onCollapse && (
+        <button id="desktop-session-collapse" type="button" onClick={onCollapse}>
+          Collapse sessions
+        </button>
+      )}
+      {footer}
+    </div>
+  ),
 }));
 vi.mock("@/src/components/theme-toggle", () => ({ ThemeToggle: () => null }));
 vi.mock("@/src/components/shell/user-menu", () => ({ UserMenu: () => null }));
@@ -33,7 +42,22 @@ vi.mock("next/navigation", () => ({
   useParams: () => ({}),
 }));
 
-let wideMatches = false;
+let viewportWidth = 390;
+const mediaQueries = new Map<string, { media: MediaQueryList; listeners: Set<EventListener> }>();
+
+function resizeViewport(width: number) {
+  act(() => {
+    const previousWidth = viewportWidth;
+    viewportWidth = width;
+    for (const [query, { media, listeners }] of mediaQueries) {
+      const minWidth = Number(query.match(/min-width: (\d+)px/)?.[1]);
+      if (previousWidth >= minWidth === media.matches) continue;
+      const event = new Event("change");
+      Object.assign(event, { matches: media.matches, media: query });
+      for (const listener of listeners) listener(event);
+    }
+  });
+}
 const mem = new Map<string, string>();
 const storage: Storage = {
   getItem: (k) => mem.get(k) ?? null,
@@ -47,16 +71,30 @@ const storage: Storage = {
 };
 
 beforeAll(() => {
+  vi.spyOn(Element.prototype, "animate").mockReturnValue({ cancel: () => {} } as Animation);
   Object.defineProperty(window, "sessionStorage", { value: storage, configurable: true, writable: true });
   Object.defineProperty(window, "localStorage", { value: storage, configurable: true, writable: true });
   Object.defineProperty(window, "matchMedia", {
-    value: () => ({
-      matches: wideMatches,
-      addEventListener() {},
-      removeEventListener() {},
-      addListener() {},
-      removeListener() {},
-    }),
+    value: (query: string) => {
+      let entry = mediaQueries.get(query);
+      if (!entry) {
+        const listeners = new Set<EventListener>();
+        const media = {
+          media: query,
+          get matches() {
+            const minWidth = query.match(/min-width: (\d+)px/);
+            return minWidth ? viewportWidth >= Number(minWidth[1]) : false;
+          },
+          addEventListener: (_type: string, listener: EventListener) => listeners.add(listener),
+          removeEventListener: (_type: string, listener: EventListener) => listeners.delete(listener),
+          addListener() {},
+          removeListener() {},
+        } as MediaQueryList;
+        entry = { media, listeners };
+        mediaQueries.set(query, entry);
+      }
+      return entry.media;
+    },
     configurable: true,
     writable: true,
   });
@@ -67,8 +105,12 @@ afterEach(() => {
   mem.clear();
   vi.clearAllMocks();
   cleanup();
+  mediaQueries.clear();
+  viewportWidth = 390;
+  document.body.style.overflow = "";
 });
 afterAll(() => {
+  vi.restoreAllMocks();
   sessionStorage.clear();
   localStorage.clear();
 });
@@ -96,7 +138,7 @@ function NavigatingShellFixture() {
 }
 
 function renderShell(wide: boolean) {
-  wideMatches = wide;
+  viewportWidth = wide ? 1440 : 390;
   return render(<ShellFixture />);
 }
 
@@ -263,5 +305,102 @@ describe("13.3 — focus move/return + inert (REQ-2.5, REQ-8.1, REQ-8.3)", () =>
     fireEvent.keyDown(document, { key: "Escape" });
     expect(container.querySelector('[role="dialog"]')?.parentElement?.hasAttribute("inert")).toBe(true);
     expect(document.activeElement).toBe(opener);
+  });
+});
+
+describe("sidebar responsive cleanup", () => {
+  it.each([
+    ["AI", "/chat", 1024],
+    ["Unity", "/pulse", 1024],
+    ["Tools", "/tools/map", 1280],
+  ])("closes %s at its desktop breakpoint and restores desktop focus", (_mode, path, breakpoint) => {
+    pathname.value = path;
+    document.body.style.overflow = "auto";
+    const { container, getByRole } = renderShell(false);
+    const opener = getByRole("button", { name: "Open sidebar" });
+    fireEvent.click(opener);
+    expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
+    expect(document.body.style.overflow).toBe("hidden");
+
+    resizeViewport(Number(breakpoint) - 1);
+    expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
+    resizeViewport(Number(breakpoint));
+
+    expect(container.querySelector('[role="dialog"]')?.parentElement?.hasAttribute("inert")).toBe(true);
+    expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(false);
+    expect(opener.hasAttribute("inert")).toBe(false);
+    expect(document.body.style.overflow).toBe("auto");
+    expect(document.activeElement).toBe(container.querySelector("#desktop-session-collapse"));
+
+    resizeViewport(390);
+    expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(false);
+    fireEvent.click(opener);
+    expect(document.body.style.overflow).toBe("hidden");
+    resizeViewport(1440);
+    expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(false);
+    expect(document.body.style.overflow).toBe("auto");
+  });
+
+  it.each(["/chat", "/pulse"])("closes an open Tools drawer when the mode changes to %s on desktop", (path) => {
+    pathname.value = "/tools/map";
+    viewportWidth = 1100;
+    const view = render(<ShellFixture />);
+    fireEvent.click(view.getByRole("button", { name: "Open sidebar" }));
+    expect(view.container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
+
+    pathname.value = path;
+    view.rerender(<ShellFixture />);
+
+    expect(view.container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(false);
+    expect(document.body.style.overflow).toBe("");
+    expect(document.activeElement).toBe(view.container.querySelector("#desktop-session-collapse"));
+    expect(mediaQueries.get("(min-width: 1280px)")?.listeners.size).toBe(0);
+  });
+
+  it("updates the listener when an open compact drawer changes mode and cleans up on unmount", () => {
+    pathname.value = "/chat";
+    const view = renderShell(false);
+    fireEvent.click(view.getByRole("button", { name: "Open sidebar" }));
+    pathname.value = "/tools/map";
+    view.rerender(<ShellFixture />);
+
+    expect(mediaQueries.get("(min-width: 1024px)")?.listeners.size).toBe(0);
+    expect(mediaQueries.get("(min-width: 1280px)")?.listeners.size).toBe(1);
+    resizeViewport(1100);
+    expect(view.container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
+    expect(document.body.style.overflow).toBe("hidden");
+
+    view.unmount();
+    expect(mediaQueries.get("(min-width: 1280px)")?.listeners.size).toBe(0);
+    expect(document.body.style.overflow).toBe("");
+  });
+
+  it("leaves the drawer open when Escape is already prevented", () => {
+    const { container, getByRole } = renderShell(false);
+    fireEvent.click(getByRole("button", { name: "Open sidebar" }));
+    const event = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+    event.preventDefault();
+    fireEvent(document, event);
+    expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
+    expect(document.body.style.overflow).toBe("hidden");
+  });
+
+  it.each(["data-floating-panel", "data-dialog-root"])("leaves Escape to a portaled %s child", (attribute) => {
+    const { container, getByRole } = renderShell(false);
+    fireEvent.click(getByRole("button", { name: "Open sidebar" }));
+    const panel = document.createElement("div");
+    panel.setAttribute(attribute, "");
+    const child = document.createElement("button");
+    panel.append(child);
+    document.body.append(panel);
+    try {
+      fireEvent.keyDown(child, { key: "Escape" });
+      expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
+      expect(document.body.style.overflow).toBe("hidden");
+    } finally {
+      panel.remove();
+    }
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(false);
   });
 });
