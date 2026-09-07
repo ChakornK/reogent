@@ -6,7 +6,8 @@
 import type { CourseIndexEntry } from "@/app/api/course-index/route";
 import { Icon } from "@/src/components/icons";
 import { RetryAlert } from "@/src/components/ui/feedback";
-import { TextInput } from "@/src/components/ui/form-controls";
+import { Field, TextInput } from "@/src/components/ui/form-controls";
+import { InlineLink } from "@/src/components/ui/inline-action";
 import { Skeleton, SkeletonGroup, SkeletonList } from "@/src/components/ui/skeleton";
 import {
   getProgramIndex,
@@ -32,14 +33,31 @@ function creditValue(entry: CourseIndexEntry | undefined): number {
 
 /** Reserves the responsive faculty, major, and minor control row. */
 export function ProgramSelectorsLoading() {
+  const major = usePlanner((state) => state.major);
   return (
     <SkeletonGroup
       label="Loading programs…"
       className="grid w-full grid-cols-2 items-end gap-2 @min-[55rem]:flex @min-[55rem]:flex-wrap @min-[55rem]:gap-x-3"
     >
-      {["@min-[55rem]:w-44", "@min-[55rem]:w-52", "@min-[55rem]:w-40"].map((width) => (
-        <div key={width} className={`flex w-full min-w-0 flex-col gap-1.5 ${width}`}>
-          <Skeleton className="h-4 w-20" />
+      {[
+        ["Faculty", "@min-[55rem]:w-44"],
+        ["Major / program", "@min-[55rem]:w-52"],
+        ["Minor (optional)", "@min-[55rem]:w-40"],
+      ].map(([label, width]) => (
+        <div key={label} className={`flex w-full min-w-0 flex-col gap-1.5 ${width}`}>
+          <div className="flex min-h-4 flex-wrap items-center justify-between gap-x-2">
+            <span className="relative text-xs leading-4 font-medium">
+              <span className="invisible">{label}</span>
+              <Skeleton className="absolute inset-0 h-4 w-full" />
+            </span>
+            {label === "Major / program" && major ? (
+              <span className="relative inline-flex min-h-11 shrink-0 items-center gap-0.5 px-1 text-xs leading-4 whitespace-nowrap sm:min-h-0 sm:px-0">
+                <span className="invisible">UBC Calendar</span>
+                <Icon name="externalLink" size={11} className="invisible" />
+                <Skeleton className="absolute inset-x-0 top-1/2 h-4 w-full -translate-y-1/2" />
+              </span>
+            ) : null}
+          </div>
           <Skeleton className="h-11 w-full rounded-lg sm:h-9" />
         </div>
       ))}
@@ -106,17 +124,17 @@ export function ProgramSelectors() {
       <ProgramCombobox
         label="Major / program"
         className="w-full @min-[55rem]:w-52"
-        labelExtra={
+        labelAction={
           major ? (
-            <a
+            <InlineLink
               href={major}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary flex items-center gap-0.5 text-xs hover:underline"
+              className="shrink-0 gap-0.5 text-xs leading-4 whitespace-nowrap"
             >
               UBC Calendar
               <Icon name="externalLink" size={11} />
-            </a>
+            </InlineLink>
           ) : undefined
         }
         placeholder={faculty ? "Search programs" : "Select a faculty first"}
@@ -140,7 +158,7 @@ export function ProgramSelectors() {
 
 function ProgramCombobox({
   label,
-  labelExtra,
+  labelAction,
   className,
   placeholder,
   value,
@@ -149,7 +167,7 @@ function ProgramCombobox({
   disabled = false,
 }: {
   label: string;
-  labelExtra?: ReactNode;
+  labelAction?: ReactNode;
   className?: string;
   placeholder: string;
   value: string | null;
@@ -176,11 +194,7 @@ function ProgramCombobox({
   }
 
   return (
-    <div className={`flex flex-col gap-1 ${className ?? ""}`}>
-      <div className="text-muted flex items-baseline justify-between gap-2 text-xs">
-        <label htmlFor={inputId}>{label}</label>
-        {labelExtra}
-      </div>
+    <Field label={label} htmlFor={inputId} labelAction={labelAction} className={className}>
       <TextInput
         id={inputId}
         type="text"
@@ -210,7 +224,7 @@ function ProgramCombobox({
           <option key={option.value} value={option.label} />
         ))}
       </datalist>
-    </div>
+    </Field>
   );
 }
 

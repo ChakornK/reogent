@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import type { BuildingDetails, BuildingSummary } from "@/src/lib/api-types";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   BuildingRail,
@@ -407,6 +407,55 @@ describe("BuildingRail", () => {
     expect(sources?.textContent).toContain("UBC Points of Interest");
     expect(sources?.textContent).not.toContain("UBC Entrances");
     expect(screen.getByText(/Historical snapshot/)).toBeTruthy();
+  });
+
+  it("shares list-item anatomy while preserving truncation, wrapping, and action placement", () => {
+    render(
+      <BuildingRail {...props({ mode: "details", selected: iblc, details: { status: "ready", data: details } })} />,
+    );
+    const variants = [
+      {
+        title: "IBLC 100",
+        action: "Details",
+        summary: "classroom · Floor 1 · 80 seats",
+        detail: "Rows · Tables",
+        truncate: true,
+        trailing: true,
+      },
+      {
+        title: "Bookable room",
+        action: "Book",
+        summary: "Next free at 14:00 · 6 people",
+        detail: null,
+        truncate: false,
+        trailing: true,
+      },
+      {
+        title: "Library help desk",
+        action: "Website",
+        summary: "campus services · 9–5",
+        detail: "Official address match",
+        truncate: false,
+        trailing: false,
+      },
+    ];
+    for (const variant of variants) {
+      const title = screen.getByText(variant.title);
+      const item = title.closest("li")!;
+      expect(item.parentElement?.tagName).toBe("UL");
+      expect(item.className).toBe("bg-surface-container-low rounded-lg p-3");
+      expect(title.classList.contains("truncate")).toBe(variant.truncate);
+      expect(title.className).toContain("text-sm");
+      expect(within(item).getByText(variant.summary).className).toContain("text-xs");
+      if (variant.detail) expect(within(item).getByText(variant.detail).className).toContain("text-muted");
+      const action = within(item).getByRole("link", { name: variant.action });
+      expect(action.parentElement?.classList.contains("flex")).toBe(variant.trailing);
+      expect(action.getAttribute("target")).toBe("_blank");
+      expect(action.getAttribute("rel")).toBe("noreferrer");
+      expect(action.className).toContain("min-h-11");
+      expect(action.className).toContain("sm:min-h-9");
+      expect(action.className).toContain("focus-visible:outline-none");
+    }
   });
 
   it("omits citations that do not back rendered building data", () => {

@@ -7,6 +7,7 @@ import { Icon } from "@/src/components/icons";
 import { useApi } from "@/src/components/providers";
 import { Button } from "@/src/components/ui/button";
 import { RetryState } from "@/src/components/ui/feedback";
+import { Heading } from "@/src/components/ui/heading";
 import { Skeleton, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
 import type { BuildingDetails, BuildingSummary } from "@/src/lib/api-types";
 import { useEffect, useRef, useState } from "react";
@@ -116,10 +117,10 @@ function DetailCard({
 function Section({ title, note, children }: { title: string; note?: string | null; children: React.ReactNode }) {
   return (
     <section className="border-border-subtle border-t pt-2.5">
-      <h3 className="text-on-surface mb-2 text-sm font-medium">
+      <Heading as="h3" size="subsection" className="mb-2">
         {title}
         {note && <span className="text-muted ml-1.5 text-xs font-normal">{note}</span>}
-      </h3>
+      </Heading>
       {children}
     </section>
   );
@@ -180,7 +181,9 @@ export function BuildingPopup({ building, onClose }: { building: SelectedBuildin
           <Icon name="building1" size={18} />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-on-surface truncate text-base leading-snug font-medium">{building.name}</h2>
+          <Heading as="h2" size="section" className="truncate">
+            {building.name}
+          </Heading>
           <p className="text-on-surface-variant mt-0.5 truncate font-mono text-xs">
             {[building.code, building.usage].filter(Boolean).join(" · ")}
           </p>

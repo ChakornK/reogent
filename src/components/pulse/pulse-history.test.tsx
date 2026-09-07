@@ -9,7 +9,8 @@ vi.mock("@/src/components/providers", () => ({
   useApi: () => ({ getPulseHistory }),
 }));
 
-vi.mock("motion/react", () => ({
+vi.mock("motion/react", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("motion/react")>()),
   useReducedMotion: () => false,
 }));
 

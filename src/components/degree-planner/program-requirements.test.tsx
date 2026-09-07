@@ -42,11 +42,25 @@ afterEach(() => {
 
 describe("ProgramSelectors", () => {
   it("reserves the responsive three-field row while programs load", () => {
+    usePlanner.setState({ major: null });
     const { container } = render(<ProgramSelectorsLoading />);
     expect(screen.getByRole("status", { name: "Loading programs…" }).className).toContain("grid-cols-2");
     expect(container.querySelectorAll("[data-skeleton]")).toHaveLength(6);
     expect(screen.queryByRole("combobox")).toBeNull();
   });
+  it("reserves the selected program action and wrapping caption geometry while loading", () => {
+    usePlanner.setState({ major: "https://calendar.ubc.ca/program" });
+    const { container } = render(<ProgramSelectorsLoading />);
+    expect(container.querySelectorAll("[data-skeleton]")).toHaveLength(7);
+    const caption = screen.getByText("Major / program");
+    const header = caption.parentElement?.parentElement;
+    expect(header?.className).toContain("flex-wrap");
+    expect(header?.parentElement?.className).toContain("gap-1.5");
+    expect(screen.getByText("UBC Calendar").parentElement?.className).toContain("min-h-11");
+    expect(screen.getByText("UBC Calendar").parentElement?.className).toContain("sm:min-h-0");
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
   it("commits an exact faculty choice and preserves its program when refocused", async () => {
     usePlanner.setState({ faculty: null, major: null, minor: null });
     render(<ProgramSelectors />);
@@ -79,6 +93,14 @@ describe("ProgramSelectors", () => {
     const input = screen.getByRole("combobox", { name: "Major / program" });
     await waitFor(() => expect((input as HTMLInputElement).value).toBe("Computer Science"));
     expect(link.closest("label")).toBeNull();
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(link.className).toContain("focus-visible:ring-2");
+    expect(link.parentElement?.className).toContain("flex-wrap");
+    expect(link.parentElement?.parentElement).toBe(input.parentElement);
+    expect(input.parentElement?.className).toContain("gap-1.5");
+    expect(input.className).toContain("h-11");
+    expect(input.className).toContain("sm:h-9");
     expect(screen.getByText("Major / program").tagName).toBe("LABEL");
   });
 });

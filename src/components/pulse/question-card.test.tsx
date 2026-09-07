@@ -63,8 +63,12 @@ describe("PulseQuestionCard — unvoted", () => {
     expect(pointerStart).not.toHaveBeenCalled();
     expect(agree.textContent).toBe("Agree");
     expect(disagree.textContent).toBe("Disagree");
-    expect(agree.className).toContain("min-h-11");
-    expect(disagree.className).toContain("min-h-11");
+    for (const button of [agree, disagree]) {
+      expect(button.classList.contains("h-11")).toBe(true);
+      expect(button.className).toContain("enabled:hover:bg-surface-container-high");
+      expect(button.className).toContain("focus-visible:ring-2");
+      expect(button.className).not.toMatch(/-m[xy]-|py-3/);
+    }
 
     fireEvent.click(agree);
     expect(onVote).toHaveBeenLastCalledWith(true);

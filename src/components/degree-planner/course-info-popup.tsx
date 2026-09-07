@@ -19,9 +19,10 @@ import { useApi } from "@/src/components/providers";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { Button } from "@/src/components/ui/button";
 import { FloatingPanel } from "@/src/components/ui/floating-panel";
+import { Heading } from "@/src/components/ui/heading";
+import { InlineLink } from "@/src/components/ui/inline-action";
 import { courseCodeToSlug } from "@/src/lib/pane-route";
 import { isSatisfied, type Expr } from "@/src/shared/prereq-ast";
-import Link from "next/link";
 import { Fragment, useEffect, useState, type ReactNode, type RefObject } from "react";
 import { describeIssue } from "./validation";
 
@@ -87,10 +88,10 @@ export function CourseInfoPopup({
       className="neu-panel bg-surface flex w-80 flex-col gap-2.5 rounded-2xl p-4 text-sm wrap-anywhere [&>*]:shrink-0"
     >
       <div className="flex items-start gap-2">
-        <h4 className="text-on-surface min-w-0 flex-1 font-medium">
+        <Heading as="h4" size="subsection" className="min-w-0 flex-1">
           {course.code}
           {course.title && <span className="text-on-surface-variant"> — {course.title}</span>}
-        </h4>
+        </Heading>
         <Button
           type="button"
           variant="ghost"
@@ -136,17 +137,17 @@ export function CourseInfoPopup({
           </span>
         </p>
       )}
-      <Link
+      <InlineLink
         href={`/tools/courses/${courseCodeToSlug(course.code)}`}
         onNavigate={(event) => {
           event.preventDefault();
           navigation.push(`/tools/courses/${courseCodeToSlug(course.code)}`);
         }}
-        className="text-primary inline-flex items-center gap-1 text-xs hover:underline"
+        className="gap-1 self-start text-xs"
       >
         Open in Course Finder
         <Icon name="externalLink" size={12} />
-      </Link>
+      </InlineLink>
     </FloatingPanel>
   );
 }

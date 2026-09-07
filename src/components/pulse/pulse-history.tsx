@@ -2,6 +2,7 @@
 
 import { useApi } from "@/src/components/providers";
 import { RetryState } from "@/src/components/ui/feedback";
+import { Heading } from "@/src/components/ui/heading";
 import type { PulseHistory as PulseHistoryData } from "@/src/lib/api-types";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
@@ -31,22 +32,22 @@ export function PulseHistory() {
 
   return (
     <section aria-labelledby="pulse-history-heading" className="mt-6 flex flex-col gap-3">
-      <h2 id="pulse-history-heading" className="text-on-surface text-base font-medium tracking-[-0.01em]">
+      <Heading as="h2" size="section" id="pulse-history-heading">
         Previous rounds
-      </h2>
+      </Heading>
       {loading ? <PulseCardsLoading label="Loading previous rounds" /> : null}
       {error ? <RetryState message={error} onRetry={() => void fetchHistory()} compact className="py-4" /> : null}
       {rounds?.length === 0 && <p className="text-muted py-4 text-center text-sm">No previous rounds yet.</p>}
       {rounds?.map((round) => (
         <div key={round.id} className="flex flex-col gap-3">
-          <h3 className="text-muted text-xs font-medium tracking-[0.05em] uppercase">
+          <Heading as="h3" size="label" tone="muted" className="tracking-[0.05em] uppercase">
             {round.title ??
               new Date(round.published_at).toLocaleDateString(undefined, {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
               })}
-          </h3>
+          </Heading>
           {round.questions.map((q) => (
             <ShadowCard
               key={q.id}

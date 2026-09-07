@@ -20,6 +20,7 @@ import { useApi } from "@/src/components/providers";
 import { Button } from "@/src/components/ui/button";
 import { RetryAlert } from "@/src/components/ui/feedback";
 import { FloatingPanel } from "@/src/components/ui/floating-panel";
+import { Heading } from "@/src/components/ui/heading";
 import { Skeleton, SkeletonGroup, SkeletonList, SkeletonText } from "@/src/components/ui/skeleton";
 import {
   WorkspaceCanvas,
@@ -734,7 +735,9 @@ function ActionsSection({
             aria-label="Plan structure"
             className="neu-panel bg-surface w-72 rounded-2xl p-4"
           >
-            <h3 className="text-on-surface mb-3 text-sm font-medium">Plan structure</h3>
+            <Heading as="h3" size="subsection" className="mb-3">
+              Plan structure
+            </Heading>
             <PlanStructure />
           </FloatingPanel>
         )}
@@ -794,15 +797,16 @@ function ActionsSection({
                     {block.issues.map(describeIssue).join(" ")}
                   </p>
                 </button>
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="denseIcon"
                   onClick={() => toggleIgnoreBlock(block.id)}
                   title="Mute this issue"
                   aria-label={`Mute issue for ${block.code}`}
-                  className="text-muted hover:bg-surface-container hover:text-on-surface mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-md sm:size-7"
+                  className="mt-0.5"
                 >
                   <Icon name="eyeOff" size={13} />
-                </button>
+                </Button>
               </div>
             ))}
           </FloatingPanel>
@@ -840,13 +844,13 @@ function AutofillSummary({ result, onClose }: { result: AutofillResult; onClose:
     >
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <h3 className="text-on-surface text-sm font-medium">
+          <Heading as="h3" size="subsection">
             {result.placedCodes.length > 0
               ? `Added ${result.placedCodes.length} courses`
               : result.remaining.length > 0
                 ? "Autofill needs your input"
                 : "Course requirements are covered"}
-          </h3>
+          </Heading>
           {placed.length > 0 && (
             <p className="text-on-surface-variant mt-1 text-xs">
               {placed.join(", ")}

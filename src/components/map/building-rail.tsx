@@ -4,6 +4,8 @@ import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
 import { LoadingStatus, RetryAlert } from "@/src/components/ui/feedback";
 import { SearchInput, TextInput } from "@/src/components/ui/form-controls";
+import { Heading } from "@/src/components/ui/heading";
+import { InlineLink } from "@/src/components/ui/inline-action";
 import { Skeleton, SkeletonGroup, SkeletonList, SkeletonText } from "@/src/components/ui/skeleton";
 import { WorkspacePanel } from "@/src/components/ui/workspace";
 import type { BuildingDetails, BuildingSummary, OfficialBuildingPhoto, RouteResponse } from "@/src/lib/api-types";
@@ -73,7 +75,9 @@ function Fact({ label, value }: { label: string; value: ReactNode }) {
 function DetailSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="border-border-subtle border-t pt-3 first:border-t-0 first:pt-0">
-      <h3 className="text-on-surface mb-2 text-sm font-medium">{title}</h3>
+      <Heading as="h3" size="subsection" className="mb-2">
+        {title}
+      </Heading>
       {children}
     </section>
   );
@@ -81,15 +85,46 @@ function DetailSection({ title, children }: { title: string; children: ReactNode
 
 function ExternalLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <a
+    <InlineLink
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="focus-visible:ring-primary/40 text-primary inline-flex min-h-11 items-center gap-1 rounded-md text-sm font-medium underline underline-offset-2 focus-visible:ring-2 sm:min-h-9"
+      className="min-h-11 shrink-0 gap-1 text-sm font-medium sm:min-h-9"
     >
       {children}
       <Icon name="externalLink" size={14} />
-    </a>
+    </InlineLink>
+  );
+}
+
+function BuildingDetailItem({
+  title,
+  summary,
+  detail,
+  action,
+  actionPlacement = "trailing",
+  truncateTitle = false,
+}: {
+  title: string;
+  summary: ReactNode;
+  detail?: ReactNode;
+  action?: ReactNode;
+  actionPlacement?: "trailing" | "below";
+  truncateTitle?: boolean;
+}) {
+  return (
+    <li className="bg-surface-container-low rounded-lg p-3">
+      <div className={actionPlacement === "trailing" ? "flex items-start justify-between gap-2" : undefined}>
+        <div className="min-w-0">
+          <p className={`text-on-surface text-sm font-medium ${truncateTitle ? "truncate" : "wrap-anywhere"}`}>
+            {title}
+          </p>
+          <p className="text-on-surface-variant mt-0.5 text-xs">{summary}</p>
+          {detail ? <p className="text-muted mt-1 text-xs">{detail}</p> : null}
+        </div>
+        {action}
+      </div>
+    </li>
   );
 }
 
@@ -172,28 +207,20 @@ export function BuildingDetailContent({ details }: { details: BuildingDetails })
         <DetailSection title={`Rooms & spaces (${details.rooms.length})`}>
           <ul className="flex flex-col gap-2">
             {details.rooms.map((room) => (
-              <li key={`${room.name}-${room.roomNumber ?? ""}`} className="bg-surface-container-low rounded-lg p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-on-surface truncate text-sm font-medium">{room.name}</p>
-                    <p className="text-on-surface-variant mt-0.5 text-xs">
-                      {[
-                        room.spaceType,
-                        room.floor != null ? `Floor ${room.floor}` : null,
-                        room.capacity != null ? `${room.capacity} seats` : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                    {[room.layout, room.furniture].filter(Boolean).length > 0 ? (
-                      <p className="text-muted mt-1 text-xs">
-                        {[room.layout, room.furniture].filter(Boolean).join(" · ")}
-                      </p>
-                    ) : null}
-                  </div>
-                  {room.link ? <ExternalLink href={room.link}>Details</ExternalLink> : null}
-                </div>
-              </li>
+              <BuildingDetailItem
+                key={`${room.name}-${room.roomNumber ?? ""}`}
+                title={room.name}
+                truncateTitle
+                summary={[
+                  room.spaceType,
+                  room.floor != null ? `Floor ${room.floor}` : null,
+                  room.capacity != null ? `${room.capacity} seats` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+                detail={[room.layout, room.furniture].filter(Boolean).join(" · ")}
+                action={room.link ? <ExternalLink href={room.link}>Details</ExternalLink> : null}
+              />
             ))}
           </ul>
         </DetailSection>
@@ -208,23 +235,21 @@ export function BuildingDetailContent({ details }: { details: BuildingDetails })
           </p>
           <ul className="flex flex-col gap-2">
             {details.availability.rooms.map((room) => (
-              <li
+              <BuildingDetailItem
                 key={room.title}
-                className="bg-surface-container-low flex items-start justify-between gap-2 rounded-lg p-3"
-              >
-                <div>
-                  <p className="text-on-surface text-sm font-medium">{room.title}</p>
-                  <p className="text-on-surface-variant mt-0.5 text-xs">
+                title={room.title}
+                summary={
+                  <>
                     {room.freeNow
                       ? `Free until ${room.freeUntil ?? "the next booking"}`
                       : room.nextFree
                         ? `Next free at ${room.nextFree}`
                         : "No free interval in this snapshot"}
                     {room.capacity != null ? ` · ${room.capacity} people` : ""}
-                  </p>
-                </div>
-                {room.url ? <ExternalLink href={room.url}>Book</ExternalLink> : null}
-              </li>
+                  </>
+                }
+                action={room.url ? <ExternalLink href={room.url}>Book</ExternalLink> : null}
+              />
             ))}
           </ul>
         </DetailSection>
@@ -234,16 +259,14 @@ export function BuildingDetailContent({ details }: { details: BuildingDetails })
         <DetailSection title={`Food & services (${details.pois.length})`}>
           <ul className="flex flex-col gap-2">
             {details.pois.map((poi) => (
-              <li key={poi.name} className="bg-surface-container-low rounded-lg p-3">
-                <p className="text-on-surface text-sm font-medium">{poi.name}</p>
-                <p className="text-on-surface-variant mt-0.5 text-xs">
-                  {[poi.service_type?.replace(/_/g, " "), poi.hours, poi.contact].filter(Boolean).join(" · ")}
-                </p>
-                <p className="text-muted mt-1 text-xs">
-                  {poi.association === "official-address" ? "Official address match" : "Located inside footprint"}
-                </p>
-                {poi.url ? <ExternalLink href={poi.url}>Website</ExternalLink> : null}
-              </li>
+              <BuildingDetailItem
+                key={poi.name}
+                title={poi.name}
+                summary={[poi.service_type?.replace(/_/g, " "), poi.hours, poi.contact].filter(Boolean).join(" · ")}
+                detail={poi.association === "official-address" ? "Official address match" : "Located inside footprint"}
+                action={poi.url ? <ExternalLink href={poi.url}>Website</ExternalLink> : null}
+                actionPlacement="below"
+              />
             ))}
           </ul>
         </DetailSection>
@@ -330,7 +353,9 @@ function BuildingList({
   if (buildings.length === 0) return null;
   return (
     <section aria-label={label}>
-      <h3 className="text-muted px-2 pb-1.5 text-xs font-medium">{label}</h3>
+      <Heading as="h3" size="label" tone="muted" className="px-2 pb-1.5">
+        {label}
+      </Heading>
       <div role="listbox" aria-label={label} className="flex flex-col gap-1">
         {buildings.map((building) => (
           <BuildingRow
@@ -480,7 +505,9 @@ export function BuildingRail(props: BuildingRailProps) {
         <div className="flex h-full min-h-0 flex-col">
           <div className="border-border-subtle shrink-0 border-b px-3 py-3">
             <div>
-              <h2 className="text-on-surface text-base leading-snug font-medium">{props.selected.name}</h2>
+              <Heading as="h2" size="section">
+                {props.selected.name}
+              </Heading>
               <p className="text-on-surface-variant mt-1 text-xs">
                 <span className="font-mono">{props.selected.code}</span>
                 {props.selected.address ? ` · ${props.selected.address}` : ""}
@@ -788,7 +815,9 @@ export function BuildingRail(props: BuildingRailProps) {
                 <div id={listboxId} role="listbox" aria-label="Building search results" className="hidden" />
                 {props.favoriteStatus === "loading" && saved.length === 0 ? (
                   <section aria-label="Saved">
-                    <h3 className="text-muted px-2 pb-1.5 text-xs font-medium">Saved</h3>
+                    <Heading as="h3" size="label" tone="muted" className="px-2 pb-1.5">
+                      Saved
+                    </Heading>
                     <SkeletonList label="Loading saved buildings" rows={2} icon padding="none" className="px-3" />
                   </section>
                 ) : null}

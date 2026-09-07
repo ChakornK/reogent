@@ -17,6 +17,7 @@ import type { MapHighlight } from "@/src/components/chat/chat-shell-context";
 import { BuildingPopup, type SelectedBuilding } from "@/src/components/map/building-popup";
 import { tooltipPosition } from "@/src/components/map/tooltip-position";
 import { useApi, useTheme, type ResolvedTheme } from "@/src/components/providers";
+import { Button } from "@/src/components/ui/button";
 import type { BuildingSummary, EntranceFeatureCollection } from "@/src/lib/api-types";
 import { buildingFromFeature } from "@/src/lib/building-catalog";
 import { buildEntranceMarkers, visibleEntranceMarkers } from "@/src/lib/entrance-geometry";
@@ -1229,13 +1230,9 @@ export function CampusMap({
           className="neu-panel bg-surface absolute right-3 bottom-28 z-20 flex max-w-64 items-center gap-2 rounded-xl p-2"
         >
           <span className="text-on-surface-variant text-xs">Entrance markers unavailable.</span>
-          <button
-            type="button"
-            onClick={() => setEntranceNonce((nonce) => nonce + 1)}
-            className="focus-visible:ring-primary/40 text-primary min-h-11 rounded-lg px-2 text-xs font-medium focus-visible:ring-2 sm:min-h-9"
-          >
+          <Button variant="ghost" size="compact" onClick={() => setEntranceNonce((nonce) => nonce + 1)}>
             Retry
-          </button>
+          </Button>
         </div>
       ) : null}
       {picked && (picked.name || picked.code) && (

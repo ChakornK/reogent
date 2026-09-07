@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/src/components/ui/button";
 import { Skeleton, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import type { PanInfo } from "motion/react";
@@ -32,6 +33,8 @@ export function PulseCardsLoading({ label }: { label: string }) {
     </SkeletonGroup>
   );
 }
+
+const MotionButton = motion.create(Button);
 
 const COMMIT_OFFSET = 100;
 const COMMIT_VELOCITY = 500;
@@ -118,27 +121,29 @@ export function PulseQuestionCard({ card, onVote }: { card: PulseCardData; onVot
               </>
             )}
             <p className="text-on-surface text-base">{card.text}</p>
-            <div className="mt-3 flex items-center justify-between px-1">
-              <motion.button
+            <div className="mt-3 flex items-center justify-between">
+              <MotionButton
+                variant="ghost"
+                size="field"
                 type="button"
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => castVote(false)}
                 aria-label={`Disagree: ${card.text}`}
                 whileTap={reduce ? undefined : { x: -8, scale: 0.95 }}
-                className="text-muted hover:text-on-surface -mx-2 -my-3 inline-flex min-h-11 items-center px-2 py-3 text-sm transition-colors select-none"
               >
                 Disagree
-              </motion.button>
-              <motion.button
+              </MotionButton>
+              <MotionButton
+                variant="ghost"
+                size="field"
                 type="button"
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => castVote(true)}
                 aria-label={`Agree: ${card.text}`}
                 whileTap={reduce ? undefined : { x: 8, scale: 0.95 }}
-                className="text-muted hover:text-on-surface -mx-2 -my-3 inline-flex min-h-11 items-center px-2 py-3 text-sm transition-colors select-none"
               >
                 Agree
-              </motion.button>
+              </MotionButton>
             </div>
             {card.error && (
               <p role="alert" className="text-error mt-2 text-xs">

@@ -6,6 +6,7 @@
 import type { CourseIndexEntry } from "@/app/api/course-index/route";
 import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
+import { Heading } from "@/src/components/ui/heading";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { isSummer, usePlanner, type Year } from "./planner-store";
 import { TermSection } from "./term-section";
@@ -32,7 +33,9 @@ export function YearColumn({ year, courseIndex, validations }: YearColumnProps) 
   return (
     <section className="flex h-full min-h-0 min-w-0 flex-col gap-2">
       <header className="flex h-8 shrink-0 items-baseline px-1">
-        <h2 className="text-on-surface text-sm font-medium">{year.label}</h2>
+        <Heading as="h2" size="subsection">
+          {year.label}
+        </Heading>
         <span className="text-muted ml-auto w-12 text-right text-xs tabular-nums">{yearCredits} cr</span>
       </header>
       <div className="flex min-h-0 flex-1 flex-col">
