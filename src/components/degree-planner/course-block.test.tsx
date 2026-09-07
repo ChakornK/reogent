@@ -1,7 +1,9 @@
 /** @vitest-environment happy-dom */
+import type { CourseIndexEntry } from "@/app/api/course-index/route";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CourseBlock } from "./course-block";
+import { LookupBlock } from "./lookup-block";
 import type { BlockValidation } from "./validation";
 
 const activators = vi.hoisted(() => ({
@@ -22,6 +24,18 @@ vi.mock("@dnd-kit/sortable", () => ({
   }),
 }));
 
+vi.mock("@dnd-kit/core", () => ({
+  useDraggable: () => ({ listeners: undefined, setNodeRef: vi.fn(), isDragging: false }),
+}));
+
+const course: CourseIndexEntry = {
+  code: "CPSC 221",
+  title: "Basic Algorithms and Data Structures",
+  credits: 4,
+  prerequisite: null,
+  corequisite: null,
+};
+
 const validation: BlockValidation = {
   ok: true,
   missing: [],
@@ -32,6 +46,65 @@ const validation: BlockValidation = {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+});
+
+function chipLayout(chip: HTMLElement) {
+  return [chip, ...chip.querySelectorAll<HTMLElement>("div, button, span")].map((element) => ({
+    tag: element.tagName,
+    classes: element.className.replace(/\binvisible\b/g, "").trim(),
+  }));
+}
+
+describe("Course chip layout", () => {
+  it("preserves geometry and typography from the finder through dragging and placement", () => {
+    const { container, rerender } = render(<LookupBlock entry={course} />);
+    const source = container.firstElementChild as HTMLElement;
+    const layout = chipLayout(source);
+
+    expect(source.querySelector(".font-mono")).toBeNull();
+
+    rerender(<LookupBlock entry={course} ghost />);
+    const lookupGhost = container.firstElementChild as HTMLElement;
+    expect(chipLayout(lookupGhost)).toEqual(layout);
+    expect(lookupGhost.hasAttribute("inert")).toBe(true);
+    expect(lookupGhost.getAttribute("aria-hidden")).toBe("true");
+
+    rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />);
+    const placed = container.firstElementChild as HTMLElement;
+    expect(chipLayout(placed)).toEqual(layout);
+    expect(placed.hasAttribute("inert")).toBe(false);
+
+    rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} ghost />);
+    const blockGhost = container.firstElementChild as HTMLElement;
+    expect(chipLayout(blockGhost)).toEqual(layout);
+    expect(blockGhost.hasAttribute("inert")).toBe(true);
+  });
+
+  it("keeps the term picker outside the measured drag surface", () => {
+    const { container, rerender } = render(
+      <CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />,
+    );
+    const layout = chipLayout(container.firstElementChild as HTMLElement);
+    fireEvent.click(screen.getByRole("button", { name: "Move" }));
+    const select = screen.getByRole("combobox", { name: "Move CPSC 221 to term" });
+    expect(select.closest("[data-block-id]")).toBeNull();
+    expect(select.classList.contains("shrink-0")).toBe(true);
+    expect(chipLayout(container.firstElementChild as HTMLElement)).toEqual(layout);
+
+    rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} ghost />);
+    expect(chipLayout(container.firstElementChild as HTMLElement)).toEqual(layout);
+    expect(screen.queryByRole("combobox")).toBeNull();
+  });
+
+  it("keeps the code and action slots when catalog metadata is missing", () => {
+    const { container, rerender } = render(
+      <CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />,
+    );
+    const layout = chipLayout(container.firstElementChild as HTMLElement);
+    rerender(<CourseBlock blockId="block-1" code={course.code} entry={undefined} validation={validation} />);
+    expect(chipLayout(container.firstElementChild as HTMLElement)).toEqual(layout);
+    expect(screen.getByRole("button", { name: "Remove CPSC 221" })).toBeTruthy();
+  });
 });
 
 describe("CourseBlock drag activation", () => {

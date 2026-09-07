@@ -379,7 +379,7 @@ function ProseRequirements({
                     size={14}
                     className={`${planned ? "text-primary" : "text-muted"} shrink-0 self-center`}
                   />
-                  <span className="shrink-0 font-mono">{code}</span>
+                  <span className="shrink-0 font-medium">{code}</span>
                   {title ? <span className="text-muted truncate">— {title}</span> : null}
                 </li>
               );

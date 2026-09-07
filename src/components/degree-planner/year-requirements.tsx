@@ -222,7 +222,7 @@ function CourseRequirementRow({
               <select
                 value={selectedCode}
                 onChange={(event) => setChosenCode(event.target.value)}
-                className="neu-inset bg-surface-container-low text-on-surface h-6 max-w-full rounded-md px-1 font-mono text-xs"
+                className="neu-inset bg-surface-container-low text-on-surface h-6 max-w-full rounded-md px-1 text-xs"
                 aria-label="Course alternative"
               >
                 {choices.map((code) => (

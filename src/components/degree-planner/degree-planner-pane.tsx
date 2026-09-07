@@ -445,8 +445,8 @@ export function DegreePlannerPane() {
           <div
             className="grid min-h-0 flex-1 gap-4"
             style={{
-              gridTemplateColumns: `repeat(${years.length}, minmax(10.5rem, 1fr))`,
-              minWidth: `${years.length * 10.5 + Math.max(0, years.length - 1)}rem`,
+              gridTemplateColumns: `repeat(${years.length}, minmax(18rem, 1fr))`,
+              minWidth: `${years.length * 18 + Math.max(0, years.length - 1)}rem`,
             }}
           >
             {years.map((year) => (
@@ -481,9 +481,7 @@ export function DegreePlannerPane() {
               />
             )}
             {activeDrag.kind === "lookup" && courseIndex.get(activeDrag.code) && (
-              <div style={{ width: anchor.width || 288 }}>
-                <LookupBlock entry={courseIndex.get(activeDrag.code) as CourseIndexEntry} ghost />
-              </div>
+              <LookupBlock entry={courseIndex.get(activeDrag.code) as CourseIndexEntry} ghost />
             )}
           </DragOverlayFrame>
         )}
@@ -726,7 +724,7 @@ function ActionsSection({
                   title="Locate on the board"
                 >
                   <p className="text-xs">
-                    <span className="text-on-surface font-mono font-medium">{block.code}</span>
+                    <span className="text-on-surface font-medium">{block.code}</span>
                     <span className="text-muted"> · {block.place}</span>
                   </p>
                   <p className="text-on-surface-variant mt-0.5 text-xs leading-snug">

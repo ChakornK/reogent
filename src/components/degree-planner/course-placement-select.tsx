@@ -42,6 +42,7 @@ export function CoursePlacementSelect({
       aria-label={`${mode === "add" ? "Add" : "Move"} ${code} to term`}
       defaultValue=""
       controlSize="compact"
+      className="shrink-0"
       shadowOn={shadowOn}
       onChange={(event) => {
         const [yearIndexValue, termIndexValue] = event.target.value.split(":");

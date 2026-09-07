@@ -138,7 +138,7 @@ export function CourseInfoPopup({
     >
       <div className="flex items-start gap-2">
         <h4 className="text-on-surface min-w-0 flex-1 font-medium">
-          <span className="font-mono">{course.code}</span>
+          {course.code}
           {course.title && <span className="text-on-surface-variant"> — {course.title}</span>}
         </h4>
         {onClose ? (
