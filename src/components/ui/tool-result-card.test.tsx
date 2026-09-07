@@ -1,9 +1,38 @@
 // @vitest-environment happy-dom
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { ToolResultFailure, ToolResultList, toolResultRowClasses, ToolResultRowContent } from "./tool-result-card";
+import {
+  ToolResultCard,
+  ToolResultFailure,
+  ToolResultList,
+  toolResultRowClasses,
+  ToolResultRowContent,
+} from "./tool-result-card";
 
 describe("tool result primitives", () => {
+  it("shares summary typography, preserves zero metadata, and allows actions to wrap", () => {
+    const { getByText, getByRole } = render(
+      <ToolResultCard
+        icon="building1"
+        title="Learning Centre"
+        metadata={0}
+        detail="No rooms listed"
+        action={<a href="/tools/map">Show on map</a>}
+      />,
+    );
+    expect(getByText("Learning Centre").className).toContain("text-base");
+    expect(getByText("Learning Centre").parentElement?.className).toContain("gap-1");
+    expect(getByText("0").className).toContain("text-muted");
+    expect(getByText("No rooms listed").className).toContain("text-on-surface-variant");
+    expect(getByRole("link").parentElement?.className).toContain("flex-wrap");
+  });
+
+  it("omits unused summary rows", () => {
+    const { getByText, queryByRole } = render(<ToolResultCard icon="map" title="Campus map" />);
+    expect(getByText("Campus map").parentElement?.childElementCount).toBe(1);
+    expect(queryByRole("button")).toBeNull();
+  });
+
   it("shares list, row, and metadata anatomy without changing native semantics", () => {
     render(
       <ToolResultList header="near IKB" footer="2 more">

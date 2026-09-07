@@ -1,40 +1,40 @@
 "use client";
 
+import { ChatComposerFrame, ChatFrame } from "@/src/components/chat/chat-frame";
 import { Icon } from "@/src/components/icons";
 import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
 import { Skeleton, SkeletonText } from "@/src/components/ui/skeleton";
 import { WorkspaceCanvas, WorkspacePage, WorkspacePanel, WorkspaceRail } from "@/src/components/ui/workspace";
 
+const COMPOSER_SKELETON = (
+  <ChatComposerFrame caption={<Skeleton className="mx-auto h-4 w-56" />}>
+    <Skeleton className="h-14 w-full rounded-2xl" />
+  </ChatComposerFrame>
+);
+
 /** Matches the empty-chat composition while the new-conversation route resolves. */
 export function NewChatLoading() {
   return (
-    <section
+    <ChatFrame
       data-new-chat-loading
       role="status"
       aria-label="Loading new conversation"
-      className="neu-panel bg-surface flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl"
+      header={<Skeleton className="h-5 w-32 rounded-md" />}
+      footer={COMPOSER_SKELETON}
     >
-      <header className="flex h-15 shrink-0 items-center px-4">
-        <Skeleton className="h-5 w-32 rounded-md" />
-      </header>
-      <div className="chat-message-well min-h-0 flex-1 overflow-hidden p-4 sm:p-6">
-        <div className="flex min-h-full flex-col px-3 text-center sm:px-6">
-          <div className="m-auto flex w-full max-w-xl flex-col items-center">
-            <Skeleton className="size-12 rounded-2xl" />
-            <Skeleton className="mt-4 h-6 w-56 max-w-full rounded-md" />
-            <Skeleton className="mt-2 h-4 w-80 max-w-full rounded" />
-            <div className="mt-5 flex w-full flex-wrap justify-center gap-2">
-              {["w-52", "w-44", "w-56", "w-48"].map((width) => (
-                <Skeleton key={width} className={`h-11 rounded-full ${width}`} />
-              ))}
-            </div>
+      <div className="flex min-h-full flex-col px-3 text-center sm:px-6">
+        <div className="m-auto flex w-full max-w-xl flex-col items-center">
+          <Skeleton className="size-12 rounded-2xl" />
+          <Skeleton className="mt-4 h-6 w-56 max-w-full rounded-md" />
+          <Skeleton className="mt-2 h-4 w-80 max-w-full rounded" />
+          <div className="mt-5 flex w-full flex-wrap justify-center gap-2">
+            {["w-52", "w-44", "w-56", "w-48"].map((width) => (
+              <Skeleton key={width} className={`h-11 rounded-full sm:h-8 ${width}`} />
+            ))}
           </div>
         </div>
       </div>
-      <div className="shrink-0 px-3 pt-2 pb-4 sm:px-4">
-        <Skeleton className="h-14 w-full rounded-2xl" />
-      </div>
-    </section>
+    </ChatFrame>
   );
 }
 
@@ -51,22 +51,15 @@ export function ChatMessagesSkeleton() {
 /** Reserves the complete conversation panel while chat history resolves. */
 export function ChatPanelLoading() {
   return (
-    <section
+    <ChatFrame
       data-chat-loading
       role="status"
       aria-label="Loading conversation"
-      className="neu-panel bg-surface flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl"
+      header={<Skeleton className="h-5 w-40 rounded-md" />}
+      footer={COMPOSER_SKELETON}
     >
-      <header className="flex h-15 shrink-0 items-center px-4">
-        <Skeleton className="h-5 w-40 rounded-md" />
-      </header>
-      <div className="chat-message-well min-h-0 flex-1 overflow-hidden p-4 sm:p-6">
-        <ChatMessagesSkeleton />
-      </div>
-      <div className="shrink-0 px-3 pt-2 pb-4 sm:px-4">
-        <Skeleton className="h-14 w-full rounded-2xl" />
-      </div>
-    </section>
+      <ChatMessagesSkeleton />
+    </ChatFrame>
   );
 }
 

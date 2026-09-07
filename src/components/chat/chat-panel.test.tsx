@@ -33,6 +33,7 @@ vi.mock("motion/react", async (importOriginal) => {
     ...original,
     AnimatePresence: ({ children }: { children?: ReactNode }) => <>{children}</>,
     motion: {
+      create: original.motion.create,
       button: staticElement("button"),
       div: staticElement("div"),
       li: staticElement("li"),

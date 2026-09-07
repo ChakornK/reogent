@@ -2,6 +2,7 @@
 
 // The recessed chat composer. Enter sends; Shift+Enter adds a line;
 // Cmd/Ctrl+Enter always sends. Submit locks while a request is in flight.
+import { ChatComposerFrame } from "@/src/components/chat/chat-frame";
 import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type KeyboardEvent } from "react";
@@ -87,7 +88,14 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
   }
 
   return (
-    <div className="shrink-0 bg-transparent px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:pb-4">
+    <ChatComposerFrame
+      caption={showDisclaimer ? "AI can make mistakes. Verify important information." : tip ? `Tip: ${tip}` : null}
+      trailing={
+        value.length > 9000 ? (
+          <span className="text-muted ml-auto text-xs tabular-nums">{value.length.toLocaleString()} / 10,000</span>
+        ) : null
+      }
+    >
       <form
         data-thinking={thinking}
         aria-busy={thinking}
@@ -136,14 +144,6 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
           </Button>
         )}
       </form>
-      <div className="mt-2 flex items-center justify-between px-1">
-        <p className="text-muted flex-1 text-center text-xs">
-          {showDisclaimer ? "AI can make mistakes. Verify important information." : tip ? `Tip: ${tip}` : null}
-        </p>
-        {value.length > 9000 && (
-          <span className="text-muted ml-auto text-xs tabular-nums">{value.length.toLocaleString()} / 10,000</span>
-        )}
-      </div>
-    </div>
+    </ChatComposerFrame>
   );
 });

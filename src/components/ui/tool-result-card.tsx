@@ -1,22 +1,32 @@
 import { Icon, type IconName } from "@/src/components/icons";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
-/** Standard card layout for an icon, result content, and optional action. */
+/** Composes a result icon, title, metadata, and detail with a wrapping optional action. */
 export function ToolResultCard({
   icon,
-  children,
+  title,
+  metadata,
+  detail,
   action,
+  className,
 }: {
   icon: IconName;
-  children: ReactNode;
+  title: ReactNode;
+  metadata?: ReactNode;
+  detail?: ReactNode;
   action?: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="bg-surface-container-low flex items-center gap-3 rounded-lg p-3">
+    <div className={`bg-surface-container-low flex flex-wrap items-center gap-3 rounded-lg p-3 ${className ?? ""}`}>
       <span className="bg-secondary-container text-on-secondary-container flex size-9 shrink-0 items-center justify-center rounded-lg">
         <Icon name={icon} size={18} />
       </span>
-      <span className="min-w-0 flex-1">{children}</span>
+      <span className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="text-on-surface text-base leading-6 font-medium">{title}</span>
+        {metadata != null ? <span className="text-muted text-xs leading-4">{metadata}</span> : null}
+        {detail != null ? <span className="text-on-surface-variant text-xs leading-4">{detail}</span> : null}
+      </span>
       {action}
     </div>
   );

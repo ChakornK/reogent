@@ -7,6 +7,7 @@ import { GradeDistributionChart } from "@/src/components/course-lookup/grade-dis
 import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
 import { ErrorBoundary } from "@/src/components/ui/error-boundary";
+import { Heading } from "@/src/components/ui/heading";
 import { InfoChip } from "@/src/components/ui/info-chip";
 import {
   ToolResultCard,
@@ -33,7 +34,7 @@ interface ToolCallRendererProps {
 
 type ToolCallRenderer = React.ComponentType<ToolCallRendererProps>;
 
-// ---- Badges (internal tool calls) ----
+const MotionButton = motion.create(Button);
 
 function ToolBadge({
   call,
@@ -53,36 +54,45 @@ function ToolBadge({
   const loading = call.result === undefined;
   const description = describeToolCall(call.name, call.input);
   const label = failed ? description.replace(/^Searched( for)? /, "Failed to find ") : description;
+  const animation = {
+    initial: reduce ? false : { opacity: 0, y: 4 },
+    animate: { opacity: 1, y: 0 },
+    transition: reduce ? { duration: 0 } : { type: "spring" as const, stiffness: 500, damping: 30 },
+  } as const;
+  const content = (
+    <>
+      <Icon name={failed ? "alert" : "search"} size={14} className={`shrink-0 ${loading ? "animate-pulse" : ""}`} />
+      <span className="truncate leading-4">{label}</span>
+      {failed && <span className="sr-only">(failed)</span>}
+    </>
+  );
+
+  if (mapped) {
+    return (
+      <MotionButton
+        {...animation}
+        variant="outline"
+        size="pill"
+        aria-pressed={active}
+        data-widget={call.name}
+        data-active={active || undefined}
+        onClick={onToggle}
+        className={`max-w-full overflow-hidden font-mono ${active ? "bg-accent-subtle ring-primary ring-2" : ""}`}
+      >
+        {content}
+      </MotionButton>
+    );
+  }
+
   return (
     <motion.span
-      initial={reduce ? false : { opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 30 }}
-      role={mapped ? "button" : undefined}
-      tabIndex={mapped ? 0 : undefined}
-      aria-pressed={mapped ? active : undefined}
+      {...animation}
       data-widget={call.name}
-      data-active={active || undefined}
-      onClick={mapped ? onToggle : undefined}
-      onKeyDown={
-        mapped
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onToggle?.();
-              }
-            }
-          : undefined
-      }
       className={`inline-flex w-fit max-w-full items-center gap-1.5 overflow-hidden rounded-full border px-2.5 py-1 font-mono text-xs ${
         failed ? "border-error/20 bg-error/10 text-error" : "border-primary/20 bg-primary/10 text-primary"
-      } ${mapped ? "hover:bg-primary/15 focus-visible:ring-primary/40 transition-colors duration-150 outline-none focus-visible:ring-2" : ""} ${
-        mapped && active ? "bg-primary/15 ring-primary ring-2" : ""
       }`}
     >
-      <Icon name={failed ? "alert" : "search"} size={14} className={`shrink-0 ${loading ? "animate-pulse" : ""}`} />
-      <span className="truncate leading-none">{label}</span>
-      {failed && <span className="sr-only">(failed)</span>}
+      {content}
     </motion.span>
   );
 }
@@ -113,7 +123,9 @@ function CourseCard({ course, detailed = false }: { course: CourseDoc; detailed?
         <span className="text-body-sm text-primary font-mono font-medium">{course.code.replace("_V", "")}</span>
         {course.credits !== null ? <InfoChip className="shrink-0">{course.credits} cr</InfoChip> : null}
       </div>
-      <h4 className="text-on-surface mt-0.5 line-clamp-2 text-sm font-medium">{course.title}</h4>
+      <Heading as="h4" size="subsection" className="mt-0.5 line-clamp-2">
+        {course.title}
+      </Heading>
       {detailed && course.description && (
         <p className="text-body-sm text-on-surface-variant mt-1.5 line-clamp-3 leading-relaxed">{course.description}</p>
       )}
@@ -297,15 +309,21 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
       const amount = data.per_credit_cad ?? data.amount_cad ?? 0;
       const asOf = (data as Partial<{ rates_as_of: string }>).rates_as_of;
       return (
-        <ToolResultCard icon="currencyDollar">
-          <span className="text-on-surface block text-base font-medium">
-            {formatCad(amount)} <span className="text-body-sm text-on-surface-variant font-normal">{label}</span>
-          </span>
-          <span className="text-muted block truncate text-xs">
-            {data.program || "—"} · {data.student_type || "—"} · {data.cohort_year || "—"} cohort
-            {asOf ? ` · snapshot ${asOf.slice(0, 10)}` : ""}
-          </span>
-        </ToolResultCard>
+        <ToolResultCard
+          icon="currencyDollar"
+          title={
+            <>
+              <span className="font-mono tabular-nums">{formatCad(amount)}</span>{" "}
+              <span className="text-body-sm text-on-surface-variant font-normal">{label}</span>
+            </>
+          }
+          metadata={
+            <>
+              {data.program || "—"} · {data.student_type || "—"} · {data.cohort_year || "—"} cohort
+              {asOf ? ` · snapshot ${asOf.slice(0, 10)}` : ""}
+            </>
+          }
+        />
       );
     }
     case "route": {
@@ -313,23 +331,25 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
         { from?: string; to?: string; meters?: number; minutes?: number; method?: "network" | "estimate" } | undefined;
       if (typeof r?.meters !== "number" || !r.from || !r.to) return null;
       return (
-        <ToolResultCard icon="walk">
-          <span className="text-on-surface block text-base font-medium">{formatMinutes(r.minutes)}</span>
-          <span className="text-on-surface-variant block truncate text-xs">
-            {r.method === "estimate" ? "Straight-line estimate · " : ""}
-            {formatMeters(r.meters)} · {r.from} → {r.to}
-          </span>
-        </ToolResultCard>
+        <ToolResultCard
+          icon="walk"
+          title={<span className="font-mono tabular-nums">{formatMinutes(r.minutes)}</span>}
+          metadata={
+            <>
+              {r.method === "estimate" ? "Straight-line estimate · " : ""}
+              <span className="font-mono">
+                {formatMeters(r.meters)} · {r.from} → {r.to}
+              </span>
+            </>
+          }
+        />
       );
     }
     case "building": {
       const b = data as { code?: string; name?: string; lat?: number; lon?: number } | undefined;
       if (!b?.code) return null;
       return (
-        <ToolResultCard icon="map">
-          <span className="text-on-surface block truncate text-base font-medium">{b.name ?? b.code}</span>
-          <span className="text-muted block truncate font-mono text-xs">{b.code}</span>
-        </ToolResultCard>
+        <ToolResultCard icon="map" title={b.name ?? b.code} metadata={<span className="font-mono">{b.code}</span>} />
       );
     }
     case "building_detail": {
@@ -350,33 +370,29 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
         Array.isArray(result.entrances) ? `${result.entrances.length} entrances` : null,
       ].filter(Boolean);
       return (
-        <ToolResultCard icon="building1">
-          <span className="text-on-surface block truncate text-base font-medium">
-            {result.building.name ?? result.building.code}
-          </span>
-          <span className="text-muted block truncate text-xs">
-            <span className="font-mono">{result.building.code}</span>
-            {result.building.address ? ` · ${result.building.address}` : ""}
-          </span>
-          {counts.length > 0 ? (
-            <span className="text-on-surface-variant mt-1 block text-xs">{counts.join(" · ")}</span>
-          ) : null}
-        </ToolResultCard>
+        <ToolResultCard
+          icon="building1"
+          title={result.building.name ?? result.building.code}
+          metadata={
+            <>
+              <span className="font-mono">{result.building.code}</span>
+              {result.building.address ? ` · ${result.building.address}` : ""}
+            </>
+          }
+          detail={counts.length > 0 ? counts.join(" · ") : null}
+        />
       );
     }
     case "building_entrances": {
       const result = data as { building?: { code?: string; name?: string }; entrances?: unknown[] } | undefined;
       if (!result?.building?.code || !Array.isArray(result.entrances)) return null;
       return (
-        <ToolResultCard icon="door">
-          <span className="text-on-surface block truncate text-base font-medium">
-            {result.building.name ?? result.building.code}
-          </span>
-          <span className="text-on-surface-variant block text-xs">
-            {result.entrances.length} verified entrance{result.entrances.length === 1 ? "" : "s"}
-          </span>
-          <span className="text-muted block text-xs">Accessibility details unavailable in source metadata</span>
-        </ToolResultCard>
+        <ToolResultCard
+          icon="door"
+          title={result.building.name ?? result.building.code}
+          metadata={`${result.entrances.length} verified entrance${result.entrances.length === 1 ? "" : "s"}`}
+          detail="Accessibility details unavailable in source metadata"
+        />
       );
     }
     case "building_spaces": {
@@ -399,21 +415,16 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
             ? result.availability.rooms.length
             : 0;
       return (
-        <ToolResultCard icon="school">
-          <span className="text-on-surface block truncate text-base font-medium">
-            {result.building.name ?? result.building.code}
-          </span>
-          <span className="text-on-surface-variant block text-xs">
-            {roomCount} learning space{roomCount === 1 ? "" : "s"} · {bookable} bookable room
-            {bookable === 1 ? "" : "s"}
-          </span>
-          {result.availability?.as_of ? (
-            <span className="text-muted block text-xs">
-              {result.availability.freshness === "historical" ? "Historical snapshot" : "Snapshot"} ·{" "}
-              {result.availability.as_of.slice(0, 10)}
-            </span>
-          ) : null}
-        </ToolResultCard>
+        <ToolResultCard
+          icon="school"
+          title={result.building.name ?? result.building.code}
+          metadata={`${roomCount} learning space${roomCount === 1 ? "" : "s"} · ${bookable} bookable room${bookable === 1 ? "" : "s"}`}
+          detail={
+            result.availability?.as_of
+              ? `${result.availability.freshness === "historical" ? "Historical snapshot" : "Snapshot"} · ${result.availability.as_of.slice(0, 10)}`
+              : null
+          }
+        />
       );
     }
     case "places": {
@@ -430,16 +441,11 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
         .filter(Boolean)
         .join(", ");
       return (
-        <ToolResultCard icon="location">
-          <span className="text-on-surface block text-base font-medium">
-            {p.places.length} place{p.places.length === 1 ? "" : "s"}
-            {p.near_building ? ` near ${p.near_building}` : ""}
-          </span>
-          <span className="text-muted block truncate text-xs">
-            {preview}
-            {p.places.length > 3 ? "…" : ""}
-          </span>
-        </ToolResultCard>
+        <ToolResultCard
+          icon="location"
+          title={`${p.places.length} place${p.places.length === 1 ? "" : "s"}${p.near_building ? ` near ${p.near_building}` : ""}`}
+          metadata={`${preview}${p.places.length > 3 ? "…" : ""}`}
+        />
       );
     }
     case "event": {
@@ -465,7 +471,9 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
         <div className="bg-surface-container-low flex max-w-sm flex-col gap-3 rounded-lg p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="text-on-surface text-sm font-medium">{e.title}</h3>
+              <Heading as="h3" size="subsection">
+                {e.title}
+              </Heading>
               {e.text && <p className="text-muted mt-0.5 line-clamp-2 text-xs">{e.text}</p>}
             </div>
             {startDate && (
@@ -582,11 +590,7 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
                 trailing={
                   <span className="flex shrink-0 items-center gap-2">
                     {room.capacity != null ? <InfoChip>{room.capacity} seats</InfoChip> : null}
-                    {typeof room.minutes === "number" ? (
-                      <span className="bg-secondary-container text-on-secondary-container rounded-full px-2 py-0.5 text-xs">
-                        free {formatMinutes(room.minutes)}
-                      </span>
-                    ) : null}
+                    {typeof room.minutes === "number" ? <InfoChip>free {formatMinutes(room.minutes)}</InfoChip> : null}
                   </span>
                 }
               />
@@ -646,13 +650,7 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
               <ToolResultRowContent
                 title={lot.name}
                 description={lot.rate}
-                trailing={
-                  lot.ev_charging ? (
-                    <span className="bg-secondary-container text-on-secondary-container shrink-0 rounded-full px-2 py-0.5 text-xs">
-                      EV
-                    </span>
-                  ) : null
-                }
+                trailing={lot.ev_charging ? <InfoChip className="shrink-0">EV</InfoChip> : null}
               />
             </div>
           ))}

@@ -4,9 +4,10 @@ import { useChatShell } from "@/src/components/chat/chat-shell-context";
 import { Icon } from "@/src/components/icons";
 import { useApi } from "@/src/components/providers";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
-import { SidebarListItem } from "@/src/components/shell/sidebar-list";
+import { SidebarItemButton, SidebarListItem } from "@/src/components/shell/sidebar-list";
 import { Button } from "@/src/components/ui/button";
 import { RetryAlert, RetryState } from "@/src/components/ui/feedback";
+import { Heading } from "@/src/components/ui/heading";
 import { Skeleton, SkeletonGroup } from "@/src/components/ui/skeleton";
 import type { SessionSummary } from "@/src/lib/api-types";
 import { SESSION_GROUP_ORDER, sessionGroup, type SessionGroup } from "@/src/lib/format";
@@ -210,20 +211,14 @@ function SessionItem({
 
   return (
     <div className="group relative flex items-center">
-      <button
-        type="button"
+      <SidebarItemButton
+        label={session.title?.trim() || "Untitled"}
+        icon={<Icon name="chat1" size={16} className="shrink-0" />}
+        active={active}
+        accessories
         onClick={onOpen}
-        aria-current={active ? "page" : undefined}
         title={session.title}
-        className={`focus-visible:ring-primary/40 flex h-11 w-full items-center gap-2 overflow-hidden rounded-lg py-2 pr-24 pl-3 text-left transition-[color,background-color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:h-9 sm:px-3 ${
-          active
-            ? "neu-inset bg-surface-container text-on-surface"
-            : "text-on-surface-variant group-hover:bg-surface-container-high group-hover:text-on-surface"
-        }`}
-      >
-        <Icon name="chat1" size={16} className="shrink-0" />
-        <span className="truncate text-sm">{session.title?.trim() || "Untitled"}</span>
-      </button>
+      />
       <div
         className="pointer-events-none absolute inset-y-0 right-0 w-24 rounded-r-lg opacity-100 transition-opacity sm:w-20 sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
         style={{
@@ -402,14 +397,20 @@ export function SessionSidebar({ onCollapse, onClose, footer }: SessionSidebarPr
           const groupId = `session-group-${group.replace(/\s+/g, "-").toLowerCase()}`;
           return (
             <div key={group} className="pt-2 first:pt-0">
-              <h3 id={groupId} className="text-muted px-2 pb-1.5 text-xs font-medium tracking-[0.05em] uppercase">
+              <Heading
+                as="h3"
+                id={groupId}
+                size="label"
+                tone="muted"
+                className="px-2 pb-1.5 tracking-[0.05em] uppercase"
+              >
                 {group}
-              </h3>
+              </Heading>
               <ul aria-labelledby={groupId} className="flex flex-col gap-1">
-                {items.map((session, i) => {
+                {items.map((session) => {
                   const active = session.session_id === activeId;
                   return (
-                    <SidebarListItem key={session.session_id} index={i}>
+                    <SidebarListItem key={session.session_id}>
                       <SessionItem
                         session={session}
                         active={active}

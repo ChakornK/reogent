@@ -3,6 +3,7 @@
 // Tactile message surfaces: user messages stay literal, while assistant
 // responses render safe GitHub-flavored Markdown without allowing raw HTML.
 // Interstitial blocks (thinking + tool calls) render inline before the final text.
+import { AssistantIdentity } from "@/src/components/chat/assistant-identity";
 import { injectChips } from "@/src/components/chat/citations/chip-injector";
 import { SourcesPanel } from "@/src/components/chat/citations/sources-panel";
 import { ResponseWidget } from "@/src/components/chat/tool-renderers";
@@ -221,14 +222,7 @@ export const AssistantMessage = memo(function AssistantMessage({
       animate={{ opacity: 1, y: 0 }}
       transition={reduce ? { duration: 0 } : messageSpring}
     >
-      {showAvatar && (
-        <div className="mb-2 flex items-center gap-2">
-          <span className="bg-primary-container text-on-primary-container flex size-7 items-center justify-center rounded-lg text-[0.6875rem] font-medium">
-            R
-          </span>
-          <span className="text-muted text-xs font-medium">Reodite</span>
-        </div>
-      )}
+      {showAvatar && <AssistantIdentity />}
       <div className="bg-surface max-w-[88%] min-w-0 rounded-[16px_16px_16px_5px] px-4 py-3">
         {message.warning && (
           <div className="bg-tertiary-container text-body-sm text-on-tertiary-container mb-3 flex items-start gap-2 rounded-xl px-3 py-2">
@@ -280,12 +274,7 @@ export function TypingIndicator({ slow, isFirstMessage }: { slow: boolean; isFir
   const label = pool[Math.floor(Date.now() / interval) % pool.length];
   return (
     <div role="status" aria-label="The assistant is thinking">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="bg-primary-container text-on-primary-container flex size-7 items-center justify-center rounded-lg text-[0.6875rem] font-medium">
-          R
-        </span>
-        <span className="text-muted text-xs font-medium">Reodite</span>
-      </div>
+      <AssistantIdentity />
       <div className="bg-surface inline-flex items-center gap-3 rounded-[16px_16px_16px_5px] px-4 py-3">
         <span className="thinking-orb" aria-hidden="true" />
         <span className="text-on-surface text-sm font-medium">{label}</span>

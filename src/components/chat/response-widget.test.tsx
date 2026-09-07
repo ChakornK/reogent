@@ -117,6 +117,25 @@ describe("5.3 — ResponseWidget (REQ-3, REQ-4)", () => {
     expect(shellRef.current?.workspaceView?.paneId).toBe("calendar");
   });
 
+  it("uses a native shared pill for mapped tool badges", () => {
+    const { container } = renderWidget(
+      {
+        ...walkingLoadingCall,
+        result: { from: "ICCS", to: "IBLC", meters: 400, minutes: 5 },
+      },
+      "walking-badge",
+    );
+    const badge = container.querySelector('[data-widget="walking_distance"]') as HTMLButtonElement;
+    expect(badge.tagName).toBe("BUTTON");
+    expect(badge.getAttribute("type")).toBe("button");
+    expect(badge.className).toContain("min-h-11");
+    expect(badge.className).toContain("sm:min-h-8");
+    expect(badge.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(badge);
+    expect(shellRef.current?.workspaceView?.paneId).toBe("map");
+    expect(badge.getAttribute("aria-pressed")).toBe("true");
+  });
+
   it("unmapped tools render a static, non-focusable summary", () => {
     const { container } = renderWidget(tuitionCall);
     const widget = container.querySelector('[data-widget="get_tuition"]') as HTMLElement;

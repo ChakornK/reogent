@@ -8,7 +8,7 @@ import { ThemeToggle } from "@/src/components/theme-toggle";
 import { ButtonLink } from "@/src/components/ui/button";
 import { LoadingStatus } from "@/src/components/ui/feedback";
 import { InlineAction } from "@/src/components/ui/inline-action";
-import { motion, useInView, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useInView, useReducedMotion, useScroll, useTransform, type HTMLMotionProps } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -74,7 +74,14 @@ function GuestLink({ className }: { className?: string }) {
   );
 }
 
-// --- Animated landing content (only mounts when signed out, refs are safe) ---
+function SectionHeading({ className, ...props }: HTMLMotionProps<"h2">) {
+  return (
+    <motion.h2
+      className={`text-on-surface text-2xl font-medium tracking-[-0.02em] sm:text-3xl ${className ?? ""}`}
+      {...props}
+    />
+  );
+}
 
 function LandingContent() {
   const prefersReducedMotion = useReducedMotion();
@@ -150,7 +157,9 @@ function LandingContent() {
             </Link>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <ButtonLink href="/login">Sign in</ButtonLink>
+              <ButtonLink href="/login" shadowOn={scrolled ? "surface" : "background"}>
+                Sign in
+              </ButtonLink>
             </div>
           </motion.nav>
         </div>
@@ -214,7 +223,7 @@ function LandingContent() {
                   animate={heroCTAVariant.visible}
                   transition={{ type: "spring", stiffness: 80, damping: 18, delay: 0.32 }}
                 >
-                  <ButtonLink href="/signup" variant="primary" size="large">
+                  <ButtonLink href="/signup" variant="primary" size="large" shadowOn="background">
                     Get started
                   </ButtonLink>
                 </motion.div>
@@ -223,7 +232,7 @@ function LandingContent() {
                   animate={heroCTAVariant.visible}
                   transition={{ type: "spring", stiffness: 80, damping: 18, delay: 0.36 }}
                 >
-                  <ButtonLink href="/login" size="large">
+                  <ButtonLink href="/login" size="large" shadowOn="background">
                     Sign in
                   </ButtonLink>
                 </motion.div>
@@ -244,9 +253,7 @@ function LandingContent() {
         <section className="px-4 py-16 sm:px-6 sm:py-24" ref={productSectionRef}>
           <div className="mx-auto max-w-5xl">
             <div className="mx-auto mb-10 max-w-lg text-center sm:mb-12">
-              <h2 className="text-on-surface text-2xl font-medium tracking-[-0.02em] sm:text-3xl">
-                You ask. It finds. The map shows.
-              </h2>
+              <SectionHeading>You ask. It finds. The map shows.</SectionHeading>
               <p className="text-on-surface-variant mt-3 text-sm leading-relaxed sm:text-base">
                 The agent calls real UBC data tools. If the answer involves a place, you see the route.
               </p>
@@ -264,14 +271,14 @@ function LandingContent() {
         {/* Features — staggered entrance */}
         <section className="px-4 py-24 sm:px-6 sm:py-32">
           <div ref={featuresRef} className="mx-auto max-w-3xl">
-            <motion.h2
-              className="text-on-surface text-center text-2xl font-medium tracking-[-0.02em] sm:text-3xl"
+            <SectionHeading
+              className="text-center"
               initial={skipAnim ? false : { opacity: 0, y: 16 }}
               animate={featuresInView || skipAnim ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             >
               Backed by real data. Drawn on a real map.
-            </motion.h2>
+            </SectionHeading>
 
             <div className="mt-16 grid gap-12 sm:grid-cols-3 sm:gap-8">
               {(
@@ -319,14 +326,13 @@ function LandingContent() {
           className="px-4 pt-24 pb-12 text-center sm:px-6 sm:pt-32 sm:pb-16"
           style={skipAnim ? undefined : { y: ctaParallaxY }}
         >
-          <motion.h2
-            className="text-on-surface text-2xl font-medium tracking-[-0.02em] sm:text-3xl"
+          <SectionHeading
             initial={skipAnim ? false : featureItemVariant.hidden}
             animate={ctaInView || skipAnim ? featureItemVariant.visible : featureItemVariant.hidden}
             transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           >
             Stop guessing. Start asking.
-          </motion.h2>
+          </SectionHeading>
           <motion.p
             className="text-on-surface-variant mx-auto mt-4 max-w-xs text-base leading-relaxed"
             initial={skipAnim ? false : featureItemVariant.hidden}
@@ -341,10 +347,10 @@ function LandingContent() {
             animate={ctaInView || skipAnim ? featureItemVariant.visible : featureItemVariant.hidden}
             transition={{ duration: 0.5, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
-            <ButtonLink href="/signup" variant="primary" size="large">
+            <ButtonLink href="/signup" variant="primary" size="large" shadowOn="background">
               Get started free
             </ButtonLink>
-            <ButtonLink href="/login" size="large">
+            <ButtonLink href="/login" size="large" shadowOn="background">
               Sign in
             </ButtonLink>
           </motion.div>

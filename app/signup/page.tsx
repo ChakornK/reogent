@@ -3,8 +3,9 @@
 import { AuthForm, AuthFormLoading } from "@/src/components/auth/auth-form";
 import { Icon } from "@/src/components/icons";
 import { ThemeToggle } from "@/src/components/theme-toggle";
+import { ButtonLink } from "@/src/components/ui/button";
+import { Heading } from "@/src/components/ui/heading";
 import { motion, useReducedMotion } from "motion/react";
-import Link from "next/link";
 import { Suspense } from "react";
 
 function SignupContent() {
@@ -13,13 +14,10 @@ function SignupContent() {
   return (
     <div className="auth-canvas flex min-h-svh flex-col px-4 py-8">
       <nav className="flex items-center">
-        <Link
-          href="/"
-          className="text-on-surface-variant hover:text-on-surface flex min-h-[44px] items-center gap-2 rounded-lg px-2 py-2.5 text-sm transition-colors duration-150"
-        >
+        <ButtonLink href="/" variant="ghost" size="field">
           <Icon name="left" size={16} />
           <span>Home</span>
-        </Link>
+        </ButtonLink>
       </nav>
       <motion.div
         data-auth-content
@@ -32,9 +30,9 @@ function SignupContent() {
           <span className="neu-raised bg-surface text-primary mb-8 flex size-14 items-center justify-center rounded-2xl">
             <Icon name="school" size={27} />
           </span>
-          <h1 className="text-on-surface mb-2 text-center text-2xl font-medium tracking-[-0.02em]">
+          <Heading as="h1" size="title" className="mb-2 text-center">
             Create an account
-          </h1>
+          </Heading>
           <p className="text-muted mb-6 text-center text-sm">Sign up to start using Reodite — it&apos;s free</p>
           <Suspense fallback={<AuthFormLoading label="Loading sign up" />}>
             <AuthForm mode="signup" />

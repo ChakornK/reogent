@@ -107,7 +107,8 @@ describe("SessionSidebar actions", () => {
     expect(actions.className).toContain("opacity-100");
     expect(actions.className).toContain("sm:opacity-0");
     expect(open.className).toContain("pr-24");
-    expect(open.className).toContain("sm:px-3");
+    expect(open.className).toContain("pl-3");
+    expect(open.className).toContain("sm:pr-3");
 
     fireEvent.click(rename);
     const confirm = screen.getByRole("button", { name: "Confirm rename" });

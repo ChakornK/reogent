@@ -5,7 +5,7 @@ import { Icon, type IconName } from "@/src/components/icons";
 import { ModeToggle } from "@/src/components/shell/mode-toggle";
 import { BrandHeader, SessionSidebar } from "@/src/components/shell/session-sidebar";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
-import { SidebarListItem, SidebarListNav } from "@/src/components/shell/sidebar-list";
+import { SidebarItemButton, SidebarListItem, SidebarListNav } from "@/src/components/shell/sidebar-list";
 import { ToolList } from "@/src/components/shell/tool-list";
 import { UserMenu } from "@/src/components/shell/user-menu";
 import { Button } from "@/src/components/ui/button";
@@ -22,34 +22,20 @@ function UnitySidebar({ collapsed = false, onSelect }: { collapsed?: boolean; on
 
   return (
     <SidebarListNav label="Community" collapsed={collapsed}>
-      {UNITY_ITEMS.map((item, i) => {
+      {UNITY_ITEMS.map((item) => {
         const active = pathname === item.path || (item.path !== "/pulse" && pathname.startsWith(`${item.path}/`));
         return (
-          <SidebarListItem key={item.path} index={i}>
-            <button
-              type="button"
-              aria-current={active ? "page" : undefined}
+          <SidebarListItem key={item.path}>
+            <SidebarItemButton
+              label={item.label}
+              icon={<Icon name={item.icon} size={16} className="shrink-0" />}
+              active={active}
+              collapsed={collapsed}
               onClick={() => {
                 navigation.push(item.path);
                 onSelect?.();
               }}
-              className={`focus-visible:ring-primary/40 flex h-11 items-center rounded-lg transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:h-9 ${
-                collapsed ? "w-11 justify-center sm:w-9" : "w-full gap-2.5 px-3"
-              } ${
-                active
-                  ? "neu-inset bg-surface-container text-on-surface"
-                  : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
-              }`}
-            >
-              <Icon name={item.icon} size={16} className="shrink-0" />
-              <span
-                className={`text-sm font-medium whitespace-nowrap transition-opacity duration-300 ${
-                  collapsed ? "w-0 overflow-hidden opacity-0" : "opacity-100"
-                }`}
-              >
-                {item.label}
-              </span>
-            </button>
+            />
           </SidebarListItem>
         );
       })}
