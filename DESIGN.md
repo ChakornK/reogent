@@ -50,7 +50,7 @@ typography:
     fontFamily: "Aspekta, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
-    lineHeight: 1.5
+    lineHeight: "1.25rem"
   body-sm:
     fontFamily: "Aspekta, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.8125rem"
@@ -60,12 +60,12 @@ typography:
     fontFamily: "Aspekta, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1rem"
     fontWeight: 500
-    lineHeight: 1.4
+    lineHeight: 1.5
   title:
     fontFamily: "Aspekta, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1.25rem"
     fontWeight: 500
-    lineHeight: 1.3
+    lineHeight: 1.25
     letterSpacing: "-0.02em"
   display:
     fontFamily: "Aspekta, ui-sans-serif, system-ui, sans-serif"
@@ -76,8 +76,8 @@ typography:
   caption:
     fontFamily: "Aspekta, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.75rem"
-    fontWeight: 450
-    lineHeight: 1.4
+    fontWeight: 400
+    lineHeight: "1rem"
   avatar:
     fontFamily: "Aspekta, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.6875rem"
@@ -260,12 +260,12 @@ Color tokens accept Tailwind opacity modifiers for layered effects:
 
 ### In-App Hierarchy
 
-- **Title** (500, 1.25rem/text-xl, -0.02em): Page titles, panel headers, greeting text. One per visible viewport. Line-height varies by context: Tailwind default for text-xl or `leading-tight` (1.25) in compact headings.
+- **Title** (500, 1.25rem/25px, -0.02em): Workspace and authentication page titles, recovery titles, and chat greetings. Use the shared Heading Title role.
 - **Brand Title** (500, text-base, -0.025em): The "Reodite" wordmark in the sidebar brand header. Uses tighter tracking than standard Title.
-- **Heading** (500, 1rem/text-base, -0.01em): Card titles, session names, route info primary values. Uses `leading-tight` (1.25) or `leading-snug` (1.375) in space-constrained contexts.
-- **Body** (400, 0.875rem/text-sm, 1.5): Chat messages, descriptions, button labels. Base size. 14px for information density. Uses `leading-relaxed` (1.625) in chat bubbles and descriptions for extra breathing room.
+- **Heading** (500, 1rem/24px, -0.01em): Section and dialog titles, chat session headings, and Answer Canvas titles. Use the shared Heading Section role. Dense panel headings use the 14px/20px Subsection role.
+- **Body** (400, 0.875rem/20px): Default UI text and control labels. Inherit the Tailwind `text-sm` metrics at the body so unmarked text and explicit controls align. Chat bubbles and longer descriptions use `leading-relaxed` (1.625); assistant Markdown keeps its reading-specific 1.65 line height.
 - **Body Small** (400, 0.8125rem/text-body-sm, 1.5): Secondary info, timestamps, tool badge content, sidebar session previews.
-- **Caption** (450-500, 0.75rem/text-xs, 1.4): Labels, metadata, navigation group headers, category names.
+- **Caption** (400, 0.75rem/16px): Metadata and secondary facts. Field labels and group headings use medium weight at the same size and line height.
 - **Avatar Monogram** (500, text-[0.6875rem]): 11px text for single-character avatar initials. Below caption scale; used exclusively in size-7 avatar containers.
 - **Mono** (400, 0.8125rem/text-body-sm, 1.5): Course codes (`CPSC 110`), times (`14:30`), building codes (`ICCS`), inline code, tool parameters, dollar amounts. Structured identifiers render in mono.
 - **Uppercase Label** (500, text-xs, tracking-[0.05em] or tracking-[0.06em]): Session group headers and collapsed-rail vertical labels. Positive tracking opens up small caps.
@@ -285,7 +285,7 @@ The landing page uses a larger, more expressive type scale:
 
 **The Mono-for-Data Rule.** Tool renderers and message formatting use Commit Mono for structured identifiers: course codes, times, building codes, distances, and dollar amounts. Degree Planner and Schedule workspaces use Aspekta throughout, including course identifiers and metadata.
 
-**The 14px-Base Rule.** Body text is 0.875rem (14px). Information-dense tool UI needs tighter text than a reading experience. More content visible without scrolling. Line-height stays at 1.5 for readability.
+**The 14px-Base Rule.** Use 14px/20px for UI body text. Keep relaxed leading in conversation prose and longer descriptions.
 
 **The Landing Exception Rule.** The landing page uses text-4xl through text-6xl, custom line-heights (1.05), and tighter tracking (-0.035em). These values are exclusive to the marketing surface and never appear in the app shell.
 
@@ -481,7 +481,7 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 - **Course chips**: Search results and placed courses share a compact raised two-row card with 8px horizontal and 4px vertical padding. The header pairs a plain-text course code with right-aligned actions: Info and Add in search, Info, Move, and Remove in the plan. Search cards have no remove placeholder. Add and Move use their natural button widths; square icon buttons use centered icons and uniform 4px gaps. Code and title share one left text edge, outside buttons, and serve as drag surfaces. The second row gives the title the remaining width beside unwrapped credits. Desktop controls are 32px high and compact-screen controls retain 44px hit areas. Each drag ghost copies its source card's content, actions, and width under `inert` and `aria-hidden`, without scaling. Year columns retain an 18rem minimum width. Add and Move reveal a non-shrinking native term selector outside the measured card; it omits co-op terms and disables the current move destination. Both commands use the same undoable store operations as drag and drop. Pointer drag retains anchored spring and velocity tilt, with immediate anchored positioning for reduced-motion users.
 - **Typography**: Degree Planner uses Aspekta throughout. Course codes use 14px medium text with 20px leading; titles use the 13px Body Small role; credits and actions use 12px Caption text. Titles truncate within their own row, and course details retain the full text. Course identifiers, requirement alternatives, and placement issues use no monospace.
 - **Course details**: Placement issues lead the popup as direct sentences. Each issue owns a separate `bg-error-container text-on-error-container` box; no heading or bullet list delays the explanation.
-- **Requirements**: Manual, course, planned, and completed rows share one 36px checkbox geometry. Text captions distinguish automatic completion from manual completion instead of changing the checkmark style. Automatically planned checks retain the primary color at 50% opacity to read as disabled; manually checked requirements remain fully opaque and interactive. Each year heading uses 4px vertical padding and sticks to the top of the Requirements scroller until the next year replaces it. Degree progress owns a 16px top inset.
+- **Requirements**: Use the feature-local `RequirementRowContent` for course, manual, and completed text, status, and credit columns. Keep native selection and drag wrappers outside that presentation. Manual, course, planned, and completed rows share one 36px checkbox geometry. Text captions distinguish automatic completion from manual completion instead of changing the checkmark style. Automatically planned checks retain the primary color at 50% opacity to read as disabled; manually checked requirements remain fully opaque and interactive. Each year heading uses 4px vertical padding and sticks to the top of the Requirements scroller until the next year replaces it. Degree progress owns a 16px top inset.
 - **Responsive flow**: At the shared 55rem container threshold, 44px Plan and Requirements & Courses controls switch between the still-mounted board and rail. Adding from Find Courses returns to Plan. The board remains keyboard-scrollable, and both rail cards retain equal bounded height.
 
 ### Schedule Workspaces
@@ -512,6 +512,8 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 
 ### Navigation
 
+Use `SidebarItemButton` for Tools, Unity, and conversation destinations. It owns 44px compact/36px desktop height, 8px icon gaps, 14px medium labels, neutral selected material, focus, and collapsed labels. Keep session accessory clearance in its explicit `accessories` variant; callers own navigation, rename, and deletion behavior.
+
 - **Session sidebar items**: `h-9 px-3 py-2 rounded-lg text-sm`. Active: `neu-inset bg-surface-container text-on-surface`; active navigation and mode controls never use accent-tinted fills. Inactive: `text-on-surface-variant`. Hover: `bg-surface-container-high text-on-surface`. Transition: all 150ms. Focus: `ring-primary/40 ring-2 ring-offset-1`.
 - **Session group headers**: `text-muted uppercase text-xs tracking-[0.05em] font-medium px-2 pb-1.5`. Categories: Today, Yesterday, This Week, This Month, Older.
 - **Header**: The app shell has no persistent top header. Brand lives in the sidebar (`bg-surface-container-low text-primary size-9 rounded-lg` logo tile + `text-base font-medium tracking-[-0.025em]` wordmark). Panel headers (answer canvas, drawer sections) use `px-4 py-3` flex rows.
@@ -519,6 +521,7 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 
 ### Chat Messages
 
+- **Shared frame**: Compose live and pending conversations with `ChatFrame` and `ChatComposerFrame`. Keep the 60px header, one padded message scroller, safe-area footer, and reserved caption row. Below the sidebar breakpoint, reserve 64px at the start of the chat header for the menu control. Reuse `AssistantIdentity` for live, pending, and marketing-example identity rows without importing chat state into the landing page. Tool summary cards use `ToolResultCard` title, metadata, detail, and action slots; format money, distance, and time with the data font. Mapped data-tool badges use native shared pill buttons; unmapped badges remain static.
 - **User bubble**: `bg-accent-subtle text-on-surface rounded-[16px_16px_5px_16px] px-4 py-3 text-sm leading-relaxed`. Right-aligned, max-width 85%. Flat on the message well surface (no shadow).
 - **Assistant bubble**: `bg-surface rounded-[16px_16px_16px_5px] px-4 py-3`. Left-aligned, max-width 88%. Contains: markdown (`.assistant-markdown`), tool badges, thinking blocks (collapsible), warning cards.
 - **Assistant avatar**: `bg-primary-container text-on-primary-container size-7 rounded-lg text-[0.6875rem] font-medium`. Placed beside the label row, not inside the bubble.
@@ -572,6 +575,8 @@ Reduced-motion: static, frozen at natural angle.
 Tools places a `WorkspacePanel` titled Explore beside the map. The panel owns three states: discovery, building details, and directions. Discovery uses one fixed rail-density search field followed by Saved and Curated popular rows. Building rows use a 36px neutral icon tile, a 14px name, and mono code plus address metadata; compact rows retain a 44px floor.
 
 Selected details keep All buildings and identity fixed above the scroller. Directions is the primary action; Save, Share, and Google Maps use labeled shared buttons. The body omits property and construction metadata, then renders only non-empty Address, Rooms & spaces, Bookable rooms, Food & services, and Sources sections. Verified entrances remain spatial graphics on the map and do not appear as a textual rail section. Sources cites only datasets that supply visible detail fields, so entrance geospatial provenance does not appear in the rail. Official images use a horizontal snap strip and retain the source link if an image fails. Availability labels current, historical, or unknown freshness. The interface identifies spatial POI joins and makes no undocumented entrance-accessibility claim.
+
+Use the map-local `BuildingDetailItem` for room, bookable-room, and service listings. It owns the list item surface, title/summary/detail rhythm, and trailing or below-text action placement. Keep room-title truncation and source/freshness statements explicit.
 
 The Building details and Directions panel headers place icon-only parent-return actions immediately before their headings. The raised route card contains only a 16px centered origin-to-destination track, a 12px gutter, and two equal `TextInput` compact fields separated by 8px. Each endpoint is the complete shared input control, so its height, radius, inset surface, typography, padding, and full-control focus outline match other Tools fields. The grid stays sticky inside the directions view's sole vertical scroll owner, so wheel or touch gestures begun over either the editor or results move the same bounded list. Results use rounded tonal rows with 36px icon tiles, 8px gaps, an inset selected state, and a thin scrollbar. Choosing a result commits it, resets scroll, removes the list immediately, and starts a route when both endpoints exist. Loading, retry, and route summaries replace the list without retaining search results.
 
