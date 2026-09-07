@@ -80,6 +80,19 @@ describe("Course chip layout", () => {
     expect(blockGhost.hasAttribute("inert")).toBe(true);
   });
 
+  it("anchors text instead of inheriting compact button insets and centering", () => {
+    const { rerender } = render(<LookupBlock entry={course} />);
+    const details = screen.getByRole("button", { name: "Show CPSC 221 details" });
+    expect(getComputedStyle(details).paddingLeft).toBe("0px");
+    expect(getComputedStyle(details).paddingRight).toBe("0px");
+    expect(getComputedStyle(details).justifyContent).toBe("flex-start");
+    expect(getComputedStyle(screen.getByRole("button", { name: "Add" })).justifyContent).toBe("flex-start");
+
+    rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />);
+    expect(getComputedStyle(screen.getByRole("button", { name: "Show CPSC 221 details" })).paddingLeft).toBe("0px");
+    expect(getComputedStyle(screen.getByRole("button", { name: "Move" })).justifyContent).toBe("flex-start");
+  });
+
   it("keeps the term picker outside the measured drag surface", () => {
     const { container, rerender } = render(
       <CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />,

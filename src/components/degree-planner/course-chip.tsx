@@ -82,7 +82,8 @@ export function CourseChip({
                     setAnchorRect((current) => (current ? null : rect));
                   }
             }
-            className={`min-w-0 flex-1 justify-start px-1 ${invalid ? "text-error" : "text-on-surface"}`}
+            style={{ padding: 0, justifyContent: "flex-start" }}
+            className={`min-w-0 flex-1 ${invalid ? "text-error" : "text-on-surface"}`}
           >
             <span className="truncate text-sm leading-5 font-medium" title={code}>
               {code}
@@ -95,6 +96,7 @@ export function CourseChip({
               size="compact"
               aria-expanded={placing}
               onClick={ghost ? undefined : () => setPlacing((current) => !current)}
+              style={{ justifyContent: "flex-start" }}
               className="w-14"
             >
               {blockId ? "Move" : "Add"}
