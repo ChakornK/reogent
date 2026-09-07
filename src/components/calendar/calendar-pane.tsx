@@ -6,6 +6,7 @@ import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
 import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import { LoadingStatus, RetryAlert } from "@/src/components/ui/feedback";
+import { FloatingPanel } from "@/src/components/ui/floating-panel";
 import { InfoChip } from "@/src/components/ui/info-chip";
 import { announce } from "@/src/components/ui/live-region";
 import { Skeleton, SkeletonList } from "@/src/components/ui/skeleton";
@@ -28,7 +29,7 @@ import {
   toISODate,
 } from "@/src/shared/calendar/date-math";
 import type { CalendarEvent } from "@/src/shared/calendar/event";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useCalendarEvents } from "./use-calendar-events";
 
 const FUTURE_HORIZON_MONTHS = 24;
@@ -335,42 +336,24 @@ function MonthYearPicker({
   const [open, setOpen] = useState(false);
   const cursorYear = cursorDate.getUTCFullYear();
   const [year, setYear] = useState(cursorYear);
-  const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
 
   // Reopening lands on the month in view, not wherever the year arrows stopped.
   useEffect(() => {
     if (open) setYear(cursorYear);
   }, [open, cursorYear]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
-
   const nextYearBlocked = new Date(Date.UTC(year + 1, 0, 1)) > horizon;
 
   return (
-    <div ref={rootRef} className="relative shrink-0">
+    <div className="shrink-0">
       <Button
         ref={triggerRef}
         data-calendar-heading
         data-calendar-month-picker
         aria-haspopup="dialog"
+        aria-controls={open ? menuId : undefined}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className="w-40 tracking-[-0.01em]"
@@ -380,11 +363,14 @@ function MonthYearPicker({
       </Button>
 
       {open && (
-        <div
+        <FloatingPanel
+          id={menuId}
+          anchorRef={triggerRef}
+          onDismiss={() => setOpen(false)}
           role="dialog"
           aria-label="Pick month and year"
           data-calendar-month-menu
-          className="neu-raised bg-surface absolute top-[calc(100%+0.25rem)] left-1/2 z-50 w-60 -translate-x-1/2 rounded-xl p-2"
+          className="neu-raised bg-surface w-60 rounded-xl p-2"
         >
           <div className="mb-1 flex items-center justify-between">
             <button
@@ -430,7 +416,7 @@ function MonthYearPicker({
               );
             })}
           </div>
-        </div>
+        </FloatingPanel>
       )}
     </div>
   );
@@ -464,7 +450,7 @@ function MonthGrid({
       </div>
       <div
         data-calendar-grid
-        className="calendar-month-width bg-border-subtle grid min-h-0 flex-1 auto-rows-fr grid-cols-7 gap-0.5 overflow-hidden rounded-[0.625rem] p-0.5"
+        className="calendar-month-width bg-border-subtle grid flex-1 auto-rows-[minmax(8rem,1fr)] grid-cols-7 gap-0.5 overflow-hidden rounded-[0.625rem] p-0.5"
       >
         {cells.map((cell) => {
           if (!cell.date || !cell.iso) {
@@ -506,10 +492,16 @@ function MonthGrid({
                         {event.label}
                       </button>
                     ))}
-                    {dayEvents.length > 3 ? (
-                      <span data-calendar-count={String(dayEvents.length)} className="text-muted font-mono text-xs">
+                    {dayEvents.length > 2 ? (
+                      <button
+                        type="button"
+                        data-calendar-count={String(dayEvents.length)}
+                        onClick={() => onDayAgenda(dayEvents)}
+                        aria-label={`Open all ${dayEvents.length} events on ${formatFullDate(d)}`}
+                        className="text-primary hover:bg-surface-container focus-visible:ring-primary/40 min-h-11 shrink-0 rounded-md px-1 text-left text-xs focus-visible:ring-2"
+                      >
                         +{dayEvents.length - 2} more
-                      </span>
+                      </button>
                     ) : null}
                   </div>
                   <button
