@@ -39,7 +39,7 @@ type UnsplitWorkspaceProps = WorkspaceBaseProps & {
 
 export type WorkspacePageProps = SplitWorkspaceProps | UnsplitWorkspaceProps;
 
-/** Renders the fixed page, header, rail, and compact-view contract for app workspaces. */
+/** Renders shared workspace geometry with a scrollable page when vertical space runs short. */
 export function WorkspacePage(props: WorkspacePageProps) {
   const { host, menuClearance, titlebarOutlet } = useWorkspaceHost();
   const embedded = host === "answer-canvas";
@@ -86,7 +86,7 @@ export function WorkspacePage(props: WorkspacePageProps) {
       data-workspace-host={host}
       data-menu-clearance={menuClearance || undefined}
       data-workspace-view={activeView ?? undefined}
-      className="workspace-page h-full min-h-0 w-full min-w-0 overflow-hidden"
+      className="workspace-page h-full min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto"
     >
       {embedded && titlebarOutlet && props.titlebarActions
         ? createPortal(
@@ -97,10 +97,10 @@ export function WorkspacePage(props: WorkspacePageProps) {
           )
         : null}
 
-      <div className="workspace-page-layout flex h-full min-h-0 flex-col gap-4 p-6">
+      <div className="workspace-page-layout flex h-full min-h-min flex-col gap-4 p-6">
         {!embedded ? (
           <header data-workspace-header className="relative z-30 flex shrink-0 flex-col gap-3">
-            <div className="flex min-w-0 items-start gap-1.5">
+            <div data-workspace-heading className="flex min-w-0 items-start gap-1.5">
               {props.leading ? (
                 <div data-workspace-leading className="shrink-0">
                   {props.leading}
@@ -173,7 +173,7 @@ export function WorkspacePage(props: WorkspacePageProps) {
           </fieldset>
         ) : null}
 
-        <div className="workspace-page-body grid min-h-0 min-w-0 flex-1 gap-4">
+        <div className="workspace-page-body grid min-h-80 min-w-0 flex-1 gap-4">
           {split ? (
             <aside
               ref={railRegionRef}

@@ -67,6 +67,12 @@ describe("WorkspacePage", () => {
     expect(page?.dataset.workspaceHost).toBe("tools");
     expect(page?.querySelector("h1")?.textContent).toBe("Degree Planner");
     expect(page?.querySelectorAll("main")).toHaveLength(0);
+    expect(page?.className).toContain("overflow-y-auto");
+    expect(page?.querySelector(".workspace-page-layout")?.className).toContain("min-h-min");
+    expect(page?.querySelector(".workspace-page-body")?.className).toContain("min-h-80");
+    const heading = page?.querySelector("[data-workspace-heading]");
+    expect(heading?.querySelector("h1")?.textContent).toBe("Degree Planner");
+    expect(heading?.contains(page?.querySelector("[data-workspace-toolbar]") ?? null)).toBe(false);
     expect(page?.querySelectorAll("[data-workspace-panel]")).toHaveLength(2);
     const canvas = page?.querySelector("[data-workspace-canvas]");
     expect(canvas?.className).toContain("p-4");
