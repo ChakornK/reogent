@@ -1,26 +1,14 @@
 "use client";
 
-import { useAppAuth } from "@/src/components/auth/app-auth";
 import { AuthForm, AuthFormLoading } from "@/src/components/auth/auth-form";
 import { Icon } from "@/src/components/icons";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 
 function LoginContent() {
-  const auth = useAppAuth();
-  const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
-
-  const authenticatedAccount = auth.status === "signedIn" && !auth.isGuest;
-
-  useEffect(() => {
-    if (authenticatedAccount) router.replace("/chat");
-  }, [authenticatedAccount, router]);
-
-  const loading = auth.status === "initializing" || authenticatedAccount;
 
   return (
     <div className="auth-canvas flex min-h-svh flex-col px-4 py-8">
@@ -47,7 +35,7 @@ function LoginContent() {
           <h1 className="text-on-surface mb-2 text-center text-2xl font-medium tracking-[-0.02em]">Welcome back</h1>
           <p className="text-muted mb-6 text-center text-sm">Sign in to continue to Reodite</p>
           <Suspense fallback={<AuthFormLoading label="Loading sign in" />}>
-            {loading ? <AuthFormLoading label="Loading sign in" /> : <AuthForm mode="login" />}
+            <AuthForm mode="login" />
           </Suspense>
         </div>
       </motion.div>

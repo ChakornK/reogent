@@ -6,13 +6,13 @@ import { AuthForm, AuthFormLoading } from "./auth-form";
 
 const signIn = vi.hoisted(() => vi.fn());
 const register = vi.hoisted(() => vi.fn());
-const push = vi.hoisted(() => vi.fn());
+const router = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
 
 vi.mock("@/src/components/auth/app-auth", () => ({
-  useAppAuth: () => ({ signIn, register }),
+  useAppAuth: () => ({ status: "signedOut", isGuest: false, signIn, register }),
 }));
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => router,
   useSearchParams: () => new URLSearchParams(),
 }));
 vi.mock("motion/react", () => ({
@@ -27,7 +27,8 @@ afterEach(() => {
   cleanup();
   signIn.mockReset();
   register.mockReset();
-  push.mockReset();
+  router.push.mockReset();
+  router.replace.mockReset();
 });
 
 describe("AuthForm", () => {

@@ -7,7 +7,7 @@ import { InlineLink } from "@/src/components/ui/inline-action";
 import { Skeleton, SkeletonGroup } from "@/src/components/ui/skeleton";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface AuthFormProps {
   mode: "login" | "signup";
@@ -41,12 +41,28 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [pending, setPending] = useState(false);
 
   const redirect = searchParams.get("redirect") || "/chat";
-  // Validate redirect: allow only relative paths to prevent open redirect
-  const safeRedirect = redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/chat";
+  let safeRedirect = "/chat";
+  if (
+    redirect.startsWith("/") &&
+    !redirect.startsWith("//") &&
+    !Array.from(redirect).some((char) => char === "\\" || char.charCodeAt(0) <= 31 || char.charCodeAt(0) === 127)
+  ) {
+    // A fixed base validates relative URLs without accessing the browser during prerendering.
+    const origin = "https://reodite.invalid";
+    try {
+      if (new URL(redirect, origin).origin === origin) safeRedirect = redirect;
+    } catch {}
+  }
   const oppositeHref =
     mode === "login"
       ? `/signup?redirect=${encodeURIComponent(safeRedirect)}`
       : `/login?redirect=${encodeURIComponent(safeRedirect)}`;
+
+  const authenticatedAccount = auth.status === "signedIn" && !auth.isGuest;
+
+  useEffect(() => {
+    if (authenticatedAccount) router.replace(safeRedirect);
+  }, [authenticatedAccount, router, safeRedirect]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,9 +78,11 @@ export function AuthForm({ mode }: AuthFormProps) {
     if (result.error) {
       setError(result.error);
       usernameRef.current?.focus();
-    } else {
-      router.push(safeRedirect);
     }
+  }
+
+  if (auth.status === "initializing" || authenticatedAccount) {
+    return <AuthFormLoading label={mode === "login" ? "Loading sign in" : "Loading sign up"} />;
   }
 
   return (

@@ -1,26 +1,14 @@
 "use client";
 
-import { useAppAuth } from "@/src/components/auth/app-auth";
 import { AuthForm, AuthFormLoading } from "@/src/components/auth/auth-form";
 import { Icon } from "@/src/components/icons";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 
 function SignupContent() {
-  const auth = useAppAuth();
-  const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
-
-  const authenticatedAccount = auth.status === "signedIn" && !auth.isGuest;
-
-  useEffect(() => {
-    if (authenticatedAccount) router.replace("/chat");
-  }, [authenticatedAccount, router]);
-
-  const loading = auth.status === "initializing" || authenticatedAccount;
 
   return (
     <div className="auth-canvas flex min-h-svh flex-col px-4 py-8">
@@ -49,7 +37,7 @@ function SignupContent() {
           </h1>
           <p className="text-muted mb-6 text-center text-sm">Sign up to start using Reodite — it&apos;s free</p>
           <Suspense fallback={<AuthFormLoading label="Loading sign up" />}>
-            {loading ? <AuthFormLoading label="Loading sign up" /> : <AuthForm mode="signup" />}
+            <AuthForm mode="signup" />
           </Suspense>
         </div>
       </motion.div>
