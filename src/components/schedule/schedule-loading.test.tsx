@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
+import { AVATAR_COLORS } from "@/src/lib/schedule/avatar";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ScheduleProfileSkeleton } from "./schedule-loading";
+import { ScheduleControlsSkeleton, ScheduleProfileSkeleton } from "./schedule-loading";
 
 afterEach(cleanup);
 
@@ -18,6 +19,16 @@ function ProfileLoadingHarness() {
   );
 }
 
+describe("ScheduleControlsSkeleton", () => {
+  it("matches the shared Group field label height and control gap", () => {
+    const { container } = render(<ScheduleControlsSkeleton label="Loading controls" includeGroup />);
+    const label = container.querySelector(".h-4.w-16");
+    expect(label).not.toBeNull();
+    expect(label?.parentElement?.className).toContain("gap-1.5");
+    expect(label?.nextElementSibling?.className).toContain("h-11");
+  });
+});
+
 describe("ScheduleProfileSkeleton", () => {
   it("keeps profile geometry and title without exposing fake form controls", () => {
     render(<ScheduleProfileSkeleton title="Replace your schedule" onCancel={vi.fn()} />);
@@ -32,7 +43,15 @@ describe("ScheduleProfileSkeleton", () => {
     expect(within(dialog).getByRole("status", { name: "Loading handle field" }).parentElement?.className).toContain(
       "mt-4",
     );
-    expect(within(dialog).getByRole("status", { name: "Loading avatar choices" }).className).toContain("mt-4");
+    const avatarChoices = within(dialog).getByRole("status", { name: "Loading avatar choices" });
+    expect(avatarChoices.className).toContain("mt-4");
+    const palette = avatarChoices.querySelector(".flex-wrap");
+    expect(palette?.children).toHaveLength(AVATAR_COLORS.length);
+    for (const target of palette?.children ?? []) {
+      expect(target.className).toContain("size-11");
+      expect(target.className).toContain("sm:size-8");
+      expect(target.firstElementChild?.className).toContain("size-6");
+    }
     expect(within(dialog).getAllByRole("button")).toHaveLength(1);
     expect(dialog.querySelector("input, select, textarea")).toBeNull();
     expect(within(dialog).getByRole("button", { name: "Cancel" }).parentElement?.className).toContain("mt-6");

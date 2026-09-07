@@ -4,9 +4,10 @@ import { useAppAuth } from "@/src/components/auth/app-auth";
 import { Icon } from "@/src/components/icons";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { Button } from "@/src/components/ui/button";
-import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
+import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import { RetryState } from "@/src/components/ui/feedback";
 import { Checkbox, Field, SelectInput, TextInput } from "@/src/components/ui/form-controls";
+import { Heading } from "@/src/components/ui/heading";
 import type { MergedBlock } from "@/src/lib/schedule/calendar/buildCalendar";
 import { buildCalendar, expandBlocks } from "@/src/lib/schedule/calendar/buildCalendar";
 import {
@@ -403,30 +404,30 @@ function ScheduleAppInner({ groupCode }: Props) {
   const groupSelector =
     groups.length > 0 ? (
       <section data-control-section="group" aria-labelledby="schedule-groups-heading" className="pb-4">
-        <label id="schedule-groups-heading" htmlFor="schedule-group" className="text-on-surface text-sm font-medium">
-          Group
-        </label>
-        <SelectInput
-          id="schedule-group"
-          value={activeCode ?? ""}
-          onChange={(event) => switchGroup(event.target.value)}
-          className="mt-2"
-        >
-          {activeCode && !groups.some((item) => item.code === activeCode) ? (
-            <option value={activeCode}>{groupLabel}</option>
-          ) : null}
-          {groups.map((item) => (
-            <option key={item.code} value={item.code}>
-              {item.name} · {item.memberCount}
-            </option>
-          ))}
-        </SelectInput>
+        <Field label={<span id="schedule-groups-heading">Group</span>} htmlFor="schedule-group">
+          <SelectInput
+            id="schedule-group"
+            value={activeCode ?? ""}
+            onChange={(event) => switchGroup(event.target.value)}
+          >
+            {activeCode && !groups.some((item) => item.code === activeCode) ? (
+              <option value={activeCode}>{groupLabel}</option>
+            ) : null}
+            {groups.map((item) => (
+              <option key={item.code} value={item.code}>
+                {item.name} · {item.memberCount}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
       </section>
     ) : null;
 
   const importControl = (
     <section data-control-section="import" aria-label="My schedule" className="border-border-subtle border-t py-4">
-      <h3 className="text-on-surface mb-2 text-sm font-medium">My schedule</h3>
+      <Heading as="h3" size="subsection" className="mb-2">
+        My schedule
+      </Heading>
       <UploadDropzone
         presentation="button"
         label={meHasSchedule ? "Replace my schedule" : "Import my schedule"}
@@ -662,9 +663,9 @@ function NoGroupControls({
   return (
     <div className="border-border-subtle flex flex-col gap-4 border-t py-4">
       <section data-control-section="group-status">
-        <h2 className="text-on-surface text-sm font-medium">
+        <Heading as="h2" size="subsection">
           {error ? `${groupLabel ?? "Group"} unavailable` : me ? "Start a group" : "Import from Workday"}
-        </h2>
+        </Heading>
         <p className="text-muted mt-1 text-xs leading-relaxed">
           {error
             ? `Group ${groupCode ?? "code"} could not be opened. ${error}`
@@ -689,26 +690,25 @@ function NoGroupControls({
           if (/^[0-9A-Za-z]{6}$/.test(code)) onJoin(code);
         }}
       >
-        <label className="text-on-surface text-sm font-medium" htmlFor="schedule-code">
-          Join with a code
-        </label>
-        <div className="flex gap-2">
-          <TextInput
-            id="schedule-code"
-            value={code}
-            maxLength={6}
-            placeholder="ABC123"
-            aria-describedby="schedule-code-help"
-            onChange={(event) => setCode(event.target.value.replace(/[^0-9A-Za-z]/g, ""))}
-            className="min-w-0 flex-1 text-center uppercase"
-          />
-          <Button type="submit" size="field" disabled={!/^[0-9A-Za-z]{6}$/.test(code)}>
-            Join
-          </Button>
-        </div>
-        <p id="schedule-code-help" className="text-muted text-xs">
-          Enter the six-character code from a shared link.
-        </p>
+        <Field label="Join with a code" htmlFor="schedule-code">
+          <div className="flex gap-2">
+            <TextInput
+              id="schedule-code"
+              value={code}
+              maxLength={6}
+              placeholder="ABC123"
+              aria-describedby="schedule-code-help"
+              onChange={(event) => setCode(event.target.value.replace(/[^0-9A-Za-z]/g, ""))}
+              className="min-w-0 flex-1 text-center uppercase"
+            />
+            <Button type="submit" size="field" disabled={!/^[0-9A-Za-z]{6}$/.test(code)}>
+              Join
+            </Button>
+          </div>
+          <p id="schedule-code-help" className="text-muted text-xs">
+            Enter the six-character code from a shared link.
+          </p>
+        </Field>
       </form>
     </div>
   );
@@ -819,8 +819,7 @@ export function CreateGroupModal({
           }
         }}
       >
-        <h2 className="text-on-surface text-base font-medium">Create a shared schedule</h2>
-        <p className="text-on-surface-variant mt-1 text-sm">Name it for the group chat, club, or study crew.</p>
+        <DialogHeader title="Create a shared schedule" description="Name it for the group chat, club, or study crew." />
         <Field label="Group name" htmlFor="schedule-group-name" className="mt-4">
           <TextInput
             id="schedule-group-name"
@@ -832,14 +831,14 @@ export function CreateGroupModal({
             onChange={(event) => setName(event.target.value)}
           />
         </Field>
-        <div className="mt-5 flex justify-end gap-2">
+        <DialogActions>
           <Button size="prominent" disabled={creating} onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" variant="primary" size="prominent" disabled={!name.trim() || creating}>
             {creating ? "Creating…" : "Create group"}
           </Button>
-        </div>
+        </DialogActions>
       </DialogPanel>
     </DialogRoot>
   );

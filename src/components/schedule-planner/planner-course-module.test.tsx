@@ -4,7 +4,7 @@ import type { CourseDoc, CourseSection } from "@/src/lib/api-types";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { PlannerCourseModule } from "./planner-course-module";
-import type { ScheduleEntry } from "./schedule-store";
+import { entryId, type ScheduleEntry } from "./schedule-store";
 
 const term = "2026-27 Winter Term 1";
 
@@ -79,6 +79,22 @@ afterEach(() => {
 });
 
 describe("PlannerCourseModule", () => {
+  it("shows conflict status only for conflicting courses and keeps removal actionable", () => {
+    const onRemove = vi.fn();
+    const view = render(
+      <PlannerCourseModule
+        {...baseProps}
+        conflictingIds={new Set([entryId(baseProps.entries[0])])}
+        onRemove={onRemove}
+      />,
+    );
+    expect(view.getByText("Conflict").className).toContain("bg-error-container");
+    fireEvent.click(view.getByRole("button", { name: `Remove CPSC 110 from ${term}` }));
+    expect(onRemove).toHaveBeenCalledOnce();
+    view.rerender(<PlannerCourseModule {...baseProps} />);
+    expect(view.queryByText("Conflict")).toBeNull();
+  });
+
   it("reserves section controls until a course without cached entries resolves", () => {
     const view = render(<PlannerCourseModule {...baseProps} doc={undefined} entries={[]} />);
     expect(
@@ -103,7 +119,7 @@ describe("PlannerCourseModule", () => {
     expect(lectureSelect.className).toContain("sm:min-h-9");
     const remove = view.getByRole("button", { name: "Remove CPSC 110 from 2026-27 Winter Term 1" });
     expect(remove.className).toContain("size-11");
-    expect(remove.className).toContain("sm:size-9");
+    expect(remove.className).toContain("sm:size-8");
     expect(view.getByLabelText("Laboratory")).toBeTruthy();
     expect(view.getByText("2 not selected automatically")).toBeTruthy();
     expect(view.getByLabelText("R sections")).toBeTruthy();

@@ -1,5 +1,6 @@
 "use client";
 
+import { Heading } from "@/src/components/ui/heading";
 import { displayHandles } from "@/src/lib/schedule/display";
 import { whoIsFreeNow } from "@/src/lib/schedule/features/whoIsFreeNow";
 import type { Person } from "@/src/lib/schedule/types";
@@ -27,12 +28,12 @@ export function NowPanel({ people, now }: Props) {
 
   return (
     <section aria-label="Right now">
-      <h3 className="text-on-surface mb-2 flex min-h-9 items-center justify-between text-sm font-medium">
+      <Heading as="h3" size="subsection" className="mb-2 flex min-h-9 items-center justify-between">
         Right now
         <span className="text-xs font-normal tabular-nums">
           {now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
         </span>
-      </h3>
+      </Heading>
       <ul className="flex flex-col gap-1">
         {statuses.map(({ person, current, next, hasClassesToday }) => (
           <li key={person.id} className="flex min-h-11 items-center gap-2 rounded-lg px-2 py-1.5">

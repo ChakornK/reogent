@@ -356,6 +356,12 @@ describe("course-lookup-pane — tools-mode list/detail split", () => {
     expect(screen.getByRole("region", { name: "Advanced course filters" })).not.toBeNull();
     expect(screen.getByLabelText("Faculty").className).toContain("h-11");
     expect(screen.getByLabelText("Faculty").className).not.toContain("sm:h-9");
+    for (const label of ["Faculty", "Year", "Average", "Enrollment", "Credits"]) {
+      expect(screen.getByLabelText(label).classList.contains("neu-shadow-on-surface-container-low")).toBe(true);
+    }
+    for (const label of ["Find a course", "Session", "Sort by"]) {
+      expect(screen.getByLabelText(label).classList.contains("neu-shadow-on-surface")).toBe(true);
+    }
     fireEvent.change(screen.getByLabelText("Year"), { target: { value: "300" } });
     expect(screen.getByRole("button", { name: "Filters (1)" })).not.toBeNull();
     expect(screen.queryByRole("button", { name: "Show courses" })).toBeNull();

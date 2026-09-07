@@ -4,7 +4,7 @@ import { averageColorClass } from "@/src/components/course-lookup/grade-distribu
 import { useApi } from "@/src/components/providers";
 import { Button } from "@/src/components/ui/button";
 import { LoadingStatus, RetryAlert, RetryState } from "@/src/components/ui/feedback";
-import { Field, SearchInput, SelectInput, TextInput } from "@/src/components/ui/form-controls";
+import { Field, SearchInput, SelectInput, TextInput, type SelectInputProps } from "@/src/components/ui/form-controls";
 import { Skeleton, SkeletonGroup } from "@/src/components/ui/skeleton";
 import { WorkspaceCanvas, WorkspacePage } from "@/src/components/ui/workspace";
 import type { CourseDoc } from "@/src/lib/api-types";
@@ -64,16 +64,18 @@ function FilterSelect({
   value,
   options,
   onChange,
+  shadowOn,
 }: {
   id: string;
   label: string;
   value: string;
   options: readonly { value: string; label: string }[];
+  shadowOn?: SelectInputProps["shadowOn"];
   onChange: (value: string) => void;
 }) {
   return (
     <Field label={label} htmlFor={id}>
-      <SelectInput id={id} value={value} onChange={(event) => onChange(event.target.value)}>
+      <SelectInput id={id} shadowOn={shadowOn} value={value} onChange={(event) => onChange(event.target.value)}>
         {options.map((option) => (
           <option key={option.value || "all"} value={option.value}>
             {option.label}
@@ -322,6 +324,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
           >
             <FilterSelect
               id="course-explorer-level"
+              shadowOn="surface-container-low"
               label="Year"
               value={level == null ? "" : String(level)}
               options={YEAR_OPTIONS}
@@ -329,6 +332,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
             />
             <FilterSelect
               id="course-explorer-average"
+              shadowOn="surface-container-low"
               label="Average"
               value={avgBand}
               options={AVERAGE_OPTIONS}
@@ -336,6 +340,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
             />
             <FilterSelect
               id="course-explorer-enrollment"
+              shadowOn="surface-container-low"
               label="Enrollment"
               value={studentBand}
               options={ENROLLMENT_OPTIONS}
@@ -343,6 +348,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
             />
             <FilterSelect
               id="course-explorer-credits"
+              shadowOn="surface-container-low"
               label="Credits"
               value={credits == null ? "" : String(credits)}
               options={CREDIT_OPTIONS}
@@ -351,6 +357,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
             <Field label="Faculty" htmlFor="course-explorer-faculty" className="col-span-2 @min-[55rem]:col-span-1">
               <TextInput
                 id="course-explorer-faculty"
+                shadowOn="surface-container-low"
                 type="text"
                 value={faculty}
                 onChange={(event) => setFaculty(event.target.value)}

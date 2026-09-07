@@ -2,6 +2,8 @@
 
 import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
+import { Heading } from "@/src/components/ui/heading";
+import { InfoChip } from "@/src/components/ui/info-chip";
 import { Skeleton, SkeletonFields, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
 import type { CourseDoc, CourseSection } from "@/src/lib/api-types";
 import { normalizeDays, sectionGroup, type SectionComponent } from "@/src/lib/schedule";
@@ -210,23 +212,26 @@ export function PlannerCourseModule({
         <span className="mt-1.5 size-2.5 shrink-0 rounded-full" style={{ backgroundColor: courseColor(code) }} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-on-surface text-body-sm truncate leading-5 font-medium">{code}</h3>
+            <Heading as="h3" size="subsection" className="truncate">
+              {code}
+            </Heading>
             {hasCourseConflict ? (
-              <span className="bg-error-container/60 text-on-error-container shrink-0 rounded-full px-1.5 py-0.5 text-xs font-medium">
+              <InfoChip tone="error" className="shrink-0">
                 Conflict
-              </span>
+              </InfoChip>
             ) : null}
           </div>
           <p className="text-muted truncate text-xs leading-4">{title}</p>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="denseIcon"
           onClick={onRemove}
           aria-label={`Remove ${code} from ${term}`}
-          className="text-muted hover:bg-error/10 hover:text-error focus-visible:ring-primary/40 grid size-11 shrink-0 place-items-center rounded-lg focus-visible:ring-2 focus-visible:ring-offset-1 sm:size-9"
+          className="enabled:hover:bg-error/10 enabled:hover:text-error"
         >
           <Icon name="trash" className="size-4" />
-        </button>
+        </Button>
       </header>
 
       {known.map((group) => {
@@ -316,7 +321,7 @@ export function PlannerCoursesSkeleton() {
           <div className="flex min-h-11 items-start gap-2 px-3 py-2.5">
             <Skeleton className="mt-1.5 size-2.5 rounded-full" />
             <SkeletonText lines={2} className="flex-1 py-1" />
-            <Skeleton className="size-11 rounded-lg sm:size-9" />
+            <Skeleton className="size-11 rounded-lg sm:size-8" />
           </div>
           <div className="border-border-subtle border-t px-3 py-2.5">
             <div className="flex items-center justify-between gap-2">

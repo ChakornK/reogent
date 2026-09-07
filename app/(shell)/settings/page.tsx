@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/src/components/theme-toggle";
 import { Button } from "@/src/components/ui/button";
 import { RetryState } from "@/src/components/ui/feedback";
 import { Field, SelectInput, TextInput } from "@/src/components/ui/form-controls";
+import { Heading } from "@/src/components/ui/heading";
 import { Skeleton, SkeletonGroup } from "@/src/components/ui/skeleton";
 import {
   WorkspaceCanvas,
@@ -99,6 +100,7 @@ export function ProfileForm() {
         <Field label="Program" htmlFor="settings-program">
           <TextInput
             id="settings-program"
+            shadowOn="surface-container-low"
             type="text"
             maxLength={120}
             placeholder="e.g. Computer Science"
@@ -110,6 +112,7 @@ export function ProfileForm() {
           <Field label="Year" htmlFor="settings-year">
             <SelectInput
               id="settings-year"
+              shadowOn="surface-container-low"
               value={profile.year ?? ""}
               onChange={(event) => updateProfile({ year: event.target.value ? Number(event.target.value) : undefined })}
             >
@@ -124,6 +127,7 @@ export function ProfileForm() {
           <Field label="Student type" htmlFor="settings-student-type">
             <SelectInput
               id="settings-student-type"
+              shadowOn="surface-container-low"
               value={profile.student_type ?? ""}
               onChange={(event) =>
                 updateProfile({
@@ -206,9 +210,9 @@ export default function SettingsPage() {
           aria-labelledby="settings-profile-title"
           className="mx-auto flex w-full max-w-2xl flex-col gap-4"
         >
-          <h2 id="settings-profile-title" className="text-on-surface text-base font-medium">
+          <Heading as="h2" size="section" id="settings-profile-title">
             Student profile
-          </h2>
+          </Heading>
           {auth.isGuest ? (
             <p className="text-on-surface-variant text-sm">
               Guest sessions do not save student defaults. Sign in to set your program, year, and student type.

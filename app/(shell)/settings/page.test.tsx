@@ -50,6 +50,9 @@ describe("Settings", () => {
     expect(mainRegion?.querySelectorAll("[data-workspace-panel]")).toHaveLength(0);
     expect(mainRegion?.querySelector("[data-settings-profile]")).not.toBeNull();
     await screen.findByLabelText("Program");
+    for (const label of ["Program", "Year", "Student type"]) {
+      expect(screen.getByLabelText(label).classList.contains("neu-shadow-on-surface-container-low")).toBe(true);
+    }
   });
 
   it("withholds editable fields after load failure and unlocks them only after Retry", async () => {

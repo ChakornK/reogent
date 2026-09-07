@@ -11,6 +11,7 @@ import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { Button } from "@/src/components/ui/button";
 import { LoadingStatus, RetryAlert, RetryState } from "@/src/components/ui/feedback";
 import { SelectInput } from "@/src/components/ui/form-controls";
+import { Heading } from "@/src/components/ui/heading";
 import { Skeleton, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
 import { WorkspaceCanvas, WorkspacePage } from "@/src/components/ui/workspace";
 import { courseCodeToSlug } from "@/src/lib/pane-route";
@@ -200,7 +201,9 @@ export function CourseLookupPane({
             ) : (
               <div className="m-auto flex max-w-md flex-col items-center gap-3 text-center">
                 <div>
-                  <h2 className="text-on-surface text-base font-medium">Course not found</h2>
+                  <Heading as="h2" size="section">
+                    Course not found
+                  </Heading>
                   <p className="text-on-surface-variant mt-1 text-sm">
                     {rejected
                       ? "Okanagan course codes are not in this catalog."

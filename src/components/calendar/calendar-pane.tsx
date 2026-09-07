@@ -4,10 +4,11 @@ import { useAppAuth } from "@/src/components/auth/app-auth";
 import { useChatShellOptional } from "@/src/components/chat/chat-shell-context";
 import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
-import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
+import { DialogHeader, DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import { LoadingStatus, RetryAlert } from "@/src/components/ui/feedback";
 import { FloatingPanel } from "@/src/components/ui/floating-panel";
 import { InfoChip } from "@/src/components/ui/info-chip";
+import { InlineLink } from "@/src/components/ui/inline-action";
 import { announce } from "@/src/components/ui/live-region";
 import { Skeleton, SkeletonList } from "@/src/components/ui/skeleton";
 import {
@@ -373,24 +374,19 @@ function MonthYearPicker({
           className="neu-raised bg-surface w-60 rounded-xl p-2"
         >
           <div className="mb-1 flex items-center justify-between">
-            <button
-              type="button"
-              aria-label="Previous year"
-              onClick={() => setYear((y) => y - 1)}
-              className="hover:bg-surface-container focus-visible:ring-primary/40 flex size-11 items-center justify-center rounded-lg focus-visible:ring-2 @min-[55rem]:size-8"
-            >
+            <Button variant="ghost" size="fieldIcon" aria-label="Previous year" onClick={() => setYear((y) => y - 1)}>
               <Icon name="left" size={16} />
-            </button>
+            </Button>
             <span className="text-on-surface font-mono text-sm font-medium">{year}</span>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="fieldIcon"
               aria-label="Next year"
               disabled={nextYearBlocked}
               onClick={() => setYear((y) => y + 1)}
-              className="hover:bg-surface-container focus-visible:ring-primary/40 flex size-11 items-center justify-center rounded-lg focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-40 @min-[55rem]:size-8"
             >
               <Icon name="right" size={16} />
-            </button>
+            </Button>
           </div>
           <div className="grid grid-cols-3 gap-1">
             {MONTH_LABELS.map((label, m) => {
@@ -548,15 +544,16 @@ function DayAgendaDialog({
         size="md"
         className="flex max-h-[min(40rem,calc(100dvh-1.5rem))] flex-col overflow-hidden"
       >
-        <header className="mb-3 flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-on-surface text-base font-medium">Day agenda</h2>
-            {date ? <p className="text-muted mt-1 text-xs">{formatFullDate(parseISODate(date))}</p> : null}
-          </div>
-          <Button data-dialog-initial-focus variant="ghost" size="denseIcon" aria-label="Close" onClick={onClose}>
-            <Icon name="close" size={16} />
-          </Button>
-        </header>
+        <DialogHeader
+          title="Day agenda"
+          description={date ? formatFullDate(parseISODate(date)) : undefined}
+          className="mb-3"
+          closeAction={
+            <Button data-dialog-initial-focus variant="ghost" size="denseIcon" aria-label="Close" onClick={onClose}>
+              <Icon name="close" size={16} />
+            </Button>
+          }
+        />
         <div className="flex min-h-0 flex-col gap-1 overflow-y-auto">
           {events.map((event) => (
             <Button
@@ -584,18 +581,17 @@ function EventModal({ event, onClose }: { event: CalendarEvent; onClose: () => v
   return (
     <DialogRoot onDismiss={onClose} backdropLabel="Close event details" placement="mobile-sheet">
       <DialogPanel aria-label={event.label} data-calendar-popover size="md">
-        <div className="mb-3 flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <span aria-hidden className={`h-8 w-1.5 shrink-0 rounded-full ${styleOf(event).bar}`} />
-            <div>
-              <p className="text-on-surface text-sm font-medium">{event.label}</p>
-              <p className="text-muted text-xs">{formatFullDate(parseISODate(event.date))}</p>
-            </div>
-          </div>
-          <Button data-dialog-initial-focus variant="ghost" size="denseIcon" aria-label="Close" onClick={onClose}>
-            <Icon name="close" size={16} />
-          </Button>
-        </div>
+        <DialogHeader
+          title={event.label}
+          description={formatFullDate(parseISODate(event.date))}
+          leading={<span aria-hidden className={`h-6 w-1.5 shrink-0 rounded-full ${styleOf(event).bar}`} />}
+          className="mb-3"
+          closeAction={
+            <Button data-dialog-initial-focus variant="ghost" size="denseIcon" aria-label="Close" onClick={onClose}>
+              <Icon name="close" size={16} />
+            </Button>
+          }
+        />
         <div className="flex flex-wrap items-center gap-1.5">
           <InfoChip emphasis="strong">{styleOf(event).label}</InfoChip>
           {event.tags.map((tag) => (
@@ -605,16 +601,16 @@ function EventModal({ event, onClose }: { event: CalendarEvent; onClose: () => v
           ))}
         </div>
         {event.source_url ? (
-          <a
+          <InlineLink
             href={event.source_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary mt-4 inline-flex min-h-11 min-w-11 items-center gap-1 text-xs underline"
+            className="mt-4 gap-1 text-xs"
             title="Open source"
           >
             <Icon name="externalLink" size={12} />
             View on UBC site
-          </a>
+          </InlineLink>
         ) : null}
       </DialogPanel>
     </DialogRoot>

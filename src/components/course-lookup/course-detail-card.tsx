@@ -4,6 +4,7 @@ import { GradeDistributionChart } from "@/src/components/course-lookup/grade-dis
 import { SectionRow } from "@/src/components/course-lookup/section-row";
 import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
+import { Heading } from "@/src/components/ui/heading";
 import { InfoChip } from "@/src/components/ui/info-chip";
 import type { CourseDoc, CourseSection } from "@/src/lib/api-types";
 import { useId } from "react";
@@ -29,9 +30,9 @@ function SectionTable({ sections }: { sections: CourseSection[] }) {
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <h3 id={headingId} className="text-on-surface text-sm font-medium">
+      <Heading as="h3" size="subsection" id={headingId}>
         Sections
-      </h3>
+      </Heading>
       {[...groups].map(([term, termSections]) => (
         <details key={term} className="border-border-subtle bg-surface-container-low rounded-lg border">
           <summary className="text-on-surface flex min-h-11 items-center justify-between gap-3 px-3 text-sm font-medium">
@@ -116,7 +117,9 @@ export function CourseDetailCard({
     <article className="flex flex-col gap-3">
       <header className="flex flex-wrap items-baseline gap-1.5">
         {/* Catalog codes carry a _V campus suffix after the subject; display strips it. */}
-        <h2 className="font-mono text-base leading-tight font-medium">{record.code.replace(/_V(?=\b|$)/, "")}</h2>
+        <Heading as="h2" size="section" className="font-mono">
+          {record.code.replace(/_V(?=\b|$)/, "")}
+        </Heading>
         {sess ? <InfoChip>{sess}</InfoChip> : null}
         {record.credits != null ? <InfoChip>{record.credits} cr</InfoChip> : null}
         {record.prerequisite && onOpenPrereqs ? (

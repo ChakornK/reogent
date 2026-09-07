@@ -10,8 +10,10 @@ import { TermSwitcher } from "@/src/components/schedule/term-switcher";
 import { ToastProvider } from "@/src/components/schedule/toast";
 import { UploadDropzone } from "@/src/components/schedule/upload-dropzone";
 import { Button } from "@/src/components/ui/button";
-import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
+import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import { Field, SelectInput } from "@/src/components/ui/form-controls";
+import { Heading } from "@/src/components/ui/heading";
+import { InfoChip } from "@/src/components/ui/info-chip";
 import type { CourseDoc } from "@/src/lib/api-types";
 import { normalizeDays, sectionGroup } from "@/src/lib/schedule";
 import { selectAutomaticSections } from "@/src/lib/schedule-planner";
@@ -88,28 +90,30 @@ function PlannerImportDialog({
         padding="none"
         className="flex max-h-[min(48rem,calc(100dvh-1.5rem))] flex-col overflow-hidden"
       >
-        <header className="border-border-subtle flex shrink-0 items-start gap-3 border-b p-4 sm:p-5">
-          <div className="min-w-0 flex-1">
-            <h2 id="schedule-import-title" className="text-on-surface text-base font-medium">
-              Review Workday import
-            </h2>
-            <p className="text-muted mt-1 text-sm leading-relaxed">
+        <DialogHeader
+          title="Review Workday import"
+          titleId="schedule-import-title"
+          description={
+            <>
               {review.sourceFileName ?? "Workday schedule"} matched {selections.length} of {review.matches.length}{" "}
               sections.
-            </p>
-          </div>
-          <Button
-            data-dialog-initial-focus
-            onClick={onClose}
-            aria-label="Close Workday import review"
-            variant="ghost"
-            size="denseIcon"
-          >
-            <Icon name="close" className="size-4" />
-          </Button>
-        </header>
+            </>
+          }
+          className="border-border-subtle border-b p-4 sm:p-6"
+          closeAction={
+            <Button
+              data-dialog-initial-focus
+              onClick={onClose}
+              aria-label="Close Workday import review"
+              variant="ghost"
+              size="denseIcon"
+            >
+              <Icon name="close" className="size-4" />
+            </Button>
+          }
+        />
 
-        <div className="min-h-0 overflow-y-auto p-4 sm:p-5">
+        <div className="min-h-0 overflow-y-auto p-4 sm:p-6">
           <div className="flex flex-col gap-2">
             {review.matches.map((match) => {
               const meeting = match.source.meetings[0];
@@ -122,25 +126,22 @@ function PlannerImportDialog({
                 <article key={match.source.id} className="bg-surface-container-low rounded-lg p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h3 className="text-sm font-medium">{code || match.source.title}</h3>
+                      <Heading as="h3" size="subsection">
+                        {code || match.source.title}
+                      </Heading>
                       <p className="text-muted mt-0.5 truncate text-xs">{match.source.title}</p>
                       <p className="text-on-surface-variant mt-1 text-xs">{meetingLabel}</p>
                     </div>
-                    <span
-                      className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${
-                        match.status === "exact"
-                          ? "bg-accent-subtle text-on-surface-variant"
-                          : match.status === "ambiguous"
-                            ? "bg-tertiary-container text-on-tertiary-container"
-                            : "bg-error-container/60 text-on-error-container"
-                      }`}
+                    <InfoChip
+                      tone={match.status === "exact" ? "neutral" : match.status === "ambiguous" ? "caution" : "error"}
+                      className="shrink-0"
                     >
                       {match.status === "exact"
                         ? "Matched"
                         : match.status === "ambiguous"
                           ? "Choose section"
                           : "Skipped"}
-                    </span>
+                    </InfoChip>
                   </div>
                   {match.status === "ambiguous" ? (
                     <Field label="Catalog section" htmlFor={selectId} className="mt-3">
@@ -171,13 +172,13 @@ function PlannerImportDialog({
           </div>
         </div>
 
-        <footer className="border-border-subtle shrink-0 border-t p-4 sm:px-5">
+        <footer className="border-border-subtle shrink-0 border-t p-4 sm:p-6">
           {unresolved.length > 0 ? (
             <p className="text-tertiary mb-3 text-xs">
               Choose a section for {unresolved.length} ambiguous row(s) to continue.
             </p>
           ) : null}
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <DialogActions layout="stack" spacing="none">
             <Button size="prominent" onClick={onClose}>
               Cancel
             </Button>
@@ -196,7 +197,7 @@ function PlannerImportDialog({
             >
               Merge with planner
             </Button>
-          </div>
+          </DialogActions>
         </footer>
       </DialogPanel>
     </DialogRoot>
@@ -526,14 +527,15 @@ function SchedulePlannerPaneInner() {
         />
       )}
       {conflictCount > 0 ? (
-        <span
+        <InfoChip
+          tone="error"
           role="status"
           aria-label={`${conflictCount} conflicting ${conflictCount === 1 ? "section" : "sections"}`}
-          className="bg-error-container/60 text-on-error-container inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs"
+          className="shrink-0"
         >
           <Icon name="alert" className="size-3.5" />
           {conflictCount} conflicting {conflictCount === 1 ? "section" : "sections"}
-        </span>
+        </InfoChip>
       ) : null}
     </div>
   );
@@ -541,7 +543,9 @@ function SchedulePlannerPaneInner() {
   const controls = (
     <div data-planner-controls className="flex h-full min-h-0 flex-col overflow-visible">
       <section data-planner-search className="relative z-20 shrink-0 p-4 pb-3">
-        <h2 className="mb-2 text-sm font-medium">Find a course</h2>
+        <Heading as="h2" size="subsection" className="mb-2">
+          Find a course
+        </Heading>
         <CourseSearchField
           value={query}
           onChange={setQuery}
@@ -576,9 +580,9 @@ function SchedulePlannerPaneInner() {
         className="border-border-subtle min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto border-t px-4 py-3"
       >
         <div className="mb-2 flex items-center justify-between gap-2">
-          <h2 id="planner-course-list-title" className="text-sm font-medium">
+          <Heading as="h2" size="subsection" id="planner-course-list-title">
             Courses in this term
-          </h2>
+          </Heading>
           {visibleEntries.length > 0 ? (
             <span className="text-muted text-xs">{visibleEntries.length} sections</span>
           ) : null}
@@ -626,7 +630,9 @@ function SchedulePlannerPaneInner() {
       </section>
 
       <section data-planner-import className="border-border-subtle shrink-0 border-t p-4">
-        <h2 className="text-on-surface text-sm font-medium">Workday import</h2>
+        <Heading as="h2" size="subsection">
+          Workday import
+        </Heading>
         <p className="text-muted mt-1 mb-2 text-xs leading-relaxed">Add or replace registered sections from Excel.</p>
         {importLoading ? (
           <div role="status" className="bg-surface-container-low text-muted rounded-lg px-3 py-3 text-sm">

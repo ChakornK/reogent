@@ -174,6 +174,15 @@ describe("20.10 — prev/next/today jumps update the cursor via setState (REQ-17
     const picker = screen.getByRole("dialog", { name: "Pick month and year" });
     expect(picker.querySelector('[data-calendar-month="2026-04"]')?.hasAttribute("disabled")).toBe(false);
     expect(picker.querySelector('[data-calendar-month="2026-05"]')?.hasAttribute("disabled")).toBe(true);
+    const nextYear = within(picker).getByRole<HTMLButtonElement>("button", { name: "Next year" });
+    const previousYear = within(picker).getByRole("button", { name: "Previous year" });
+    expect(nextYear.disabled).toBe(true);
+    expect(nextYear.className).toContain("size-11");
+    expect(nextYear.className).not.toContain("@min-");
+    fireEvent.click(previousYear);
+    expect(nextYear.disabled).toBe(false);
+    fireEvent.click(nextYear);
+    expect(nextYear.disabled).toBe(true);
     restore();
   });
   it("legend buttons toggle a kind via setState and hidden kinds drop out of the grid", async () => {
@@ -237,6 +246,13 @@ describe("20.13 + Property 27b — multi-event-day popover enumerates each event
     fireEvent.click(within(agenda).getByText("Midterm exam week begins"));
     const popover = await screen.findByRole("dialog", { name: "Midterm exam week begins" });
     expect(popover.textContent).toContain("View on UBC site");
+    expect(within(popover).getByRole("heading", { level: 2, name: "Midterm exam week begins" }).className).toContain(
+      "text-base",
+    );
+    const source = within(popover).getByRole("link", { name: "View on UBC site" });
+    expect(source.getAttribute("href")).toBe(events[2].source_url);
+    expect(source.getAttribute("target")).toBe("_blank");
+    expect(source.getAttribute("rel")).toBe("noopener noreferrer");
     restore();
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { Checkbox } from "@/src/components/ui/form-controls";
+import { Heading } from "@/src/components/ui/heading";
 import { InlineAction } from "@/src/components/ui/inline-action";
 import { displayHandles } from "@/src/lib/schedule/display";
 import type { Person } from "@/src/lib/schedule/types";
@@ -23,9 +24,9 @@ export function PeoplePanel({ people, meId, onToggle, onEnableAll }: Props) {
   return (
     <section aria-label="People in this schedule">
       <div className="mb-2 flex min-h-9 items-center justify-between">
-        <h3 className="text-on-surface text-sm font-medium">
+        <Heading as="h3" size="subsection">
           People <span className="text-muted ml-1 text-xs">{people.length}</span>
-        </h3>
+        </Heading>
         {!allOn && (
           <InlineAction onClick={onEnableAll} className="text-xs font-medium">
             Show all

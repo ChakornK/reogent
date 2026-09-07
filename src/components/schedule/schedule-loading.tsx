@@ -1,6 +1,7 @@
 import { Button } from "@/src/components/ui/button";
 import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import { Skeleton, SkeletonFields, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
+import { AVATAR_COLORS } from "@/src/lib/schedule/avatar";
 import type { Avatar } from "@/src/lib/schedule/types";
 
 export function ScheduleToolbarSkeleton() {
@@ -16,8 +17,8 @@ export function ScheduleControlsSkeleton({ label, includeGroup = false }: { labe
   return (
     <SkeletonGroup label={label}>
       {includeGroup ? (
-        <div className="space-y-2 pb-4">
-          <Skeleton className="h-5 w-16" />
+        <div className="flex flex-col gap-1.5 pb-4">
+          <Skeleton className="h-4 w-16" />
           <Skeleton className="h-11 w-full rounded-lg" />
         </div>
       ) : null}
@@ -79,7 +80,7 @@ export function ScheduleProfileSkeleton({
           <Skeleton className="h-4 w-12" />
           <div className="flex gap-1.5">
             {[0, 1, 2].map((tab) => (
-              <Skeleton key={tab} className="h-9 flex-1 rounded-lg" />
+              <Skeleton key={tab} className="h-11 flex-1 rounded-lg sm:h-9" />
             ))}
           </div>
           {avatarKind === "emoji" ? (
@@ -87,7 +88,13 @@ export function ScheduleProfileSkeleton({
           ) : avatarKind === "image" ? (
             <Skeleton className="h-11 w-full rounded-xl sm:h-10" />
           ) : null}
-          <Skeleton className="h-6 w-72 rounded-full" />
+          <div className="flex flex-wrap gap-1.5">
+            {AVATAR_COLORS.map((color) => (
+              <div key={color} className="flex size-11 items-center justify-center sm:size-8">
+                <Skeleton className="size-6 rounded-full" />
+              </div>
+            ))}
+          </div>
         </SkeletonGroup>
         <DialogActions>
           <Button size="prominent" data-dialog-initial-focus onClick={onCancel}>
