@@ -29,6 +29,26 @@ describe("planner loading layout", () => {
     expect(page?.getAttribute("data-workspace-view")).toBe("rail");
   });
 
+  it("opens Structure and Issues outside the clipped workspace toolbar", async () => {
+    api.getCourseIndex.mockResolvedValue({ courses: [] });
+    const { container } = render(<DegreePlannerPane />);
+    const trigger = await screen.findByRole("button", { name: "Structure" });
+    fireEvent.click(trigger);
+    const structure = screen.getByRole("dialog", { name: "Plan structure" });
+    expect(container.contains(structure)).toBe(false);
+    expect(trigger.getAttribute("aria-controls")).toBe(structure.id);
+    expect(screen.getByRole("combobox", { name: "Years in plan" })).not.toBeNull();
+    fireEvent.keyDown(structure, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Plan structure" })).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+
+    fireEvent.click(screen.getByRole("button", { name: "Issues" }));
+    const issues = screen.getByRole("dialog", { name: "Placement issues" });
+    expect(container.contains(issues)).toBe(false);
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole("dialog", { name: "Placement issues" })).toBeNull();
+  });
+
   it("replaces skeletons with retry feedback when the index fails", async () => {
     api.getCourseIndex.mockRejectedValue(new Error("offline"));
     const { container } = render(<DegreePlannerPane />);

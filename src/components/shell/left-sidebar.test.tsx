@@ -117,6 +117,25 @@ describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
     expect(modeLink(view.container, "Tools").getAttribute("aria-current")).toBe("page");
   });
 
+  it("exposes collapsed mode names and sign-in hints outside the sidebar", () => {
+    auth.isGuest = true;
+    const { container, getByRole } = render(
+      <ChatShellProvider>
+        <div style={{ width: 48, overflow: "hidden" }}>
+          <ModeToggle collapsed />
+        </div>
+      </ChatShellProvider>,
+    );
+    const ai = getByRole("link", { name: "AI" });
+    fireEvent.focus(ai);
+    const tooltip = getByRole("tooltip");
+    expect(container.contains(tooltip)).toBe(false);
+    expect(tooltip.textContent).toBe("Sign in to use AI.");
+    expect(ai.getAttribute("aria-describedby")).toBe(tooltip.id);
+    fireEvent.blur(ai);
+    expect(document.querySelector('[role="tooltip"]')).toBeNull();
+  });
+
   it("blocks modified and auxiliary activation for guest-locked destinations", () => {
     auth.isGuest = true;
     const view = render(

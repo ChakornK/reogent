@@ -53,10 +53,15 @@ afterEach(() => {
 
 describe("CourseSearchField overlay", () => {
   it("owns combobox semantics and selects the active option with the keyboard", async () => {
-    render(<CourseSearchField {...baseProps} presentation="overlay" />);
+    const { container } = render(
+      <div style={{ overflow: "hidden", height: 50 }}>
+        <CourseSearchField {...baseProps} presentation="overlay" />
+      </div>,
+    );
 
     const input = screen.getByRole("combobox");
     const listbox = await screen.findByRole("listbox");
+    expect(container.contains(listbox)).toBe(false);
     expect(input.getAttribute("aria-autocomplete")).toBe("list");
     expect(input.getAttribute("aria-controls")).toBe(listbox.id);
     expect(input.getAttribute("aria-expanded")).toBe("true");
@@ -105,6 +110,15 @@ describe("CourseSearchField overlay", () => {
     expect(baseProps.onSelect).not.toHaveBeenCalled();
   });
 
+  it("dismisses suggestions when Tab moves to the next field", async () => {
+    render(<CourseSearchField {...baseProps} presentation="overlay" />);
+    const input = screen.getByRole("combobox");
+    await screen.findByRole("listbox");
+    fireEvent.keyDown(input, { key: "Tab" });
+    expect(input.getAttribute("aria-expanded")).toBe("false");
+    expect(baseProps.onSelect).not.toHaveBeenCalled();
+  });
+
   it("renders a full-code record as one caller-owned candidate without committing it", async () => {
     render(
       <CourseSearchField
@@ -148,6 +162,12 @@ describe("CourseSearchField overlay", () => {
       const input = screen.getByRole("combobox");
       fireEvent.keyDown(input, { key: "End" });
       expect(input.getAttribute("aria-activedescendant")).toMatch(/option-19$/);
+      await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" }));
+
+      fireEvent.keyDown(input, { key: "Escape" });
+      scrollIntoView.mockClear();
+      fireEvent.focus(input);
+      await screen.findByRole("listbox");
       await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" }));
     } finally {
       if (original) Object.defineProperty(HTMLElement.prototype, "scrollIntoView", original);

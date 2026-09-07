@@ -19,6 +19,7 @@ import { Icon } from "@/src/components/icons";
 import { useApi } from "@/src/components/providers";
 import { Button } from "@/src/components/ui/button";
 import { RetryAlert } from "@/src/components/ui/feedback";
+import { FloatingPanel } from "@/src/components/ui/floating-panel";
 import { Skeleton, SkeletonGroup, SkeletonList, SkeletonText } from "@/src/components/ui/skeleton";
 import {
   WorkspaceCanvas,
@@ -44,7 +45,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CourseBlock } from "./course-block";
 import { LookupBlock } from "./lookup-block";
 import { MiniCourseLookup } from "./mini-course-lookup";
@@ -561,17 +562,12 @@ function ActionsSection({
   const canRedo = usePlanner((s) => s.future.length > 0);
   const [ignoreOpen, setIgnoreOpen] = useState(false);
   const [structureOpen, setStructureOpen] = useState(false);
+  const structureRef = useRef<HTMLButtonElement>(null);
+  const issuesRef = useRef<HTMLButtonElement>(null);
+  const structureId = useId();
+  const issuesId = useId();
   const [filling, setFilling] = useState(false);
   const [autofillResult, setAutofillResult] = useState<AutofillResult | null>(null);
-
-  useEffect(() => {
-    if (!structureOpen) return;
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setStructureOpen(false);
-    }
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [structureOpen]);
 
   const erroredBlocks = useMemo(() => {
     const out: { id: string; code: string; place: string; issues: string[] }[] = [];
@@ -609,15 +605,6 @@ function ActionsSection({
     if (flashTimer.current !== null) window.clearTimeout(flashTimer.current);
     flashTimer.current = window.setTimeout(() => setFlashBlockId(null), 1500);
   }
-
-  useEffect(() => {
-    if (!ignoreOpen) return;
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setIgnoreOpen(false);
-    }
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [ignoreOpen]);
 
   async function handleAutofill() {
     if (!major) {
@@ -725,23 +712,41 @@ function ActionsSection({
       </Button>
 
       <div className="relative">
-        <Button size="toolbar" onClick={() => setStructureOpen((open) => !open)} aria-expanded={structureOpen}>
+        <Button
+          ref={structureRef}
+          size="toolbar"
+          onClick={() => setStructureOpen((open) => !open)}
+          aria-haspopup="dialog"
+          aria-controls={structureOpen ? structureId : undefined}
+          aria-expanded={structureOpen}
+        >
           <Icon name="settings" size={14} />
           <span>Structure</span>
           <Icon name="down" size={12} className={`transition-transform ${structureOpen ? "rotate-180" : ""}`} />
         </Button>
         {structureOpen && (
-          <div className="neu-panel bg-surface absolute top-10 right-0 z-50 rounded-2xl p-4">
+          <FloatingPanel
+            id={structureId}
+            anchorRef={structureRef}
+            onDismiss={() => setStructureOpen(false)}
+            align="end"
+            role="dialog"
+            aria-label="Plan structure"
+            className="neu-panel bg-surface w-72 rounded-2xl p-4"
+          >
             <h3 className="text-on-surface mb-3 text-sm font-medium">Plan structure</h3>
             <PlanStructure />
-          </div>
+          </FloatingPanel>
         )}
       </div>
 
       <div className="relative">
         <Button
+          ref={issuesRef}
           size="toolbar"
           onClick={() => setIgnoreOpen((open) => !open)}
+          aria-haspopup="dialog"
+          aria-controls={ignoreOpen ? issuesId : undefined}
           aria-expanded={ignoreOpen}
           className="min-w-[92px]"
         >
@@ -754,7 +759,16 @@ function ActionsSection({
           )}
         </Button>
         {ignoreOpen && (
-          <div className="neu-panel bg-surface absolute top-10 right-0 z-50 flex max-h-80 w-80 flex-col gap-1 overflow-y-auto rounded-2xl p-2">
+          <FloatingPanel
+            id={issuesId}
+            anchorRef={issuesRef}
+            onDismiss={() => setIgnoreOpen(false)}
+            align="end"
+            role="dialog"
+            aria-label="Placement issues"
+            style={{ maxHeight: 320 }}
+            className="neu-panel bg-surface flex w-80 flex-col gap-1 rounded-2xl p-2"
+          >
             <p className="text-on-surface px-2 pt-1 text-xs font-medium">
               {erroredBlocks.length === 0 ? "No placement issues" : `${erroredBlocks.length} placement issue(s)`}
             </p>
@@ -785,13 +799,13 @@ function ActionsSection({
                   onClick={() => toggleIgnoreBlock(block.id)}
                   title="Mute this issue"
                   aria-label={`Mute issue for ${block.code}`}
-                  className="text-muted hover:bg-surface-container hover:text-on-surface mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md"
+                  className="text-muted hover:bg-surface-container hover:text-on-surface mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-md sm:size-7"
                 >
                   <Icon name="eyeOff" size={13} />
                 </button>
               </div>
             ))}
-          </div>
+          </FloatingPanel>
         )}
       </div>
 

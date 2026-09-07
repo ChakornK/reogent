@@ -2,6 +2,7 @@
 
 import { useApi } from "@/src/components/providers";
 import { LoadingStatus, RetryAlert } from "@/src/components/ui/feedback";
+import { FloatingPanel } from "@/src/components/ui/floating-panel";
 import { SearchInput, type SearchDensity } from "@/src/components/ui/form-controls";
 import { InlineAction } from "@/src/components/ui/inline-action";
 import { SkeletonList } from "@/src/components/ui/skeleton";
@@ -272,7 +273,6 @@ export function CourseSearchField({
 }: CourseSearchFieldProps) {
   const trimmed = value.trim();
   const overlay = presentation === "overlay";
-  const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxRef = useRef<HTMLDivElement>(null);
   const restoringFocus = useRef(false);
@@ -309,19 +309,14 @@ export function CourseSearchField({
       setOpen(true);
   }, [error, hasPendingCandidate, overlay, rejected, status, trimmed]);
 
-  useEffect(() => {
-    if (!overlay) return;
-    const dismiss = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", dismiss);
-    return () => document.removeEventListener("pointerdown", dismiss);
-  }, [overlay]);
-
   useLayoutEffect(() => {
     if (!showOverlay || activeIndex < 0) return;
-    const option = document.getElementById(`${listboxId}-option-${activeIndex}`);
-    if (option && listboxRef.current?.contains(option)) option.scrollIntoView?.({ block: "nearest" });
+    // Wait for the floating portal to mount and measure its scroll bounds.
+    const frame = requestAnimationFrame(() => {
+      const option = document.getElementById(`${listboxId}-option-${activeIndex}`);
+      if (option && listboxRef.current?.contains(option)) option.scrollIntoView?.({ block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
   }, [activeIndex, listboxId, showOverlay]);
 
   const restoreInputFocus = () => {
@@ -352,6 +347,10 @@ export function CourseSearchField({
       event.preventDefault();
       setOpen(false);
       restoreInputFocus();
+      return;
+    }
+    if (event.key === "Tab") {
+      setOpen(false);
       return;
     }
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -410,13 +409,19 @@ export function CourseSearchField({
 
   if (overlay) {
     return (
-      <div ref={rootRef} className="relative">
+      <div>
         {input}
         {showOverlay && (
-          <div
+          <FloatingPanel
             ref={listboxRef}
+            anchorRef={inputRef}
+            onDismiss={() => setOpen(false)}
+            matchAnchorWidth
+            focusOnOpen={false}
+            role="presentation"
             data-course-list
-            className="border-border-subtle bg-surface absolute top-full z-30 mt-2 max-h-[320px] w-full overflow-y-auto rounded-xl border shadow-lg"
+            style={{ maxHeight: 320 }}
+            className="border-border-subtle bg-surface rounded-xl border shadow-lg"
           >
             {candidates.length === 0 || rejected ? (
               <div id={listboxId} role="listbox" aria-label="Course suggestions" aria-busy={status === "loading"} />
@@ -494,7 +499,7 @@ export function CourseSearchField({
             ) : status === "idle" && !error && !rejected ? (
               <div className="text-muted flex min-h-11 items-center px-3 text-sm">No courses matching {trimmed}.</div>
             ) : null}
-          </div>
+          </FloatingPanel>
         )}
       </div>
     );

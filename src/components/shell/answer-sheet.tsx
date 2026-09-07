@@ -112,8 +112,14 @@ export function AnswerSheet({
     activeSheet.querySelector<HTMLElement>(FOCUSABLE)?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
+      if (event.defaultPrevented || activeSheet.closest("[inert]")) return;
       const target = event.target;
-      if (target instanceof Element && !activeSheet.contains(target) && target.closest("[data-dialog-root]")) return;
+      if (
+        target instanceof Element &&
+        !activeSheet.contains(target) &&
+        target.closest("[data-dialog-root], [data-floating-panel]")
+      )
+        return;
       if (event.key === "Escape") {
         event.preventDefault();
         onCloseRef.current();

@@ -4,10 +4,11 @@ import { useAppAuth } from "@/src/components/auth/app-auth";
 import { useChatShell } from "@/src/components/chat/chat-shell-context";
 import { Icon, type IconName } from "@/src/components/icons";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
+import { FloatingPanel } from "@/src/components/ui/floating-panel";
 import { paneIdToSlug } from "@/src/lib/pane-route";
 import { LAST_CHAT_PATH_KEY, type ShellMode } from "@/src/lib/shell-mode";
 import Link from "next/link";
-import { useState, type MouseEvent } from "react";
+import { useId, useRef, useState, type MouseEvent } from "react";
 
 const DESTINATIONS: { mode: ShellMode; label: string; icon: IconName; guestLocked?: boolean }[] = [
   { mode: "ai", label: "AI", icon: "bling", guestLocked: true },
@@ -26,6 +27,8 @@ export function ModeToggle({ collapsed = false, onNavigate }: { collapsed?: bool
   const navigation = useShellNavigation();
   const pathname = navigation.displayPathname;
   const [tooltip, setTooltip] = useState<string | null>(null);
+  const tooltipAnchor = useRef<HTMLAnchorElement>(null);
+  const tooltipId = useId();
 
   function hrefFor(next: ShellMode): string {
     if (next === "ai") return "/chat";
@@ -81,15 +84,25 @@ export function ModeToggle({ collapsed = false, onNavigate }: { collapsed?: bool
               <Link
                 href={hrefFor(destination.mode)}
                 data-mode-toggle
+                aria-label={destination.label}
                 aria-current={active ? "page" : undefined}
                 aria-disabled={locked || undefined}
+                aria-describedby={tooltip === destination.mode ? tooltipId : undefined}
                 onClick={(event) => navigate(event, destination.mode)}
                 onAuxClick={(event) => {
                   if (locked) event.preventDefault();
                 }}
-                onMouseEnter={() => locked && setTooltip(destination.mode)}
+                onMouseEnter={(event) => {
+                  if (!locked) return;
+                  tooltipAnchor.current = event.currentTarget;
+                  setTooltip(destination.mode);
+                }}
                 onMouseLeave={() => setTooltip(null)}
-                onFocus={() => locked && setTooltip(destination.mode)}
+                onFocus={(event) => {
+                  if (!locked) return;
+                  tooltipAnchor.current = event.currentTarget;
+                  setTooltip(destination.mode);
+                }}
                 onBlur={() => setTooltip(null)}
                 className={`focus-visible:ring-primary/40 flex h-11 items-center rounded-lg text-xs font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:h-9 ${
                   collapsed ? "w-11 justify-center sm:w-9" : "w-full justify-center gap-1.5"
@@ -105,9 +118,16 @@ export function ModeToggle({ collapsed = false, onNavigate }: { collapsed?: bool
                 {!collapsed && destination.label}
               </Link>
               {tooltip === destination.mode && (
-                <div className="bg-surface-container-high text-on-surface absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap shadow-lg">
-                  Sign in to unlock this feature!
-                </div>
+                <FloatingPanel
+                  id={tooltipId}
+                  anchorRef={tooltipAnchor}
+                  onDismiss={() => setTooltip(null)}
+                  focusOnOpen={false}
+                  role="tooltip"
+                  className="bg-surface-container-high text-on-surface pointer-events-none w-max rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg"
+                >
+                  Sign in to use {destination.label}.
+                </FloatingPanel>
               )}
             </li>
           );

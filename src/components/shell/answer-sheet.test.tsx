@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { CourseSearchField } from "@/src/components/course-search/course-search";
 import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
@@ -194,6 +195,29 @@ describe("AnswerSheet", () => {
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Event details" })).toBeNull());
     expect(screen.getByRole("dialog", { name: "Answer canvas" })).not.toBeNull();
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Open event details" }));
+  });
+
+  it("closes course suggestions with Escape while keeping the answer canvas open", async () => {
+    const close = vi.fn();
+    render(
+      <AnswerSheet open onClose={close} view={{ paneId: "prereq", state: {} }}>
+        <CourseSearchField
+          value="CPSC"
+          onChange={() => {}}
+          status="idle"
+          list={{ candidates: [{ code: "CPSC 110", subject: "CPSC", number: "110", title: "Computation" }], total: 1 }}
+          error={null}
+          rejected={false}
+          presentation="overlay"
+        />
+      </AnswerSheet>,
+    );
+    const input = screen.getByRole("combobox");
+    await waitFor(() => expect(input.getAttribute("aria-expanded")).toBe("true"));
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(input.getAttribute("aria-expanded")).toBe("false");
+    expect(close).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "Answer canvas" })).not.toBeNull();
   });
 
   it("dismisses from the handle after crossing twenty percent of its height", async () => {

@@ -5,7 +5,7 @@ import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
 import { parsePrereq } from "@/src/shared/prereq-ast";
 import type { DraggableSyntheticListeners } from "@dnd-kit/core";
-import { useMemo, useState, type CSSProperties, type Ref } from "react";
+import { useId, useMemo, useRef, useState, type CSSProperties, type Ref } from "react";
 import { CourseInfoPopup } from "./course-info-popup";
 import { CoursePlacementSelect } from "./course-placement-select";
 import { forwardPlannerDragActivator } from "./drag-activator";
@@ -36,7 +36,9 @@ export function CourseChip({
   style,
   listeners,
 }: CourseChipProps) {
-  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const infoButtonRef = useRef<HTMLButtonElement | null>(null);
+  const popupId = useId();
+  const [infoOpen, setInfoOpen] = useState(false);
   const [placing, setPlacing] = useState(false);
   const removeBlock = usePlanner((state) => state.removeBlock);
   const flashing = usePlanner((state) => state.flashBlockId === blockId);
@@ -75,20 +77,17 @@ export function CourseChip({
             <Button
               variant="ghost"
               size="denseIcon"
+              ref={infoButtonRef}
               disabled={!entry}
+              aria-haspopup="dialog"
+              aria-expanded={infoOpen && !ghost}
+              aria-controls={infoOpen && !ghost ? popupId : undefined}
               aria-label={
                 invalid
                   ? `Show ${code} details (${issueCount} placement issue${issueCount === 1 ? "" : "s"})`
                   : `Show ${code} details`
               }
-              onClick={
-                ghost
-                  ? undefined
-                  : (event) => {
-                      const rect = event.currentTarget.getBoundingClientRect();
-                      setAnchorRect((current) => (current ? null : rect));
-                    }
-              }
+              onClick={ghost ? undefined : () => setInfoOpen((current) => !current)}
               className={invalid ? "text-error" : undefined}
             >
               <Icon name={invalid ? "alert" : "info"} size={14} />
@@ -136,16 +135,17 @@ export function CourseChip({
           }}
         />
       ) : null}
-      {anchorRect && entry && !ghost ? (
+      {infoOpen && entry && !ghost ? (
         <CourseInfoPopup
           course={entry}
-          anchorRect={anchorRect}
+          anchorRef={infoButtonRef}
+          id={popupId}
           prereqAst={prereqAst}
           coreqAst={coreqAst}
           completedBefore={validation?.completedBefore}
           completedSameOrBefore={validation?.completedSameOrBefore}
           issues={validation?.missing}
-          onClose={() => setAnchorRect(null)}
+          onClose={() => setInfoOpen(false)}
         />
       ) : null}
     </>

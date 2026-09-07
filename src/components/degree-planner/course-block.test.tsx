@@ -6,6 +6,10 @@ import { CourseBlock } from "./course-block";
 import { LookupBlock } from "./lookup-block";
 import type { BlockValidation } from "./validation";
 
+vi.mock("@/src/components/providers", () => ({
+  useApi: () => ({ getCourse: () => Promise.resolve({ description: null }) }),
+}));
+
 const activators = vi.hoisted(() => ({
   mouseDown: vi.fn(),
   touchStart: vi.fn(),
@@ -54,6 +58,40 @@ function chipLayout(chip: HTMLElement) {
     classes: element.className.trim(),
   }));
 }
+
+describe("Course chip details", () => {
+  it.each(["lookup", "placed"])("connects the %s info trigger to its floating dialog", (kind) => {
+    render(
+      kind === "lookup" ? (
+        <LookupBlock entry={course} />
+      ) : (
+        <CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />
+      ),
+    );
+    const trigger = screen.getByRole("button", { name: "Show CPSC 221 details" });
+    expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(trigger.hasAttribute("aria-controls")).toBe(false);
+
+    trigger.focus();
+    fireEvent.click(trigger);
+    const dialog = screen.getByRole("dialog", { name: "CPSC 221 details" });
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(trigger.getAttribute("aria-controls")).toBe(dialog.id);
+    expect(document.activeElement).toBe(dialog);
+
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(trigger);
+
+    fireEvent.click(trigger);
+    fireEvent.pointerDown(trigger);
+    fireEvent.click(trigger);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  });
+});
 
 describe("Course chip layout", () => {
   it("keeps shared typography and mirrors each source layout in its drag preview", () => {

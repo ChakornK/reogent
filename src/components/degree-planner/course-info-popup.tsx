@@ -1,8 +1,6 @@
 "use client";
 
-// Portal-rendered course-detail popup. Anchored to the triggering icon
-// button's bounding rect so it can escape the planner's overflow-clip
-// without being trapped inside year columns or term scroll areas.
+// Course details float outside the planner’s clipping and scroll containers.
 //
 // Highlighting strategy:
 //   The popup shows UBC's *verbatim* prereq/coreq text and paints unmet
@@ -20,16 +18,12 @@ import { Icon } from "@/src/components/icons";
 import { useApi } from "@/src/components/providers";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { Button } from "@/src/components/ui/button";
+import { FloatingPanel } from "@/src/components/ui/floating-panel";
 import { courseCodeToSlug } from "@/src/lib/pane-route";
 import { isSatisfied, type Expr } from "@/src/shared/prereq-ast";
 import Link from "next/link";
-import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { Fragment, useEffect, useState, type ReactNode, type RefObject } from "react";
 import { describeIssue } from "./validation";
-
-const POPUP_WIDTH = 320;
-const POPUP_GAP = 8;
-const VIEWPORT_PAD = 8;
 
 // Descriptions aren't in the course index (it would triple the payload), so
 // the popup pulls them from /api/courses/{code} on first open and caches for
@@ -38,19 +32,21 @@ const descriptionCache = new Map<string, string | null>();
 
 interface CourseInfoPopupProps {
   course: CourseIndexEntry;
-  anchorRect: DOMRect;
+  anchorRef: RefObject<HTMLElement | null>;
+  id?: string;
   prereqAst?: Expr | null;
   coreqAst?: Expr | null;
   completedBefore?: Set<string>;
   completedSameOrBefore?: Set<string>;
   // Placement issues for this block, as internal tokens from validation.
   issues?: string[];
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 export function CourseInfoPopup({
   course,
-  anchorRect,
+  anchorRef,
+  id,
   prereqAst,
   coreqAst,
   completedBefore,
@@ -60,8 +56,6 @@ export function CourseInfoPopup({
 }: CourseInfoPopupProps) {
   const api = useApi();
   const navigation = useShellNavigation();
-  const popupRef = useRef<HTMLDivElement | null>(null);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const [description, setDescription] = useState<string | null>(descriptionCache.get(course.code) ?? null);
 
   useEffect(() => {
@@ -82,77 +76,31 @@ export function CourseInfoPopup({
     };
   }, [api, course.code]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: description growth re-measures the popup height so it stays inside the viewport.
-  useLayoutEffect(() => {
-    if (!popupRef.current) return;
-    const popupHeight = popupRef.current.offsetHeight;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    let left = anchorRect.right + POPUP_GAP;
-    if (left + POPUP_WIDTH > viewportWidth - VIEWPORT_PAD) {
-      left = anchorRect.left - POPUP_WIDTH - POPUP_GAP;
-    }
-    left = Math.max(VIEWPORT_PAD, Math.min(left, viewportWidth - POPUP_WIDTH - VIEWPORT_PAD));
-
-    let top = anchorRect.top;
-    if (top + popupHeight > viewportHeight - VIEWPORT_PAD) {
-      top = viewportHeight - popupHeight - VIEWPORT_PAD;
-    }
-    top = Math.max(VIEWPORT_PAD, top);
-
-    setPos({ top, left });
-  }, [anchorRect, description]);
-
-  useEffect(() => {
-    if (!onClose) return;
-    function handleClick(event: MouseEvent) {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) onClose?.();
-    }
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose?.();
-    }
-    document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onClose]);
-
-  return createPortal(
-    <div
-      ref={popupRef}
+  return (
+    <FloatingPanel
+      anchorRef={anchorRef}
+      onDismiss={onClose}
+      id={id}
       role="dialog"
       aria-label={`${course.code} details`}
       onPointerDown={(event) => event.stopPropagation()}
-      style={{
-        position: "fixed",
-        top: pos?.top ?? -9999,
-        left: pos?.left ?? -9999,
-        width: POPUP_WIDTH,
-        opacity: pos ? 1 : 0,
-        zIndex: 50,
-      }}
-      className="neu-panel bg-surface flex flex-col gap-2.5 rounded-2xl p-4 text-sm"
+      className="neu-panel bg-surface flex w-80 flex-col gap-2.5 rounded-2xl p-4 text-sm wrap-anywhere [&>*]:shrink-0"
     >
       <div className="flex items-start gap-2">
         <h4 className="text-on-surface min-w-0 flex-1 font-medium">
           {course.code}
           {course.title && <span className="text-on-surface-variant"> — {course.title}</span>}
         </h4>
-        {onClose ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="denseIcon"
-            onClick={onClose}
-            className="text-muted -mt-1 -mr-1"
-            aria-label="Close course details"
-          >
-            <Icon name="close" size={15} />
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          variant="ghost"
+          size="denseIcon"
+          onClick={onClose}
+          className="text-muted -mt-1 -mr-1"
+          aria-label="Close course details"
+        >
+          <Icon name="close" size={15} />
+        </Button>
       </div>
       {issues && issues.length > 0 && (
         <div className="flex flex-col gap-1.5">
@@ -199,8 +147,7 @@ export function CourseInfoPopup({
         Open in Course Finder
         <Icon name="externalLink" size={12} />
       </Link>
-    </div>,
-    document.body,
+    </FloatingPanel>
   );
 }
 

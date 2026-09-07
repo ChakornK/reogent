@@ -21,7 +21,7 @@ export function PlanStructure() {
   const coopInfo = faculty ? COOP_SUPPORT[faculty] : undefined;
 
   return (
-    <div className="flex w-64 flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-3">
       <label htmlFor="planner-year-count" className="flex items-center justify-between gap-2 text-sm">
         <span className="text-on-surface-variant text-xs">Years in plan</span>
         <SelectInput
