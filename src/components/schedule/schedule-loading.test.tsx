@@ -23,10 +23,10 @@ describe("ScheduleProfileSkeleton", () => {
     render(<ScheduleProfileSkeleton title="Replace your schedule" onCancel={vi.fn()} />);
     const dialog = screen.getByRole("dialog", { name: "Replace your schedule" });
     expect(dialog.className).toContain("max-w-md");
-    expect(dialog.className).toContain("p-5");
+    expect(dialog.className).toContain("p-4 sm:p-6");
     expect(within(dialog).getByRole("heading", { name: "Replace your schedule" })).toBeTruthy();
     const summary = within(dialog).getByRole("status", { name: "Loading schedule profile" });
-    expect(summary.className).toContain("mt-3");
+    expect(summary.className).toContain("mt-4");
     expect(summary.className).toContain("p-3");
     expect(summary.querySelector("[data-skeleton]")).toBeTruthy();
     expect(within(dialog).getByRole("status", { name: "Loading handle field" }).parentElement?.className).toContain(
@@ -35,7 +35,7 @@ describe("ScheduleProfileSkeleton", () => {
     expect(within(dialog).getByRole("status", { name: "Loading avatar choices" }).className).toContain("mt-4");
     expect(within(dialog).getAllByRole("button")).toHaveLength(1);
     expect(dialog.querySelector("input, select, textarea")).toBeNull();
-    expect(within(dialog).getByRole("button", { name: "Cancel" }).parentElement?.className).toContain("mt-5");
+    expect(within(dialog).getByRole("button", { name: "Cancel" }).parentElement?.className).toContain("mt-6");
     for (const skeleton of dialog.querySelectorAll("[data-skeleton]")) {
       expect(skeleton.getAttribute("aria-hidden")).toBe("true");
     }

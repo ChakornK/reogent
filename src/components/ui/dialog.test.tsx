@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DialogPanel, DialogRoot } from "./dialog";
+import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "./dialog";
 
 afterEach(() => {
   cleanup();
@@ -35,6 +35,53 @@ function DialogHarness({ dismissDisabled = false }: { dismissDisabled?: boolean 
 }
 
 describe("Dialog", () => {
+  it("shares title semantics, responsive insets, and action spacing", async () => {
+    render(
+      <DialogRoot onDismiss={() => {}} backdropLabel="Close profile">
+        <DialogPanel aria-labelledby="profile-title">
+          <DialogHeader
+            title="Profile"
+            titleId="profile-title"
+            description="Choose your display name."
+            leading={<span aria-hidden="true">R</span>}
+            closeAction={
+              <button type="button" data-dialog-initial-focus>
+                Close
+              </button>
+            }
+          />
+          <DialogActions>
+            <button type="button">Save</button>
+          </DialogActions>
+        </DialogPanel>
+      </DialogRoot>,
+    );
+    const dialog = await screen.findByRole("dialog", { name: "Profile" });
+    expect(screen.getByRole("heading", { name: "Profile", level: 2 }).className).toContain("text-base");
+    expect(dialog.className).toContain("p-4 sm:p-6");
+    expect(dialog.querySelector("[data-dialog-header]")?.className).toContain("gap-3");
+    expect(dialog.querySelector("[data-dialog-actions]")?.className).toContain("mt-6");
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close" }));
+  });
+
+  it("supports contained bodies and stacked footer actions without duplicate insets", async () => {
+    render(
+      <DialogRoot onDismiss={() => {}} backdropLabel="Close import">
+        <DialogPanel aria-label="Import" padding="none">
+          <DialogActions layout="stack" spacing="none">
+            <button type="button">Apply</button>
+          </DialogActions>
+        </DialogPanel>
+      </DialogRoot>,
+    );
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog.className).toContain("p-0");
+    expect(dialog.className).not.toContain("sm:p-6");
+    const actions = dialog.querySelector("[data-dialog-actions]");
+    expect(actions?.className).toContain("flex-col-reverse sm:flex-row");
+    expect(actions?.className).not.toContain("mt-6");
+  });
+
   it.each(["center", "mobile-sheet"] as const)(
     "bounds default panels to the padded %s root on short viewports",
     async (placement) => {

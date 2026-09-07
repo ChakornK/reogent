@@ -1,6 +1,7 @@
 "use client";
 
 import { useWorkspaceHost } from "@/src/components/shell/workspace-host";
+import { Heading } from "@/src/components/ui/heading";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { useEffect, useId, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -107,7 +108,7 @@ export function WorkspacePage(props: WorkspacePageProps) {
                 </div>
               ) : null}
               <div className="min-w-0">
-                <h1 className="text-on-surface text-xl leading-tight font-medium tracking-[-0.02em]">
+                <Heading as="h1" size="title">
                   {props.loading ? (
                     <>
                       <span className="sr-only">{props.title}</span>
@@ -116,7 +117,7 @@ export function WorkspacePage(props: WorkspacePageProps) {
                   ) : (
                     props.title
                   )}
-                </h1>
+                </Heading>
                 {props.description ? (
                   <p className="text-muted text-body-sm mt-1 leading-5">{props.description}</p>
                 ) : null}
@@ -281,9 +282,9 @@ export function WorkspacePanel({
         <div className="flex min-w-0 items-center gap-1.5">
           {leading}
           <div className="flex min-w-0 items-baseline gap-2">
-            <h2 id={headingId} className="text-on-surface shrink-0 text-sm font-medium">
+            <Heading id={headingId} size="subsection" className="shrink-0">
               {title}
-            </h2>
+            </Heading>
             {description ? <p className="text-muted min-w-0 truncate text-xs">{description}</p> : null}
           </div>
         </div>

@@ -546,7 +546,7 @@ function DayAgendaDialog({
       <DialogPanel
         aria-label={date ? `Events on ${formatFullDate(parseISODate(date))}` : "Day agenda"}
         size="md"
-        className="flex max-h-[min(40rem,calc(100dvh-1.5rem))] flex-col overflow-hidden p-4"
+        className="flex max-h-[min(40rem,calc(100dvh-1.5rem))] flex-col overflow-hidden"
       >
         <header className="mb-3 flex items-start justify-between gap-3">
           <div>
@@ -583,7 +583,7 @@ function DayAgendaDialog({
 function EventModal({ event, onClose }: { event: CalendarEvent; onClose: () => void }) {
   return (
     <DialogRoot onDismiss={onClose} backdropLabel="Close event details" placement="mobile-sheet">
-      <DialogPanel aria-label={event.label} data-calendar-popover size="md" className="p-4">
+      <DialogPanel aria-label={event.label} data-calendar-popover size="md">
         <div className="mb-3 flex items-start justify-between gap-2">
           <div className="flex items-center gap-2.5">
             <span aria-hidden className={`h-8 w-1.5 shrink-0 rounded-full ${styleOf(event).bar}`} />

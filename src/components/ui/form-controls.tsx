@@ -98,19 +98,23 @@ export function SelectInput({
 
 export type FieldProps = ComponentPropsWithoutRef<"div"> & {
   label: ReactNode;
+  labelAction?: ReactNode;
   htmlFor: string;
   hint?: ReactNode;
   error?: ReactNode;
   children: ReactNode;
 };
 
-/** Groups a visible label, native control, and optional help or error text. */
-export function Field({ label, htmlFor, hint, error, children, className, ...props }: FieldProps) {
+/** Groups a visible label, separate label action, native control, and help or error text. */
+export function Field({ label, labelAction, htmlFor, hint, error, children, className, ...props }: FieldProps) {
   return (
-    <div className={`flex flex-col gap-1.5 ${className ?? ""}`} {...props}>
-      <label htmlFor={htmlFor} className="text-on-surface-variant text-xs font-medium">
-        {label}
-      </label>
+    <div className={`flex min-w-0 flex-col gap-1.5 ${className ?? ""}`} {...props}>
+      <div className="flex min-h-4 flex-wrap items-center justify-between gap-x-2">
+        <label htmlFor={htmlFor} className="text-on-surface-variant text-xs leading-4 font-medium">
+          {label}
+        </label>
+        {labelAction}
+      </div>
       {children}
       {error ? (
         <p id={`${htmlFor}-error`} role="alert" className="text-error text-xs">

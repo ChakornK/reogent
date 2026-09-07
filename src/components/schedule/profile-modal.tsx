@@ -2,7 +2,7 @@
 
 import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
-import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
+import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import { Field, TextInput } from "@/src/components/ui/form-controls";
 import { colorFor, initialsFor } from "@/src/lib/schedule/avatar";
 import type { Avatar, Schedule } from "@/src/lib/schedule/types";
@@ -63,15 +63,14 @@ export function ProfileModal({ schedule, currentHandle, currentAvatar, title, sa
         aria-label={title}
         aria-busy={saving}
         size="md"
-        className="p-5"
         onSubmit={(event) => {
           event.preventDefault();
           void save();
         }}
       >
-        <h2 className="text-on-surface text-base font-medium">{title}</h2>
+        <DialogHeader title={title} />
 
-        <div className="bg-surface-container-low mt-3 flex items-center gap-3 rounded-lg p-3">
+        <div className="bg-surface-container-low mt-4 flex items-center gap-3 rounded-lg p-3">
           {handle.trim() ? (
             <AvatarChip avatar={liveAvatar} size={40} />
           ) : (
@@ -89,9 +88,11 @@ export function ProfileModal({ schedule, currentHandle, currentAvatar, title, sa
           </div>
         </div>
 
-        <Field label="Handle" htmlFor="schedule-profile-handle" className="mt-4">
+        <Field label="Handle" htmlFor="schedule-profile-handle" error={error} className="mt-4">
           <TextInput
             id="schedule-profile-handle"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "schedule-profile-handle-error" : undefined}
             type="text"
             data-dialog-initial-focus
             value={handle}
@@ -105,8 +106,6 @@ export function ProfileModal({ schedule, currentHandle, currentAvatar, title, sa
           />
         </Field>
 
-        {error && <p className="text-error mt-2 text-sm">{error}</p>}
-
         <div className="mt-4">
           <AvatarPicker
             handle={handle}
@@ -118,14 +117,14 @@ export function ProfileModal({ schedule, currentHandle, currentAvatar, title, sa
           />
         </div>
 
-        <div className="mt-5 flex justify-end gap-2">
+        <DialogActions>
           <Button size="prominent" disabled={saving} onClick={onCancel}>
             Cancel
           </Button>
           <Button type="submit" variant="primary" size="prominent" disabled={saving}>
             {saving ? "Saving…" : saveLabel}
           </Button>
-        </div>
+        </DialogActions>
       </DialogPanel>
     </DialogRoot>
   );

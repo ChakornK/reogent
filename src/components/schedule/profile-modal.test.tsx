@@ -6,6 +6,21 @@ import { ProfileModal } from "./profile-modal";
 afterEach(cleanup);
 
 describe("ProfileModal", () => {
+  it("associates validation with the handle and clears it after editing", () => {
+    const onSave = vi.fn();
+    render(<ProfileModal title="Profile" saveLabel="Save" onSave={onSave} onCancel={vi.fn()} />);
+    fireEvent.submit(screen.getByRole("dialog"));
+    const input = screen.getByLabelText("Handle");
+    expect(onSave).not.toHaveBeenCalled();
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(input.getAttribute("aria-describedby")).toBe(screen.getByRole("alert").id);
+    expect(screen.getByRole("alert").textContent).toBe("Pick a handle.");
+    fireEvent.change(input, { target: { value: "Ada" } });
+    expect(input.hasAttribute("aria-invalid")).toBe(false);
+    expect(input.hasAttribute("aria-describedby")).toBe(false);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("focuses the handle and prevents duplicate saves", async () => {
     let finish: (() => void) | undefined;
     const onSave = vi.fn(

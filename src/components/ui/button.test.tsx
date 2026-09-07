@@ -105,6 +105,18 @@ describe("Button", () => {
     expect(link.className).toContain("sm:h-9");
   });
 
+  it.each(["default", "compact", "pill"] as const)("lets %s size own outline geometry", (size) => {
+    const { getByRole } = render(
+      <Button variant="outline" size={size}>
+        Action
+      </Button>,
+    );
+    const button = getByRole("button");
+    const radii = button.className.split(/\s+/).filter((token) => token.startsWith("rounded-"));
+    expect(radii).toHaveLength(1);
+    expect(button.className).toContain("enabled:active:scale-95");
+  });
+
   it("provides the shared outline pill contract", () => {
     const { getByRole } = render(
       <Button variant="outline" size="pill">

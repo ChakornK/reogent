@@ -42,5 +42,8 @@ describe("shared skeletons", () => {
     expect(container.querySelectorAll("[data-skeleton]")).toHaveLength(8);
     expect(queryByRole("textbox")).toBeNull();
     expect(container.querySelectorAll(".h-11")).toHaveLength(4);
+    for (const control of container.querySelectorAll(".h-11")) {
+      expect(control.parentElement?.className).toContain("gap-1.5");
+    }
   });
 });

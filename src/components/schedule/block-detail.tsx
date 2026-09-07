@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/src/components/ui/button";
-import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
+import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import type { MergedBlock } from "@/src/lib/schedule/calendar/buildCalendar";
 import { courseColor } from "@/src/lib/schedule/calendar/colors";
 import { minutesToFullLabel } from "@/src/lib/schedule/util/time";
@@ -32,23 +32,17 @@ export function BlockDetail({ block, onClose }: Props) {
 
   return (
     <DialogRoot onDismiss={onClose} backdropLabel="Close course details">
-      <DialogPanel aria-label={displayCode(s)} size="md" className="p-5">
-        <div className="flex items-center gap-2.5">
-          <span className="size-3 shrink-0 rounded-full" style={{ background: color }} />
-          <h2 className="text-on-surface text-base font-medium">
-            {s.courseCode ? (
-              <>
-                {displayCode(s)} — {s.title}
-              </>
-            ) : (
-              s.title
-            )}
-          </h2>
-        </div>
-        <p className="text-on-surface-variant mt-1 text-sm">
-          {s.component}
-          {s.termStart && s.termEnd ? ` · ${fmtDate(s.termStart)} → ${fmtDate(s.termEnd)}` : null}
-        </p>
+      <DialogPanel aria-label={displayCode(s)} size="md">
+        <DialogHeader
+          title={s.courseCode ? `${displayCode(s)} — ${s.title}` : s.title}
+          leading={<span aria-hidden="true" className="size-3 rounded-full" style={{ background: color }} />}
+          description={
+            <>
+              {s.component}
+              {s.termStart && s.termEnd ? ` · ${fmtDate(s.termStart)} → ${fmtDate(s.termEnd)}` : null}
+            </>
+          }
+        />
 
         <dl className="mt-4 flex flex-col gap-3 text-sm">
           {s.instructors.length > 0 && (
@@ -101,11 +95,11 @@ export function BlockDetail({ block, onClose }: Props) {
           </div>
         </dl>
 
-        <div className="mt-5 flex justify-end">
+        <DialogActions>
           <Button data-dialog-initial-focus size="prominent" onClick={onClose}>
             Close
           </Button>
-        </div>
+        </DialogActions>
       </DialogPanel>
     </DialogRoot>
   );

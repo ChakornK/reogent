@@ -1,5 +1,6 @@
 "use client";
 
+import { Heading } from "@/src/components/ui/heading";
 import { createContext, useContext, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -117,18 +118,19 @@ const PANEL_SIZE_CLASSES = {
 
 type SharedPanelProps = {
   size?: keyof typeof PANEL_SIZE_CLASSES;
+  padding?: "default" | "none";
 };
 
 type DivPanelProps = ComponentPropsWithoutRef<"div"> & SharedPanelProps & { as?: "div" };
 type FormPanelProps = ComponentPropsWithoutRef<"form"> & SharedPanelProps & { as: "form" };
 
-/** Renders the modal panel as a div or form with shared material and width. */
+/** Renders a bounded modal div or form. Contained headers and scrollers use padding="none". */
 export function DialogPanel(props: DivPanelProps | FormPanelProps) {
   const panelRef = useContext(DialogPanelContext);
   if (!panelRef) throw new Error("DialogPanel must be rendered inside DialogRoot");
 
-  const { as = "div", size = "md", className, ...panelProps } = props;
-  const classes = `neu-panel bg-surface relative min-h-0 w-full rounded-2xl [:where(&)]:max-h-full [:where(&)]:overflow-y-auto ${PANEL_SIZE_CLASSES[size]} ${className ?? ""}`;
+  const { as = "div", size = "md", padding = "default", className, ...panelProps } = props;
+  const classes = `neu-panel bg-surface relative min-h-0 w-full rounded-2xl [:where(&)]:max-h-full [:where(&)]:overflow-y-auto ${PANEL_SIZE_CLASSES[size]} ${padding === "default" ? "p-4 sm:p-6" : "p-0"} ${className ?? ""}`;
 
   if (as === "form") {
     return (
@@ -151,6 +153,54 @@ export function DialogPanel(props: DivPanelProps | FormPanelProps) {
       tabIndex={-1}
       className={classes}
       {...(panelProps as ComponentPropsWithoutRef<"div">)}
+    />
+  );
+}
+
+type DialogHeaderProps = Omit<ComponentPropsWithoutRef<"header">, "title" | "children"> & {
+  title: ReactNode;
+  titleId?: string;
+  description?: ReactNode;
+  leading?: ReactNode;
+  closeAction?: ReactNode;
+};
+
+/** Aligns a modal title, supporting copy, and caller-owned close action. */
+export function DialogHeader({
+  title,
+  titleId,
+  description,
+  leading,
+  closeAction,
+  className,
+  ...props
+}: DialogHeaderProps) {
+  return (
+    <header data-dialog-header className={`flex shrink-0 items-start gap-3 ${className ?? ""}`} {...props}>
+      {leading ? <span className="flex h-6 shrink-0 items-center">{leading}</span> : null}
+      <div className="min-w-0 flex-1">
+        <Heading id={titleId}>{title}</Heading>
+        {description ? <p className="text-muted text-body-sm mt-1 leading-5">{description}</p> : null}
+      </div>
+      {closeAction ? <div className="shrink-0">{closeAction}</div> : null}
+    </header>
+  );
+}
+
+type DialogActionsProps = ComponentPropsWithoutRef<"div"> & {
+  layout?: "inline" | "stack";
+  spacing?: "section" | "none";
+};
+
+/** Aligns modal actions with a shared section gap or inside an already-padded footer. */
+export function DialogActions({ layout = "inline", spacing = "section", className, ...props }: DialogActionsProps) {
+  return (
+    <div
+      data-dialog-actions
+      className={`flex gap-2 ${spacing === "section" ? "mt-6" : ""} ${
+        layout === "stack" ? "flex-col-reverse sm:flex-row sm:justify-end" : "flex-wrap items-center justify-end"
+      } ${className ?? ""}`}
+      {...props}
     />
   );
 }

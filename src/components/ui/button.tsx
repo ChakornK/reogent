@@ -11,7 +11,7 @@ const BUTTON_VARIANT_CLASSES = {
   danger: "neu-button bg-surface text-on-surface-variant enabled:hover:bg-error/10 enabled:hover:text-error",
   ghost: "text-on-surface-variant enabled:hover:bg-surface-container-high enabled:hover:text-on-surface",
   outline:
-    "border-primary text-primary enabled:hover:bg-accent-subtle active:scale-95 rounded-full border active:transition-transform",
+    "border-primary text-primary enabled:hover:bg-accent-subtle enabled:active:scale-95 border active:transition-transform",
 } as const;
 
 const LINK_VARIANT_CLASSES = {
@@ -19,7 +19,7 @@ const LINK_VARIANT_CLASSES = {
   secondary: "neu-button bg-surface text-on-surface",
   danger: "neu-button bg-surface text-on-surface-variant hover:bg-error/10 hover:text-error",
   ghost: "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface",
-  outline: "border-primary text-primary hover:bg-accent-subtle active:scale-95 rounded-full border",
+  outline: "border-primary text-primary hover:bg-accent-subtle active:scale-95 border",
 } as const;
 
 const SIZE_CLASSES = {

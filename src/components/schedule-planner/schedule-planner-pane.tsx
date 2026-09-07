@@ -85,6 +85,7 @@ function PlannerImportDialog({
       <DialogPanel
         aria-labelledby="schedule-import-title"
         size="lg"
+        padding="none"
         className="flex max-h-[min(48rem,calc(100dvh-1.5rem))] flex-col overflow-hidden"
       >
         <header className="border-border-subtle flex shrink-0 items-start gap-3 border-b p-4 sm:p-5">

@@ -1,5 +1,6 @@
 import { Icon, type IconName } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
+import { Heading } from "@/src/components/ui/heading";
 import { InlineAction } from "@/src/components/ui/inline-action";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
@@ -46,7 +47,9 @@ export function FullPageState({
         aria-label={title}
         className="neu-panel bg-surface flex w-full max-w-sm flex-col items-center rounded-2xl p-8 text-center"
       >
-        <h1 className="text-on-surface text-2xl font-medium tracking-[-0.02em]">{title}</h1>
+        <Heading as="h1" size="title">
+          {title}
+        </Heading>
         <div className="text-muted mt-2 text-sm">{description}</div>
         {meta ? <div className="text-muted mt-2 text-xs">{meta}</div> : null}
         <div className="mt-6 flex w-full flex-col gap-3">{actions}</div>

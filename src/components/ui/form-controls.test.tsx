@@ -91,6 +91,24 @@ describe("composed form controls", () => {
     expect(getByText("Used for tuition answers").getAttribute("id")).toBe("program-hint");
   });
 
+  it("keeps label actions outside the label and preserves field error associations", () => {
+    const { getByLabelText, getByRole, getByText } = render(
+      <Field
+        label="Program"
+        htmlFor="program"
+        labelAction={<a href="https://vancouver.calendar.ubc.ca">UBC Calendar</a>}
+        error="Choose a program."
+      >
+        <TextInput id="program" aria-invalid="true" aria-describedby="program-error" />
+      </Field>,
+    );
+    const input = getByLabelText("Program");
+    expect(input.getAttribute("aria-describedby")).toBe("program-error");
+    expect(getByRole("alert").id).toBe("program-error");
+    expect(getByRole("link").closest("label")).toBeNull();
+    expect(getByText("Program").parentElement?.className).toContain("flex-wrap");
+  });
+
   it("supports primary and rail search density with a shared clear action", () => {
     const onClear = vi.fn();
     const { getByRole, rerender } = render(<SearchInput aria-label="Find courses" value="CPSC" onClear={onClear} />);

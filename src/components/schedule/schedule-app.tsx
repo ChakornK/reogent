@@ -808,7 +808,6 @@ export function CreateGroupModal({
         aria-label="Create shared schedule"
         aria-busy={creating}
         size="sm"
-        className="p-5"
         onSubmit={async (event) => {
           event.preventDefault();
           if (!name.trim() || creating) return;

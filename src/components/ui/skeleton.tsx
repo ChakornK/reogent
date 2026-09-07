@@ -78,7 +78,7 @@ export function SkeletonFields({ label, fields = 3 }: { label: string; fields?: 
     <SkeletonGroup label={label} className="flex flex-col gap-4">
       {Array.from({ length: fields }, (_, index) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: Placeholder positions do not reorder.
-        <div key={index} className="space-y-2">
+        <div key={index} className="flex flex-col gap-1.5">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-11 w-full rounded-lg" />
         </div>

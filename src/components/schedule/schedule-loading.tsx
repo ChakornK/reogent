@@ -1,5 +1,5 @@
 import { Button } from "@/src/components/ui/button";
-import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
+import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import { Skeleton, SkeletonFields, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
 import type { Avatar } from "@/src/lib/schedule/types";
 
@@ -63,11 +63,11 @@ export function ScheduleProfileSkeleton({
 }) {
   return (
     <DialogRoot onDismiss={onCancel} backdropLabel="Cancel schedule profile">
-      <DialogPanel aria-label={title} size="md" className="p-5">
-        <h2 className="text-on-surface text-base font-medium">{title}</h2>
+      <DialogPanel aria-label={title} size="md">
+        <DialogHeader title={title} />
         <SkeletonGroup
           label="Loading schedule profile"
-          className="bg-surface-container-low mt-3 flex items-center gap-3 rounded-lg p-3"
+          className="bg-surface-container-low mt-4 flex items-center gap-3 rounded-lg p-3"
         >
           <Skeleton className="size-10 rounded-full" />
           <SkeletonText lines={2} className="flex-1" />
@@ -89,12 +89,12 @@ export function ScheduleProfileSkeleton({
           ) : null}
           <Skeleton className="h-6 w-72 rounded-full" />
         </SkeletonGroup>
-        <div className="mt-5 flex justify-end gap-2">
+        <DialogActions>
           <Button size="prominent" data-dialog-initial-focus onClick={onCancel}>
             Cancel
           </Button>
           <Skeleton className="h-11 w-36 rounded-xl sm:h-10" />
-        </div>
+        </DialogActions>
       </DialogPanel>
     </DialogRoot>
   );

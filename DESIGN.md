@@ -406,6 +406,16 @@ Keep the loaded frame mounted: page padding, panel headers, search controls, tab
 
 Use skeletons only until content arrives. Retain usable data during refresh, show `LoadingStatus` in a fixed header or footer, and distinguish failure from a successful empty result. Saving, sending, importing, route calculation, and authentication redirects keep progress labels because the pending result has no known content layout. Skeletons expose no interactive placeholder controls; loading dialogs retain a real Cancel action and keyboard dismissal. Scrollable calendars and timetables remain keyboard-accessible while loading.
 
+### Shared typography and composition
+
+Use `Heading` from `src/components/ui/heading.tsx` for application headings. Choose `as` for the document level and `size` for the visual role: Title is 20px/25px, Section is 16px/24px, Subsection is 14px/20px, and Label is 12px/16px. Each role uses medium weight. Use `tone="muted"` for group labels; reserve caller classes for layout, truncation, and intentional identifier fonts. Keep the landing hero and section scale in the marketing surface, and keep generated assistant Markdown in its prose stylesheet.
+
+Compose modal content with `DialogPanel`, `DialogHeader`, and `DialogActions`. Use the panel's default 16px compact/24px desktop padding. Choose `padding="none"` for a contained header, scrolling body, and footer, then use the same insets in those regions. Dialog headers use the Section heading, 13px supporting copy, and a 12px gap around leading content and the close action. Dialog actions use an 8px gap and 24px section separation; use `spacing="none"` inside an already-padded footer and `layout="stack"` for compact stacked actions. Keep initial focus and dismissal with the caller.
+
+Use `InfoChip` for noninteractive metadata and status. Neutral facts use the default tone or stronger neutral emphasis on nested surfaces. Use `tone="caution"` for a required choice and `tone="error"` for conflicts or skipped input. These variants share 12px/16px typography and 8px horizontal/2px vertical padding. Keep identity colors and calendar categories on their domain contracts.
+
+Keep neumorphic material defaults in the CSS components layer so utility colors can express selected and nested surface states without replacing the shared elevation recipe.
+
 ### Buttons
 
 Use `src/components/ui/button.tsx` for native action buttons. `Button` owns variant, size, focus, disabled, pressed, and parent-material shadow classes while feature code owns the label, icon, layout, and event handler. Use `InlineAction` for compact link-styled choices inside messages and error text; it reaches the 44px mobile touch floor and returns to inline height on larger screens. `RetryAlert` combines the semantic error surface and inline retry action for load failures. Keep links, tabs, radios, menu items, navigation rows, pills, and compound controls on their native contracts.
@@ -435,7 +445,7 @@ State changes through shadow transformation + press scale. Buttons never transla
 
 ### Inputs / Fields
 
-Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src/components/ui/form-controls.tsx`. Native fields share inset material, 8px radius, focus, invalid, disabled, and parent-material shadow treatment. `SearchInput` owns search and clear chrome with explicit `primary` (44px) and `rail` (36px desktop, 44px compact) densities. `Field` owns visible label and help/error placement. `Checkbox` owns the native input and one shared indicator. Domain comboboxes and compound uploads keep their state and behavior outside these primitives.
+Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src/components/ui/form-controls.tsx`. Native fields share inset material, 8px radius, focus, invalid, disabled, and parent-material shadow treatment. `SearchInput` owns search and clear chrome with explicit `primary` (44px) and `rail` (36px desktop, 44px compact) densities. `Field` owns the 12px medium label, 6px control gap, and help/error placement. Place related links in `labelAction`, outside the label, and connect control descriptions with `aria-describedby`. `Checkbox` owns the native input and one shared indicator. Domain comboboxes and compound uploads keep their state and behavior outside these primitives.
 
 - **Chat composer** (`.neu-inset .chat-composer`): `bg-surface-container-low rounded-2xl p-1.5`. Recessed at rest via `--neu-inset-shadow`. Focus-within: inset shadow + 2px outline ring glow (primary at 28% opacity, -2px offset). Internal: textarea (transparent bg, `px-3 py-2 text-sm`, no outline) + send button (`.neu-primary-button rounded-xl size-11 sm:size-9`, right-aligned).
 - **Auth input** (`.neu-inset`): `bg-surface-container-low text-on-surface h-11 rounded-lg px-3 text-sm`. Focus: `ring-primary/40 ring-2 ring-offset-1`. Error: `ring-error/30 ring-2`.
