@@ -493,19 +493,17 @@ html.vt-active *::after {
   box-shadow: var(--neu-surface-shadow);
 }
 
-.neu-panel {
-  background-color: var(--surface);
-  box-shadow: var(--neu-surface-shadow);
-}
+@layer components {
+  .neu-panel,
+  .neu-raised {
+    background-color: var(--surface);
+    box-shadow: var(--neu-surface-shadow);
+  }
 
-.neu-raised {
-  background-color: var(--surface);
-  box-shadow: var(--neu-surface-shadow);
-}
-
-.neu-inset {
-  background-color: var(--surface-container-low);
-  box-shadow: var(--neu-inset-shadow);
+  .neu-inset {
+    background-color: var(--surface-container-low);
+    box-shadow: var(--neu-inset-shadow);
+  }
 }
 
 /* Overlay surfaces only: backdrop blur + subtle drop shadow */
