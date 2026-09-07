@@ -15,6 +15,7 @@ import {
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { useMemo, useState } from "react";
+import { forwardPlannerDragActivator } from "./drag-activator";
 import { usePlanner } from "./planner-store";
 
 interface YearRequirementsProps {
@@ -183,6 +184,10 @@ function CourseRequirementRow({
     disabled: !selectedCode || !target,
   });
 
+  function startDrag(event: React.MouseEvent | React.TouchEvent) {
+    forwardPlannerDragActivator(event, listeners);
+  }
+
   const plannedCount = item.codes.filter((code) => plannedCodes.has(code)).length;
   const partial = item.codes.length > 1 && plannedCount > 0 ? `${plannedCount}/${item.codes.length} planned` : null;
 
@@ -191,11 +196,8 @@ function CourseRequirementRow({
       ref={setNodeRef}
       data-requirement-key={rowKey}
       style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.35 : 1 }}
-      onPointerDown={(e) => {
-        // The row is draggable anywhere except its interactive controls.
-        if ((e.target as HTMLElement).closest("button, a, select, input")) return;
-        listeners?.onPointerDown?.(e);
-      }}
+      onMouseDown={startDrag}
+      onTouchStart={startDrag}
       className={`hover:bg-surface-container-low flex min-h-11 items-start gap-1 rounded-lg px-2 py-1 ${
         selectedCode && target ? "cursor-grab touch-pan-y active:cursor-grabbing" : ""
       }`}

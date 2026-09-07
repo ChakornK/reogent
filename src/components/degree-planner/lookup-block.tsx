@@ -12,6 +12,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { useState } from "react";
 import { CourseInfoPopup } from "./course-info-popup";
 import { CoursePlacementSelect } from "./course-placement-select";
+import { forwardPlannerDragActivator } from "./drag-activator";
 
 interface LookupBlockProps {
   entry: CourseIndexEntry;
@@ -30,16 +31,17 @@ export function LookupBlock({ entry, ghost = false, onPlaced }: LookupBlockProps
   const [placing, setPlacing] = useState(false);
 
   // Whole row is the drag surface; interactive controls opt out.
-  function startDrag(e: React.PointerEvent) {
-    if ((e.target as HTMLElement).closest("button, a, select, input")) return;
-    listeners?.onPointerDown?.(e);
+  function startDrag(event: React.MouseEvent | React.TouchEvent) {
+    forwardPlannerDragActivator(event, listeners);
   }
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Dragging is a pointer shortcut; nested controls provide keyboard actions.
     <div
       ref={ghost ? undefined : setNodeRef}
       data-lookup-code={code}
-      onPointerDown={ghost ? undefined : startDrag}
+      onMouseDown={ghost ? undefined : startDrag}
+      onTouchStart={ghost ? undefined : startDrag}
       className={`group flex min-h-11 cursor-grab touch-pan-y flex-wrap items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm select-none active:cursor-grabbing ${
         ghost ? "neu-raised bg-surface-container scale-[1.03]" : "hover:bg-surface-container-low"
       } ${isDragging ? "opacity-0" : ""}`}

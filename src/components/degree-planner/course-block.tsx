@@ -16,6 +16,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useMemo, useState } from "react";
 import { CourseInfoPopup } from "./course-info-popup";
 import { CoursePlacementSelect } from "./course-placement-select";
+import { forwardPlannerDragActivator } from "./drag-activator";
 import { usePlanner } from "./planner-store";
 import type { BlockValidation } from "./validation";
 
@@ -34,9 +35,8 @@ export function CourseBlock({ blockId, code, entry, validation, ghost = false }:
   });
 
   // The whole chip is draggable; interactive controls opt out.
-  function startDrag(e: React.PointerEvent) {
-    if ((e.target as HTMLElement).closest("button, a, select, input")) return;
-    listeners?.onPointerDown?.(e);
+  function startDrag(event: React.MouseEvent | React.TouchEvent) {
+    forwardPlannerDragActivator(event, listeners);
   }
 
   const title = entry?.title || code;
@@ -67,10 +67,12 @@ export function CourseBlock({ blockId, code, entry, validation, ghost = false }:
   }
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Dragging is a pointer shortcut; nested controls provide keyboard actions.
     <div
       ref={ghost ? undefined : setNodeRef}
       style={ghost ? undefined : style}
-      onPointerDown={ghost ? undefined : startDrag}
+      onMouseDown={ghost ? undefined : startDrag}
+      onTouchStart={ghost ? undefined : startDrag}
       className={`group bg-surface-container relative flex min-h-14 w-full min-w-0 shrink-0 cursor-grab touch-pan-y flex-col items-stretch gap-0.5 rounded-lg border px-2 py-1.5 text-sm select-none active:cursor-grabbing ${borderClass} ${
         ghost ? "neu-raised scale-[1.03]" : "neu-raised"
       } ${flashing ? "planner-flash" : ""}`}
