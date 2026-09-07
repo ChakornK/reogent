@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@/src/components/icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { Handle, Position, useStore, type NodeProps } from "reactflow";
 
 /** One branch in a disjunction (an `Or` AST node child), flattened for display
@@ -17,9 +17,7 @@ export interface DisjunctionOption {
  *  block IS the selected course's node in the graph (dropdown absorption), so
  *  this row carries what a course node would: title, or the literal text. */
 export type DisjunctionDetail =
-  | { kind: "course"; code: string; title: string | null }
-  | { kind: "literal"; text: string }
-  | null;
+  { kind: "course"; code: string; title: string | null } | { kind: "literal"; text: string } | null;
 
 export interface DisjunctionData {
   options: DisjunctionOption[];
@@ -69,20 +67,55 @@ function FourHandles() {
 export function DropdownDisjunctionNode({ id, data }: NodeProps<DisjunctionData>) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const optionsRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+  const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
   const { options, selectedIdx, onChange, detail } = data;
   const current = options[selectedIdx]?.display ?? "—";
 
-  // Canvas zoom closes the open menu (REQ-9.1): ReactFlow nodes scale with the
-  // viewport, so a menu opened at one zoom drifts out of alignment after a
-  // zoom gesture. Close on change rather than fight the transform.
-  const zoom = useStore((s) => s.transform[2]);
-  const lastZoom = useRef(zoom);
+  // Close on canvas pan or zoom so the menu stays within the measured graph bounds.
+  const transform = useStore((s) => s.transform);
+  const lastTransform = useRef(transform);
+  const zoom = transform[2];
   useEffect(() => {
-    if (lastZoom.current !== zoom) {
+    if (lastTransform.current !== transform) {
       if (open) setOpen(false);
-      lastZoom.current = zoom;
+      lastTransform.current = transform;
     }
-  }, [zoom, open]);
+  }, [transform, open]);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const anchor = menuRef.current;
+    const panel = optionsRef.current;
+    const canvas = anchor?.closest(".react-flow");
+    if (!anchor || !panel || !canvas) return;
+    function measure() {
+      if (!anchor || !panel || !canvas) return;
+      const bounds = canvas.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      const rect = anchor.getBoundingClientRect();
+      const width = Math.max(0, bounds.width - 16);
+      const below = Math.max(0, bounds.bottom - rect.bottom - 8 - 4 * zoom);
+      const above = Math.max(0, rect.top - bounds.top - 8 - 4 * zoom);
+      const height = Math.min(200 * zoom, panel.scrollHeight * zoom);
+      const flip = height > below && above > below;
+      const available = flip ? above : below;
+      const panelWidth = Math.min(panel.getBoundingClientRect().width, width);
+      const left = Math.max(bounds.left + 8, Math.min(rect.left, bounds.right - 8 - panelWidth));
+      setMenuStyle({
+        left: (left - rect.left) / zoom,
+        top: flip ? -(Math.min(height, available) / zoom + 4) : rect.height / zoom + 4,
+        maxWidth: width / zoom,
+        minWidth: Math.min(160, width / zoom),
+        maxHeight: Math.min(200, available / zoom),
+      });
+    }
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [open, zoom]);
 
   // Outside-pointerdown + Escape dismiss (REQ-20.6). Capture-phase
   // pointerdown so ReactFlow's pan handler can't preventDefault the
@@ -128,6 +161,7 @@ export function DropdownDisjunctionNode({ id, data }: NodeProps<DisjunctionData>
         <button
           type="button"
           aria-haspopup="listbox"
+          aria-controls={open ? menuId : undefined}
           aria-expanded={open}
           onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
@@ -146,11 +180,15 @@ export function DropdownDisjunctionNode({ id, data }: NodeProps<DisjunctionData>
         </button>
         {open && (
           <div
+            ref={optionsRef}
+            id={menuId}
             role="listbox"
+            aria-label="Prerequisite options"
+            style={menuStyle}
             // `nowheel` is ReactFlow's built-in opt-out: wheel events inside
             // this element reach the menu's `overflow:auto` instead of
             // turning into canvas zoom (REQ-9.1).
-            className="nowheel neu-raised bg-surface text-on-surface absolute top-full left-0 z-10 mt-1 max-h-[200px] min-w-[160px] overflow-auto rounded-lg p-1"
+            className="nowheel neu-raised bg-surface text-on-surface absolute top-full left-0 z-10 max-h-[200px] min-w-[160px] overflow-auto rounded-lg p-1"
             onPointerDown={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
@@ -179,7 +217,9 @@ export function DropdownDisjunctionNode({ id, data }: NodeProps<DisjunctionData>
       {detail && (
         <div
           className={`border-border mt-1.5 border-t pt-1.5 text-xs leading-snug ${
-            detail.kind === "literal" || detail.title === null ? "text-on-tertiary-container/70 italic" : "text-on-tertiary-container/80"
+            detail.kind === "literal" || detail.title === null
+              ? "text-on-tertiary-container/70 italic"
+              : "text-on-tertiary-container/80"
           }`}
         >
           {detail.kind === "course" ? (detail.title ?? "(not in calendar)") : detail.text}
@@ -219,9 +259,7 @@ export function StackedDisjunctionNode({ id, data }: NodeProps<EitherOrData>) {
                   : "border-transparent opacity-45"
               }`}
             >
-              {opt.label && (
-                <span className="text-on-surface-variant shrink-0 text-xs font-medium">({opt.label})</span>
-              )}
+              {opt.label && <span className="text-on-surface-variant shrink-0 text-xs font-medium">({opt.label})</span>}
               <span className="text-sm leading-tight">{opt.display}</span>
             </button>
           );

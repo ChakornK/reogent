@@ -15,6 +15,7 @@
 import campusHull from "@/data/campus-hull.json";
 import type { MapHighlight } from "@/src/components/chat/chat-shell-context";
 import { BuildingPopup, type SelectedBuilding } from "@/src/components/map/building-popup";
+import { tooltipPosition } from "@/src/components/map/tooltip-position";
 import { useApi, useTheme, type ResolvedTheme } from "@/src/components/providers";
 import type { BuildingSummary, EntranceFeatureCollection } from "@/src/lib/api-types";
 import { buildingFromFeature } from "@/src/lib/building-catalog";
@@ -63,26 +64,6 @@ interface PickedBuilding {
   code: string;
   x: number;
   y: number;
-}
-
-const TOOLTIP_OFFSET = 12;
-
-/** Position the building tooltip, flipping anchor when it would overflow the container. */
-function tooltipPosition(picked: PickedBuilding, container: HTMLDivElement | null): React.CSSProperties {
-  const w = container?.clientWidth ?? 800;
-  const h = container?.clientHeight ?? 600;
-
-  const fitsRight = picked.x + TOOLTIP_OFFSET + 240 < w;
-  const fitsBelow = picked.y + TOOLTIP_OFFSET + 56 < h;
-
-  return {
-    // Fits right: tooltip starts offset to the right of cursor
-    // Doesn't fit: tooltip ends offset to the left of cursor (right edge near cursor)
-    left: fitsRight ? picked.x + TOOLTIP_OFFSET : undefined,
-    right: fitsRight ? undefined : w - picked.x + TOOLTIP_OFFSET,
-    top: fitsBelow ? picked.y + TOOLTIP_OFFSET : undefined,
-    bottom: fitsBelow ? undefined : h - picked.y + TOOLTIP_OFFSET,
-  };
 }
 
 const UBC_CENTER: LngLat = [-123.246, 49.2626];

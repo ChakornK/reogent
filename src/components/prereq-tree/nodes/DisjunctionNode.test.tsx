@@ -2,19 +2,20 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const zoomRef = vi.hoisted(() => ({ value: 1 }));
+const viewState = vi.hoisted(() => ({ transform: [0, 0, 1] as [number, number, number] }));
 
 // ReactFlow's Handle needs a ReactFlowProvider store; stub it so the nodes
 // render standalone. Position is a runtime enum; NodeProps is type-only.
 vi.mock("reactflow", () => ({
   Handle: () => null,
   Position: { Left: "left", Right: "right", Top: "top", Bottom: "bottom" },
-  useStore: () => zoomRef.value,
+  useStore: (selector: (state: typeof viewState) => unknown) => selector(viewState),
 }));
 
 afterEach(() => {
   cleanup();
-  zoomRef.value = 1;
+  viewState.transform = [0, 0, 1];
+  vi.restoreAllMocks();
 });
 
 const { DropdownDisjunctionNode, StackedDisjunctionNode } = await import("./DisjunctionNode");
@@ -61,15 +62,36 @@ describe("DropdownDisjunctionNode (REQ-9.1)", () => {
   });
 
   it("keeps wheel events inside the open menu and closes it when the canvas zoom changes (REQ-9.1)", async () => {
-    zoomRef.value = 1;
+    viewState.transform = [0, 0, 1];
     const data = { options, selectedIdx: 0, onChange: vi.fn(), detail };
     const { rerender } = render(<DropdownDisjunctionNode id="z" data={data} />);
     fireEvent.click(screen.getByRole("button"));
     const menu = screen.getByRole("listbox");
     expect(menu.className).toContain("nowheel");
-    zoomRef.value = 2;
+    viewState.transform = [0, 0, 2];
     rerender(<DropdownDisjunctionNode id="z" data={data} />);
     await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+  });
+
+  it.each([0.5, 1, 2])("flips and clamps options at the graph edge at zoom %s", (zoom) => {
+    viewState.transform = [0, 0, zoom];
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      if (this.classList.contains("react-flow")) return new DOMRect(0, 0, 320, 300);
+      if (this.getAttribute("role") === "listbox") return new DOMRect(270, 260, 160 * zoom, 200 * zoom);
+      return new DOMRect(270, 240, 60, 20);
+    });
+    vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(240);
+    render(
+      <div className="react-flow">
+        <DropdownDisjunctionNode id="edge" data={{ options, selectedIdx: 0, onChange: vi.fn(), detail }} />
+      </div>,
+    );
+    fireEvent.click(screen.getByRole("button"));
+    const menu = screen.getByRole("listbox");
+    expect(Number.parseFloat(menu.style.top)).toBeLessThan(0);
+    expect(270 + Number.parseFloat(menu.style.left) * zoom).toBeGreaterThanOrEqual(8);
+    expect(270 + Number.parseFloat(menu.style.left) * zoom + Math.min(160 * zoom, 304)).toBeLessThanOrEqual(312);
+    expect(240 + Number.parseFloat(menu.style.top) * zoom).toBeGreaterThanOrEqual(8);
   });
 
   it("matches the closed dropdown snapshot (REQ-9.4)", () => {
