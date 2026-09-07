@@ -1,13 +1,13 @@
 "use client";
 
 import { useApi } from "@/src/components/providers";
-import { LoadingStatus, RetryState } from "@/src/components/ui/feedback";
+import { RetryState } from "@/src/components/ui/feedback";
 import { announce } from "@/src/components/ui/live-region";
 import { WorkspaceCanvas, WorkspacePage } from "@/src/components/ui/workspace";
 import { ApiError } from "@/src/lib/api-types";
 import { useCallback, useEffect, useState } from "react";
 import { PulseHistory } from "./pulse-history";
-import { PulseQuestionCard, type PulseCardData } from "./question-card";
+import { PulseCardsLoading, PulseQuestionCard, type PulseCardData } from "./question-card";
 
 interface FeedData {
   round: { id: number; title: string | null } | null;
@@ -93,7 +93,7 @@ export function PulseFeed() {
     >
       <WorkspaceCanvas padding="md">
         <div className="mx-auto flex w-full max-w-xl flex-col gap-3">
-          {loading ? <LoadingStatus className="justify-center py-8">Loading questions…</LoadingStatus> : null}
+          {loading ? <PulseCardsLoading label="Loading questions…" /> : null}
           {error ? (
             <RetryState title="Pulse unavailable" message={error} onRetry={() => void fetchFeed()} className="py-8" />
           ) : null}

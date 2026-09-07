@@ -1,6 +1,7 @@
 "use client";
 
 import { useWorkspaceHost } from "@/src/components/shell/workspace-host";
+import { Skeleton } from "@/src/components/ui/skeleton";
 import { useEffect, useId, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -8,6 +9,7 @@ export type WorkspaceView = "main" | "rail";
 
 type WorkspaceBaseProps = {
   title: string;
+  loading?: boolean;
   description?: ReactNode;
   leading?: ReactNode;
   toolbar?: ReactNode;
@@ -77,6 +79,8 @@ export function WorkspacePage(props: WorkspacePageProps) {
   return (
     <section
       aria-label={props.title}
+      role={props.loading ? "status" : undefined}
+      data-workspace-route-loading={props.loading || undefined}
       data-workspace-page
       data-workspace-composition={props.composition}
       data-workspace-host={host}
@@ -103,7 +107,16 @@ export function WorkspacePage(props: WorkspacePageProps) {
                 </div>
               ) : null}
               <div className="min-w-0">
-                <h1 className="text-on-surface text-xl leading-tight font-medium tracking-[-0.02em]">{props.title}</h1>
+                <h1 className="text-on-surface text-xl leading-tight font-medium tracking-[-0.02em]">
+                  {props.loading ? (
+                    <>
+                      <span className="sr-only">{props.title}</span>
+                      <Skeleton className="h-6 w-40" />
+                    </>
+                  ) : (
+                    props.title
+                  )}
+                </h1>
                 {props.description ? (
                   <p className="text-muted text-body-sm mt-1 leading-5">{props.description}</p>
                 ) : null}
@@ -117,7 +130,16 @@ export function WorkspacePage(props: WorkspacePageProps) {
 
         {props.notice}
 
-        {split ? (
+        {split && props.loading ? (
+          <div
+            data-workspace-view-toggle
+            aria-hidden="true"
+            className="workspace-page-toggle neu-inset bg-surface-container-low shrink-0 gap-1 rounded-lg p-1"
+          >
+            <Skeleton className="h-11 flex-1 rounded-md" />
+            <Skeleton className="h-11 flex-1 rounded-md" />
+          </div>
+        ) : split ? (
           <fieldset
             ref={toggleRef}
             data-workspace-view-toggle
@@ -295,7 +317,7 @@ export function WorkspaceCanvas({ overflow = "auto", padding = "none", children,
   return (
     <div
       data-workspace-canvas
-      className={`neu-inset neu-shadow-on-surface bg-surface-container-low relative flex h-full min-h-0 min-w-0 flex-col rounded-xl ${
+      className={`neu-inset neu-shadow-on-surface bg-surface-container-low focus-visible:ring-primary/40 relative flex h-full min-h-0 min-w-0 flex-col rounded-xl focus-visible:ring-2 focus-visible:ring-inset ${
         CANVAS_PADDING_CLASSES[padding]
       } ${overflow === "auto" ? "overflow-auto" : "overflow-hidden"}`}
       {...props}

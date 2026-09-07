@@ -5,7 +5,7 @@ import { Icon } from "@/src/components/icons";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { Button } from "@/src/components/ui/button";
 import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
-import { LoadingStatus, RetryState } from "@/src/components/ui/feedback";
+import { RetryState } from "@/src/components/ui/feedback";
 import { Checkbox, Field, SelectInput, TextInput } from "@/src/components/ui/form-controls";
 import type { MergedBlock } from "@/src/lib/schedule/calendar/buildCalendar";
 import { buildCalendar, expandBlocks } from "@/src/lib/schedule/calendar/buildCalendar";
@@ -20,20 +20,20 @@ import { commonFreeIntervals } from "@/src/lib/schedule/features/freeTime";
 import { defaultTermKey, deriveTerms, type Term } from "@/src/lib/schedule/features/terms";
 import type { Avatar, DayCode, Person, Schedule, Section } from "@/src/lib/schedule/types";
 import { dayCodeOf, minutesNow, minutesToFullLabel, toISODate } from "@/src/lib/schedule/util/time";
-import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AvatarChip } from "./avatar-chip";
 import { BlockDetail } from "./block-detail";
 import { NowPanel } from "./now-panel";
 import { PeoplePanel } from "./people-panel";
 import { ScheduleGrid, type ScheduleGridEmptyState } from "./schedule-grid";
 import { buildSharerBands, buildSharerGrid } from "./schedule-grid-adapter";
+import { ScheduleControlsSkeleton, ScheduleProfileSkeleton, ScheduleToolbarSkeleton } from "./schedule-loading";
 import { ScheduleWorkspace, type ScheduleWorkspaceView } from "./schedule-workspace";
 import { TermSwitcher } from "./term-switcher";
 import { ToastProvider, useToast } from "./toast";
 import { UploadDropzone } from "./upload-dropzone";
 
-const ProfileModal = dynamic(() => import("./profile-modal").then((module) => module.ProfileModal));
+const ProfileModal = lazy(() => import("./profile-modal").then((module) => ({ default: module.ProfileModal })));
 
 interface Props {
   /** A 6-char group code from `/pulse/schedule/[code]`; opening it auto-joins the caller. */
@@ -361,10 +361,7 @@ function ScheduleAppInner({ groupCode }: Props) {
   const tbaOnly = selectedSections.length > 0 && selectedSections.every((section) => section.meetings.length === 0);
   const empty =
     groupView.status === "loading"
-      ? {
-          title: `Opening ${groupLabel}`,
-          description: `The empty week stays visible while group ${groupView.code} loads.`,
-        }
+      ? undefined
       : groupView.status === "error"
         ? {
             title: `${groupLabel} is unavailable`,
@@ -517,21 +514,9 @@ function ScheduleAppInner({ groupCode }: Props) {
           {importControl}
         </>
       ) : groupView.status === "loading" ? (
-        <section
-          data-control-section="group-status"
-          aria-busy="true"
-          aria-label={`Opening ${groupLabel}`}
-          className="border-border-subtle border-t py-4"
-        >
-          <div role="status" className="text-on-surface flex items-center gap-2 text-sm font-medium">
-            <span className="border-primary/25 border-t-primary size-4 animate-spin rounded-full border-2" />
-            Opening {groupLabel}…
-          </div>
-          <div className="mt-3 flex flex-col gap-2" aria-hidden="true">
-            <span className="bg-surface-container h-10 animate-pulse rounded-lg" />
-            <span className="bg-surface-container h-10 animate-pulse rounded-lg" />
-          </div>
-        </section>
+        <div data-control-section="group-status" aria-busy="true">
+          <ScheduleControlsSkeleton label={`Opening ${groupLabel}…`} />
+        </div>
       ) : (
         <NoGroupControls
           me={mePerson}
@@ -560,7 +545,13 @@ function ScheduleAppInner({ groupCode }: Props) {
                 : "Import your Workday schedule, then create or join a group to compare weeks."
         }
         actions={actions}
-        toolbar={<TermSwitcher terms={terms} selected={selectedTermKey} onSelect={setTermKey} />}
+        toolbar={
+          groupView.status === "loading" ? (
+            <ScheduleToolbarSkeleton />
+          ) : (
+            <TermSwitcher terms={terms} selected={selectedTermKey} onSelect={setTermKey} />
+          )
+        }
         controlsLabel="Controls"
         controls={controls}
         mobileView={mobileView}
@@ -577,6 +568,7 @@ function ScheduleAppInner({ groupCode }: Props) {
           bands={gridBands}
           now={nowLine}
           empty={empty}
+          loading={groupView.status === "loading" ? `Loading ${groupLabel} weekly schedule` : undefined}
           renderBlockFooter={(block) => {
             const peopleForBlock = grid.blocksById.get(block.id)?.people ?? [];
             return (
@@ -594,15 +586,25 @@ function ScheduleAppInner({ groupCode }: Props) {
         />
       </ScheduleWorkspace>
       {draftSchedule && (
-        <ProfileModal
-          schedule={draftSchedule}
-          currentHandle={me?.handle}
-          currentAvatar={me ? normalizePerson(me).avatar : undefined}
-          title={me ? "Replace your schedule" : "Who is this schedule for?"}
-          saveLabel={me ? "Replace schedule" : "Save my schedule"}
-          onSave={saveSchedule}
-          onCancel={() => setDraftSchedule(null)}
-        />
+        <Suspense
+          fallback={
+            <ScheduleProfileSkeleton
+              title={me ? "Replace your schedule" : "Who is this schedule for?"}
+              avatarKind={me ? normalizePerson(me).avatar.kind : undefined}
+              onCancel={() => setDraftSchedule(null)}
+            />
+          }
+        >
+          <ProfileModal
+            schedule={draftSchedule}
+            currentHandle={me?.handle}
+            currentAvatar={me ? normalizePerson(me).avatar : undefined}
+            title={me ? "Replace your schedule" : "Who is this schedule for?"}
+            saveLabel={me ? "Replace schedule" : "Save my schedule"}
+            onSave={saveSchedule}
+            onCancel={() => setDraftSchedule(null)}
+          />
+        </Suspense>
       )}
       {showCreate && <CreateGroupModal onCreate={createGroup} onClose={() => setShowCreate(false)} />}
       {detail && <BlockDetail block={detail} onClose={() => setDetail(null)} />}
@@ -618,9 +620,13 @@ function ScheduleLoading() {
     <ScheduleWorkspace
       title="Shared schedule"
       description="Loading your groups and saved Workday schedule."
-      notice={<LoadingStatus size="md">Loading schedules…</LoadingStatus>}
+      toolbar={<ScheduleToolbarSkeleton />}
       controlsLabel="Controls"
-      controls={<p className="text-muted p-4 text-sm">Your group and import controls are loading.</p>}
+      controls={
+        <div className="h-full [scrollbar-gutter:stable] overflow-y-auto px-3">
+          <ScheduleControlsSkeleton label="Loading schedule controls" includeGroup />
+        </div>
+      }
       mobileView={mobileView}
       onMobileViewChange={setMobileView}
     >
@@ -629,10 +635,7 @@ function ScheduleLoading() {
         activeDay="Mon"
         onActiveDayChange={() => {}}
         onBlockActivate={() => {}}
-        empty={{
-          title: "Loading your week",
-          description: "The timetable will stay here while your saved schedules arrive.",
-        }}
+        loading="Loading your weekly schedule"
       />
     </ScheduleWorkspace>
   );

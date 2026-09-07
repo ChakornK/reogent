@@ -4,6 +4,7 @@ import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
 import { LoadingStatus, RetryAlert } from "@/src/components/ui/feedback";
 import { SearchInput, TextInput } from "@/src/components/ui/form-controls";
+import { Skeleton, SkeletonGroup, SkeletonList, SkeletonText } from "@/src/components/ui/skeleton";
 import { WorkspacePanel } from "@/src/components/ui/workspace";
 import type { BuildingDetails, BuildingSummary, OfficialBuildingPhoto, RouteResponse } from "@/src/lib/api-types";
 import { searchBuildings } from "@/src/lib/building-catalog";
@@ -541,7 +542,37 @@ export function BuildingRail(props: BuildingRailProps) {
             ) : null}
           </div>
           <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto px-3 py-4">
-            {props.details.status === "loading" ? <LoadingStatus>Loading building details…</LoadingStatus> : null}
+            {props.details.status === "loading" ? (
+              <SkeletonGroup label="Loading building details" className="flex flex-col gap-4">
+                <div className="overflow-hidden rounded-lg">
+                  <Skeleton className="h-36 w-full rounded-none" />
+                  <div className="px-3 py-2">
+                    <Skeleton className="h-11 w-32 sm:h-9" />
+                  </div>
+                </div>
+                <div>
+                  <Skeleton className="mb-2 h-5 w-24" />
+                  <div className="divide-border-subtle divide-y">
+                    {[0, 1, 2].map((row) => (
+                      <div key={row} className="flex justify-between gap-3 py-1.5">
+                        <Skeleton className="h-5 w-20" />
+                        <Skeleton className="h-5 w-32" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="border-border-subtle border-t pt-3">
+                  <Skeleton className="mb-2 h-5 w-36" />
+                  <div className="flex flex-col gap-2">
+                    {[0, 1].map((row) => (
+                      <div key={row} className="bg-surface-container-low rounded-lg p-3">
+                        <SkeletonText lines={2} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </SkeletonGroup>
+            ) : null}
             {props.details.status === "error" ? (
               <RetryAlert onRetry={props.onRetryDetails}>Couldn't load building details.</RetryAlert>
             ) : null}
@@ -755,7 +786,12 @@ export function BuildingRail(props: BuildingRailProps) {
             ) : (
               <div className="flex flex-col gap-4">
                 <div id={listboxId} role="listbox" aria-label="Building search results" className="hidden" />
-                {props.favoriteStatus === "loading" ? <LoadingStatus>Loading saved buildings…</LoadingStatus> : null}
+                {props.favoriteStatus === "loading" && saved.length === 0 ? (
+                  <section aria-label="Saved">
+                    <h3 className="text-muted px-2 pb-1.5 text-xs font-medium">Saved</h3>
+                    <SkeletonList label="Loading saved buildings" rows={2} icon padding="none" className="px-3" />
+                  </section>
+                ) : null}
                 {props.favoriteStatus === "error" && props.authenticated ? (
                   <p role="alert" className="text-error px-2 text-xs">
                     Saved buildings are unavailable. Search and curated places still work.

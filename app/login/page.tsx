@@ -46,7 +46,9 @@ function LoginContent() {
           </span>
           <h1 className="text-on-surface mb-2 text-center text-2xl font-medium tracking-[-0.02em]">Welcome back</h1>
           <p className="text-muted mb-6 text-center text-sm">Sign in to continue to Reodite</p>
-          {loading ? <AuthFormLoading label="Loading sign in" /> : <AuthForm mode="login" />}
+          <Suspense fallback={<AuthFormLoading label="Loading sign in" />}>
+            {loading ? <AuthFormLoading label="Loading sign in" /> : <AuthForm mode="login" />}
+          </Suspense>
         </div>
       </motion.div>
       <footer className="flex items-center justify-center pb-2">
@@ -57,9 +59,5 @@ function LoginContent() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginContent />
-    </Suspense>
-  );
+  return <LoginContent />;
 }

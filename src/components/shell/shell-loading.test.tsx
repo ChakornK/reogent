@@ -8,6 +8,7 @@ import {
   ShellBootLoading,
   WorkspaceRouteLoading,
 } from "./shell-loading";
+import { WorkspaceHostProvider } from "./workspace-host";
 
 afterEach(cleanup);
 
@@ -40,7 +41,9 @@ describe("shell loading surfaces", () => {
     expect(workspace?.className).toContain("h-full");
     expect(workspace?.getAttribute("data-workspace-composition")).toBe("split");
     expect(workspace?.querySelector("[data-workspace-view-toggle]")).not.toBeNull();
-    expect(workspace?.querySelector("[data-workspace-loading-controls]")).not.toBeNull();
+    const controls = workspace?.querySelector("[data-workspace-loading-controls]");
+    expect(controls?.className).toContain("grid-cols-[minmax(0,3fr)_minmax(0,2fr)]");
+    expect(controls?.firstElementChild?.className).not.toContain("max-w-3/5");
     expect(workspace?.querySelector("[data-workspace-region='rail']")).not.toBeNull();
     expect(workspace?.querySelector("[data-workspace-region='main']")).not.toBeNull();
     const answerCanvas = view.container.querySelector("[data-answer-canvas-loading]");
@@ -48,6 +51,28 @@ describe("shell loading surfaces", () => {
     expect(answerCanvas?.querySelector("header")?.className).toContain("h-15");
     expect(answerCanvas?.querySelector("header")?.className).not.toContain("border-b");
     expect(answerCanvas?.querySelector("header")?.firstElementChild?.className).toContain("size-7");
+  });
+
+  it("shares host clearance, padding, and inert compact placeholders with workspaces", () => {
+    const { container, queryByRole, rerender } = render(
+      <WorkspaceHostProvider host="tools" menuClearance>
+        <WorkspaceRouteLoading composition="split" controls />
+      </WorkspaceHostProvider>,
+    );
+    const workspace = container.querySelector("[data-workspace-page]");
+    expect(workspace?.getAttribute("data-workspace-host")).toBe("tools");
+    expect(workspace?.getAttribute("data-menu-clearance")).toBe("true");
+    expect(workspace?.querySelector(".workspace-page-layout")?.className).toContain("p-6");
+    expect(workspace?.querySelector("[data-workspace-canvas]")?.className).toContain("p-4");
+    expect(workspace?.querySelector("[data-workspace-header]")).not.toBeNull();
+    expect(queryByRole("button")).toBeNull();
+    rerender(
+      <WorkspaceHostProvider host="answer-canvas" menuClearance={false}>
+        <WorkspaceRouteLoading composition="split" controls />
+      </WorkspaceHostProvider>,
+    );
+    expect(container.querySelector("[data-workspace-header]")).toBeNull();
+    expect(container.querySelector("[data-workspace-loading-controls]")).not.toBeNull();
   });
 
   it("renders one shell main instead of a blank auth frame", () => {

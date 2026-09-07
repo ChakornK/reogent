@@ -18,7 +18,8 @@ import {
 import { Icon } from "@/src/components/icons";
 import { useApi } from "@/src/components/providers";
 import { Button } from "@/src/components/ui/button";
-import { LoadingStatus, RetryAlert } from "@/src/components/ui/feedback";
+import { RetryAlert } from "@/src/components/ui/feedback";
+import { Skeleton, SkeletonGroup, SkeletonList, SkeletonText } from "@/src/components/ui/skeleton";
 import {
   WorkspaceCanvas,
   WorkspacePage,
@@ -49,7 +50,7 @@ import { LookupBlock } from "./lookup-block";
 import { MiniCourseLookup } from "./mini-course-lookup";
 import { PlanStructure } from "./plan-structure";
 import { SEASON_META, usePlanner, type Year } from "./planner-store";
-import { ProgramProgress, ProgramSelectors } from "./program-requirements";
+import { ProgramProgress, ProgramSelectors, ProgramSelectorsLoading } from "./program-requirements";
 import { TrashBin } from "./trash-bin";
 import { usePlanSync } from "./use-plan-sync";
 import { describeIssue, EMPTY_VALIDATION, findDuplicateCourseCodes, type BlockValidation } from "./validation";
@@ -355,11 +356,59 @@ export function DegreePlannerPane() {
   }
   if (!courseIndex) {
     return (
-      <WorkspacePage composition="canvas" title="Degree Planner" description="Plan your UBC degree, term by term.">
-        <WorkspaceCanvas overflow="hidden" padding="md">
-          <div className="grid h-full place-items-center">
-            <LoadingStatus>Loading course index…</LoadingStatus>
+      <WorkspacePage
+        composition="split"
+        title="Degree Planner"
+        description="Plan your UBC degree, term by term."
+        view={mobileView}
+        onViewChange={setMobileView}
+        mainLabel="Plan"
+        railLabel="Requirements and courses"
+        toolbar={
+          <div className="flex w-full flex-wrap items-end gap-3">
+            <div className="w-full min-w-0 @min-[55rem]:flex-[1_1_35rem]">
+              <ProgramSelectorsLoading />
+            </div>
+            <Skeleton className="h-11 w-72 rounded-lg sm:h-9" />
           </div>
+        }
+        rail={
+          <WorkspaceRail>
+            <WorkspacePanel title="Requirements" padding="sm">
+              <SkeletonList label="Loading requirements" padding="none" rows={4} />
+            </WorkspacePanel>
+            <WorkspacePanel title="Find courses" description="Drag a result or use Add" padding="sm">
+              <Skeleton className="h-11 w-full rounded-lg" />
+              <SkeletonList label="Loading courses" padding="none" className="mt-3" />
+            </WorkspacePanel>
+          </WorkspaceRail>
+        }
+      >
+        <WorkspaceCanvas role="region" aria-label="Degree plan" tabIndex={0} padding="md">
+          <SkeletonGroup
+            label="Loading course index…"
+            className="grid min-h-0 flex-1 gap-4"
+            style={{
+              gridTemplateColumns: `repeat(${years.length}, minmax(18rem, 1fr))`,
+              minWidth: `${years.length * 18 + Math.max(0, years.length - 1)}rem`,
+            }}
+          >
+            {years.map((year) => (
+              <div key={year.id} className="flex min-h-0 flex-col gap-2">
+                <Skeleton className="h-8 w-28" />
+                {year.terms.map((term) => (
+                  <div
+                    key={term.season}
+                    className="neu-inset bg-surface-container-low flex min-h-36 flex-1 flex-col gap-4 rounded-xl p-3"
+                  >
+                    <Skeleton className="h-4 w-24" />
+                    <SkeletonText />
+                  </div>
+                ))}
+                <Skeleton className="h-11 w-full rounded-lg sm:h-9" />
+              </div>
+            ))}
+          </SkeletonGroup>
         </WorkspaceCanvas>
       </WorkspacePage>
     );

@@ -1,9 +1,10 @@
 "use client";
 
 import { useApi } from "@/src/components/providers";
-import { RetryAlert } from "@/src/components/ui/feedback";
+import { LoadingStatus, RetryAlert } from "@/src/components/ui/feedback";
 import { SearchInput, type SearchDensity } from "@/src/components/ui/form-controls";
 import { InlineAction } from "@/src/components/ui/inline-action";
+import { SkeletonList } from "@/src/components/ui/skeleton";
 import type { CourseDoc } from "@/src/lib/api-types";
 import { ApiError } from "@/src/lib/api-types";
 import type { NeumorphicSurfaceToken } from "@/src/shared/color-tokens";
@@ -86,14 +87,12 @@ export function useCourseAutocomplete(value: string, opts: UseCourseAutocomplete
           setStatus("loading");
           const my = ++reqToken.current;
           try {
-            const rec = await opts.resolveSingle(`${canonical.subject} ${canonical.number}`);
-            if (my !== reqToken.current) return;
-            setRecord(rec);
-            setList(null);
-            setStatus("idle");
-            return;
-          } catch (e) {
-            if (e instanceof ApiError && e.status === 404) {
+            let rec: CourseDoc;
+            try {
+              rec = await opts.resolveSingle(`${canonical.subject} ${canonical.number}`);
+            } catch (e) {
+              if (my !== reqToken.current) return;
+              if (!(e instanceof ApiError && e.status === 404)) throw e;
               // q-search spans all fields and Meilisearch ranks by
               // relevance, surfacing APSC 160 and ELEC 331 for "CPSC 101".
               // Narrow by subject + exact number so a dead code lands on a
@@ -107,8 +106,12 @@ export function useCourseAutocomplete(value: string, opts: UseCourseAutocomplete
               return;
             }
             if (my !== reqToken.current) return;
-            setRecord(null);
+            setRecord(rec);
             setList(null);
+            setStatus("idle");
+            return;
+          } catch (e) {
+            if (my !== reqToken.current) return;
             setError(e instanceof Error ? e.message : "Lookup failed");
             setStatus("idle");
             return;
@@ -194,8 +197,6 @@ export function useCourseAutocomplete(value: string, opts: UseCourseAutocomplete
         setStatus("idle");
       } catch (e) {
         if (my !== reqToken.current) return;
-        setRecord(null);
-        setList(null);
         setError(e instanceof Error ? e.message : "Lookup failed");
         setStatus("idle");
       }
@@ -244,6 +245,7 @@ export type CourseSearchFieldProps = {
   shadowOn?: NeumorphicSurfaceToken;
   clearable?: boolean;
   openOnInitialValue?: boolean;
+  loadingFallback?: ReactNode;
 };
 
 export function CourseSearchField({
@@ -266,6 +268,7 @@ export function CourseSearchField({
   shadowOn = "surface",
   clearable = true,
   openOnInitialValue = true,
+  loadingFallback,
 }: CourseSearchFieldProps) {
   const trimmed = value.trim();
   const overlay = presentation === "overlay";
@@ -396,7 +399,10 @@ export function CourseSearchField({
       aria-autocomplete={overlay ? "list" : undefined}
       aria-expanded={overlay ? showOverlay : undefined}
       aria-controls={overlay ? listboxId : undefined}
-      aria-activedescendant={showOverlay && activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
+      aria-activedescendant={
+        showOverlay && !rejected && candidates[activeIndex] ? `${listboxId}-option-${activeIndex}` : undefined
+      }
+      aria-busy={status === "loading" || undefined}
       density={density}
       shadowOn={shadowOn}
     />
@@ -409,21 +415,20 @@ export function CourseSearchField({
         {showOverlay && (
           <div
             ref={listboxRef}
-            id={listboxId}
-            role={status === "idle" && candidates.length > 0 && !error && !rejected ? "listbox" : undefined}
             data-course-list
             className="border-border-subtle bg-surface absolute top-full z-30 mt-2 max-h-[320px] w-full overflow-y-auto rounded-xl border shadow-lg"
           >
+            {candidates.length === 0 || rejected ? (
+              <div id={listboxId} role="listbox" aria-label="Course suggestions" aria-busy={status === "loading"} />
+            ) : null}
             {status === "loading" ? (
-              <div role="status" aria-busy="true">
-                {[0, 1, 2].map((i) => (
-                  <div key={i} className="flex h-11 items-center gap-3 px-3">
-                    <span className="bg-surface-container h-3 w-16 animate-pulse rounded" />
-                    <span className="bg-surface-container h-3 flex-1 animate-pulse rounded" />
-                  </div>
-                ))}
-              </div>
-            ) : rejected ? (
+              candidates.length > 0 ? (
+                <LoadingStatus className="px-3 py-2">Updating courses…</LoadingStatus>
+              ) : (
+                <SkeletonList label="Loading course suggestions" padding="sm" />
+              )
+            ) : null}
+            {rejected ? (
               <div id="code-error" role="alert" className="text-error flex min-h-11 items-center px-3 text-sm">
                 Okanagan campus codes aren't in this catalog. Try a Vancouver course.
               </div>
@@ -436,56 +441,59 @@ export function CourseSearchField({
                   </InlineAction>
                 )}
               </div>
-            ) : candidates.length > 0 ? (
+            ) : null}
+            {!rejected && candidates.length > 0 ? (
               <>
-                {candidates.map((candidate, index) => {
-                  const candidatePresentation = presentations[index];
-                  const unavailable = candidatePresentation.disabled || candidatePresentation.pending;
-                  return (
-                    <button
-                      id={`${listboxId}-option-${index}`}
-                      key={candidate.code}
-                      type="button"
-                      role="option"
-                      tabIndex={-1}
-                      aria-selected={activeIndex === index}
-                      aria-disabled={unavailable || undefined}
-                      aria-busy={candidatePresentation.pending || undefined}
-                      disabled={unavailable}
-                      onPointerDown={(event) => event.preventDefault()}
-                      onPointerMove={() => {
-                        if (!unavailable) setActiveIndex(index);
-                      }}
-                      onClick={() => selectCandidate(index)}
-                      className="hover:bg-surface-container-low aria-selected:bg-primary/10 focus-visible:ring-primary/40 flex min-h-12 w-full items-center px-3 py-1.5 text-left focus-visible:ring-2 disabled:opacity-60"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="flex min-w-0 items-baseline gap-2">
-                          <span
-                            className={`text-on-surface text-body-sm shrink-0 font-medium ${monospaceCodes ? "font-mono" : ""}`}
-                          >
-                            {candidate.code}
+                <div id={listboxId} role="listbox" aria-label="Course suggestions" aria-busy={status === "loading"}>
+                  {candidates.map((candidate, index) => {
+                    const candidatePresentation = presentations[index];
+                    const unavailable = candidatePresentation.disabled || candidatePresentation.pending;
+                    return (
+                      <button
+                        id={`${listboxId}-option-${index}`}
+                        key={candidate.code}
+                        type="button"
+                        role="option"
+                        tabIndex={-1}
+                        aria-selected={activeIndex === index}
+                        aria-disabled={unavailable || undefined}
+                        aria-busy={candidatePresentation.pending || undefined}
+                        disabled={unavailable}
+                        onPointerDown={(event) => event.preventDefault()}
+                        onPointerMove={() => {
+                          if (!unavailable) setActiveIndex(index);
+                        }}
+                        onClick={() => selectCandidate(index)}
+                        className="hover:bg-surface-container-low aria-selected:bg-primary/10 focus-visible:ring-primary/40 flex min-h-12 w-full items-center px-3 py-1.5 text-left focus-visible:ring-2 disabled:opacity-60"
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="flex min-w-0 items-baseline gap-2">
+                            <span
+                              className={`text-on-surface text-body-sm shrink-0 font-medium ${monospaceCodes ? "font-mono" : ""}`}
+                            >
+                              {candidate.code}
+                            </span>
+                            <span className="text-on-surface-variant truncate text-xs">{candidate.title}</span>
                           </span>
-                          <span className="text-on-surface-variant truncate text-xs">{candidate.title}</span>
+                          {candidatePresentation.annotation ? (
+                            <span className="text-muted mt-0.5 block truncate text-xs">
+                              {candidatePresentation.annotation}
+                            </span>
+                          ) : null}
                         </span>
-                        {candidatePresentation.annotation ? (
-                          <span className="text-muted mt-0.5 block truncate text-xs">
-                            {candidatePresentation.annotation}
-                          </span>
-                        ) : null}
-                      </span>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
                 {candidatePool.length > candidates.length ? (
                   <p className="border-border-subtle text-muted border-t px-3 py-2 text-xs">
                     Keep typing to narrow {list?.total ?? candidatePool.length} results.
                   </p>
                 ) : null}
               </>
-            ) : (
+            ) : status === "idle" && !error && !rejected ? (
               <div className="text-muted flex min-h-11 items-center px-3 text-sm">No courses matching {trimmed}.</div>
-            )}
+            ) : null}
           </div>
         )}
       </div>
@@ -512,27 +520,23 @@ export function CourseSearchField({
         </RetryAlert>
       )}
 
-      {status === "loading" && (
-        <div role="status" aria-busy="true" className="flex flex-col gap-1.5">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="bg-surface-container-low/60 flex h-11 animate-pulse items-center gap-3 rounded-lg px-3"
-            >
-              <span className="bg-surface-container h-3 w-16 animate-pulse rounded" />
-              <span className="bg-surface-container h-3 flex-1 animate-pulse rounded" />
-            </div>
-          ))}
-        </div>
-      )}
+      {status === "loading" && candidates.length === 0
+        ? (loadingFallback ?? <SkeletonList label="Loading course suggestions" padding="sm" />)
+        : null}
 
-      {list && status === "idle" && list.candidates.length > 0 && (
+      {list && !rejected && list.candidates.length > 0 && (
         <>
-          <p className="text-on-surface-variant px-1 text-xs">
-            {list.candidates.length}
-            {list.candidates.length === 1 ? " match" : " matches"}
-          </p>
-          <div data-course-list className="flex flex-col gap-1.5 overflow-auto">
+          <div className="flex min-h-5 items-center px-1">
+            {status === "loading" ? (
+              <LoadingStatus>Updating courses…</LoadingStatus>
+            ) : (
+              <p className="text-on-surface-variant text-xs">
+                {list.candidates.length}
+                {list.candidates.length === 1 ? " match" : " matches"}
+              </p>
+            )}
+          </div>
+          <div data-course-list aria-busy={status === "loading"} className="flex flex-col gap-1.5 overflow-auto">
             {list.candidates.map((c) => (
               <button
                 key={c.code}

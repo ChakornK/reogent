@@ -5,7 +5,7 @@ import { RetryState } from "@/src/components/ui/feedback";
 import type { PulseHistory as PulseHistoryData } from "@/src/lib/api-types";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
-import { ShadowCard } from "./question-card";
+import { PulseCardsLoading, ShadowCard } from "./question-card";
 
 /** Read-only list of locked rounds with their final tallies, under the active feed. */
 export function PulseHistory() {
@@ -34,12 +34,7 @@ export function PulseHistory() {
       <h2 id="pulse-history-heading" className="text-on-surface text-base font-medium tracking-[-0.01em]">
         Previous rounds
       </h2>
-      {loading ? (
-        <div role="status" aria-label="Loading previous rounds" className="flex flex-col gap-3">
-          <span className="shell-skeleton h-20 w-full rounded-xl" />
-          <span className="shell-skeleton h-20 w-full rounded-xl" />
-        </div>
-      ) : null}
+      {loading ? <PulseCardsLoading label="Loading previous rounds" /> : null}
       {error ? <RetryState message={error} onRetry={() => void fetchHistory()} compact className="py-4" /> : null}
       {rounds?.length === 0 && <p className="text-muted py-4 text-center text-sm">No previous rounds yet.</p>}
       {rounds?.map((round) => (

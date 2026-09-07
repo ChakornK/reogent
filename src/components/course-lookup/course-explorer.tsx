@@ -3,8 +3,9 @@
 import { averageColorClass } from "@/src/components/course-lookup/grade-distribution-chart";
 import { useApi } from "@/src/components/providers";
 import { Button } from "@/src/components/ui/button";
-import { RetryAlert, RetryState } from "@/src/components/ui/feedback";
+import { LoadingStatus, RetryAlert, RetryState } from "@/src/components/ui/feedback";
 import { Field, SearchInput, SelectInput, TextInput } from "@/src/components/ui/form-controls";
+import { Skeleton, SkeletonGroup } from "@/src/components/ui/skeleton";
 import { WorkspaceCanvas, WorkspacePage } from "@/src/components/ui/workspace";
 import type { CourseDoc } from "@/src/lib/api-types";
 import { usePersistentState } from "@/src/lib/use-persistent-state";
@@ -91,6 +92,64 @@ function courseSearchParams(query: string): { q?: string; subject?: string; numb
   return query ? { q: query } : {};
 }
 
+function CourseTableHeader() {
+  return (
+    <thead className="sticky top-0 z-10">
+      <tr>
+        <th scope="col" className="bg-surface-container text-muted w-28 px-3 py-2 text-left text-xs font-semibold">
+          Code
+        </th>
+        <th scope="col" className="bg-surface-container text-muted px-3 py-2 text-left text-xs font-semibold">
+          Course name
+        </th>
+        <th
+          scope="col"
+          className="bg-surface-container text-muted px-3 py-2 text-right text-xs font-semibold max-sm:hidden"
+        >
+          Students
+        </th>
+        <th
+          scope="col"
+          className="bg-surface-container text-muted px-3 py-2 text-right text-xs font-semibold max-sm:hidden"
+        >
+          Average
+        </th>
+      </tr>
+    </thead>
+  );
+}
+
+function CourseTableSkeleton() {
+  return (
+    <SkeletonGroup label="Loading courses" className="min-h-0 flex-1 overflow-auto">
+      <table className="w-full table-fixed text-sm sm:table-auto">
+        <CourseTableHeader />
+        <tbody>
+          {[0, 1, 2, 3, 4].map((index) => (
+            <tr key={index} className="border-surface-container border-t">
+              <td className="w-28 px-3 py-1.5">
+                <div className="flex min-h-11 items-center sm:min-h-8">
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </td>
+              <td className="px-3 py-1.5">
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="mt-1 h-3 w-2/3 sm:hidden" />
+              </td>
+              <td className="px-3 py-1.5 max-sm:hidden">
+                <Skeleton className="ml-auto h-3 w-12" />
+              </td>
+              <td className="px-3 py-1.5 max-sm:hidden">
+                <Skeleton className="ml-auto h-3 w-12" />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </SkeletonGroup>
+  );
+}
+
 export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void }) {
   const api = useApi();
   const [session, setSession] = usePersistentState<string>("reodite.explorer.session", defaultSession());
@@ -103,7 +162,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
   const [avgBand, setAvgBand] = usePersistentState<string>("reodite.explorer.avgBand", "");
   const [studentBand, setStudentBand] = usePersistentState<string>("reodite.explorer.studentBand", "");
   const [courses, setCourses] = useState<ExplorerCourse[]>([]);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -213,7 +272,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
       title="Course lookup"
       description="Find a course, compare recent enrollment and grades, then open its full record."
       notice={
-        error && courses.length > 0 ? (
+        error && total !== null ? (
           <RetryAlert variant="soft" onRetry={() => fetchExplorer()}>
             Couldn't refresh courses. Showing the previous results.
           </RetryAlert>
@@ -308,26 +367,16 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
         <div className="min-h-0 flex-1">
           <WorkspaceCanvas overflow="hidden">
             <div aria-busy={loading} className="flex h-full min-h-0 flex-col">
-              {error && courses.length === 0 ? (
+              {error && total === null ? (
                 <RetryState
                   title="Courses unavailable"
                   message="The course catalog could not be loaded."
                   onRetry={() => fetchExplorer()}
                   className="min-h-0 flex-1 justify-center p-6"
                 />
-              ) : loading && courses.length === 0 ? (
-                <div role="status" aria-label="Loading courses" className="flex min-h-0 flex-1 flex-col gap-2 p-3">
-                  {[0, 1, 2, 3, 4].map((index) => (
-                    <div
-                      key={index}
-                      className="bg-surface-container-low/60 flex h-11 items-center gap-3 rounded-lg px-3"
-                    >
-                      <span className="bg-surface-container h-3 w-20 animate-pulse rounded" />
-                      <span className="bg-surface-container h-3 flex-1 animate-pulse rounded" />
-                    </div>
-                  ))}
-                </div>
-              ) : !error && courses.length === 0 ? (
+              ) : loading && total === null ? (
+                <CourseTableSkeleton />
+              ) : total !== null && courses.length === 0 ? (
                 <div className="text-muted flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6 text-center text-sm">
                   <p>No courses match this search.</p>
                   {hasFilters ? (
@@ -340,34 +389,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
                 <div className="min-h-0 flex-1 overflow-auto">
                   <table className="w-full table-fixed text-sm sm:table-auto">
                     <caption className="sr-only">Course list for {session}</caption>
-                    <thead className="sticky top-0 z-10">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="bg-surface-container text-muted w-28 px-3 py-2 text-left text-xs font-semibold"
-                        >
-                          Code
-                        </th>
-                        <th
-                          scope="col"
-                          className="bg-surface-container text-muted px-3 py-2 text-left text-xs font-semibold"
-                        >
-                          Course name
-                        </th>
-                        <th
-                          scope="col"
-                          className="bg-surface-container text-muted px-3 py-2 text-right text-xs font-semibold max-sm:hidden"
-                        >
-                          Students
-                        </th>
-                        <th
-                          scope="col"
-                          className="bg-surface-container text-muted px-3 py-2 text-right text-xs font-semibold max-sm:hidden"
-                        >
-                          Average
-                        </th>
-                      </tr>
-                    </thead>
+                    <CourseTableHeader />
                     <tbody>
                       {paged.map((course) => {
                         const mobileFacts = [
@@ -415,9 +437,25 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
               ) : null}
 
               <footer className="border-border-subtle flex min-h-17 shrink-0 flex-wrap items-center justify-between gap-2 border-t p-3 sm:min-h-15">
-                <span className="text-muted text-xs">
-                  {total.toLocaleString()} course{total === 1 ? "" : "s"} · {session}
-                </span>
+                {total === null ? (
+                  loading ? (
+                    <Skeleton className="h-3 w-36" />
+                  ) : (
+                    <span className="text-muted text-xs">Course count unavailable</span>
+                  )
+                ) : loading ? (
+                  <LoadingStatus>
+                    Updating courses…
+                    <span className="sr-only">
+                      {" "}
+                      {total.toLocaleString()} course{total === 1 ? "" : "s"} · {session}
+                    </span>
+                  </LoadingStatus>
+                ) : (
+                  <span className="text-muted text-xs">
+                    {total.toLocaleString()} course{total === 1 ? "" : "s"} · {session}
+                  </span>
+                )}
                 {courses.length > effectivePageSize ? (
                   <div className="flex items-center gap-1.5">
                     <Button

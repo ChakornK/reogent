@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { ChatShellProvider, useChatShell } from "@/src/components/chat/chat-shell-context";
 import type { BuildingSummary, RouteResponse } from "@/src/lib/api-types";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -16,7 +16,11 @@ const api = vi.hoisted(() => ({
 }));
 const auth = vi.hoisted(() => ({ isGuest: false }));
 const routerPush = vi.hoisted(() => vi.fn());
-const navigation = vi.hoisted(() => ({ pathname: "/tools/map", params: new URLSearchParams() }));
+const navigation = vi.hoisted(() => ({ pathname: "/tools/map", params: new URLSearchParams(), suspended: false }));
+const pendingNavigation = new Promise(() => {});
+const mapState = vi.hoisted(() => ({
+  onStatus: undefined as ((status: "loading" | "ready" | "error") => void) | undefined,
+}));
 
 const iblc: BuildingSummary = {
   code: "IBLC",
@@ -68,7 +72,10 @@ vi.mock("@/src/components/auth/app-auth", () => ({
 }));
 vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
-  useSearchParams: () => navigation.params,
+  useSearchParams: () => {
+    if (navigation.suspended) throw pendingNavigation;
+    return navigation.params;
+  },
   useRouter: () => ({ push: routerPush, replace: vi.fn() }),
 }));
 vi.mock("@/src/components/map/campus-map", () => ({
@@ -78,7 +85,9 @@ vi.mock("@/src/components/map/campus-map", () => ({
     onBuildingSelect?: (building: BuildingSummary) => void;
     showBuildingPopup?: boolean;
     controls?: { current: unknown };
+    onStatus?: (status: "loading" | "ready" | "error") => void;
   }) => {
+    mapState.onStatus = props.onStatus;
     if (props.controls) {
       props.controls.current = { zoomIn: vi.fn(), zoomOut: vi.fn(), resetView: vi.fn(), resize };
     }
@@ -190,6 +199,8 @@ beforeEach(() => {
   window.history.replaceState(null, "", "/tools/map");
   navigation.pathname = "/tools/map";
   navigation.params = new URLSearchParams();
+  navigation.suspended = false;
+  mapState.onStatus = undefined;
   auth.isGuest = false;
   resize.mockReset();
   routerPush.mockReset();
@@ -210,7 +221,10 @@ beforeEach(() => {
   Object.defineProperty(window.navigator, "clipboard", { configurable: true, value: undefined });
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 function renderMap(mode: "tools" | "ai" = "tools") {
   navigation.pathname = mode === "tools" ? "/tools/map" : "/chat";
@@ -243,6 +257,71 @@ function AiRouteMap() {
 }
 
 describe("MapArea", () => {
+  it("keeps the native canvas and controls mounted through startup in AI", () => {
+    const { container } = renderMap("ai");
+    const map = screen.getByTestId("campus-map");
+    const zoom = screen.getByRole("button", { name: "Zoom in" });
+    const loading = screen.getByRole("status", { name: "Loading campus map" });
+
+    expect(loading.className).toContain("absolute inset-0");
+    expect(loading.querySelector("[data-skeleton]")?.className).toContain("h-full w-full");
+    expect(container.querySelector("[data-workspace-page]")).toBeNull();
+    expect(container.querySelector(".animate-pulse")).toBeNull();
+    expect(screen.getByRole("button", { name: "Show walking paths" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Reset view" })).toBeTruthy();
+    act(() => mapState.onStatus?.("ready"));
+    expect(screen.queryByRole("status", { name: "Loading campus map" })).toBeNull();
+    expect(screen.getByTestId("campus-map")).toBe(map);
+    expect(screen.getByRole("button", { name: "Zoom in" })).toBe(zoom);
+    expect(container.querySelector("[data-map-status]")?.getAttribute("aria-busy")).toBe("false");
+  });
+
+  it("keeps the map timeout and retry distinct from loading", () => {
+    vi.useFakeTimers();
+    renderMap("ai");
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(screen.getByText("Map unavailable")).toBeTruthy();
+    expect(screen.queryByRole("status", { name: "Loading campus map" })).toBeNull();
+    expect(screen.queryByTestId("campus-map")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(screen.getByRole("status", { name: "Loading campus map" })).toBeTruthy();
+    expect(screen.getByTestId("campus-map")).toBeTruthy();
+    act(() => mapState.onStatus?.("ready"));
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(screen.queryByText("Map unavailable")).toBeNull();
+  });
+
+  it("reserves the split Explore sheet and map during navigation suspension", () => {
+    navigation.suspended = true;
+    const { container } = renderMap();
+    expect(container.querySelectorAll("[data-workspace-page]")).toHaveLength(1);
+    expect(container.querySelector("[data-workspace-composition='split']")).toBeTruthy();
+    expect(container.querySelector("[data-map-explorer]")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Campus map" })).toBeTruthy();
+    expect(screen.getByRole("status", { name: "Loading building catalog" })).toBeTruthy();
+    expect(screen.getByRole("status", { name: "Loading campus map" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Zoom in" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Open Explore" }));
+    expect(screen.getByRole("button", { name: "Collapse Explore" })).toBeTruthy();
+    expect(container.querySelector("[data-workspace-page]")?.getAttribute("data-workspace-view")).toBe("rail");
+  });
+
+  it("uses an inset catalog list and preserves map access through catalog retry", async () => {
+    api.getGeo.mockRejectedValueOnce(new Error("offline"));
+    const { container } = renderMap();
+    const loading = screen.getByRole("status", { name: "Loading building catalog" });
+    expect(loading.className).toContain("px-5 py-3");
+    expect(loading.closest("[data-workspace-panel-body]")?.className).toContain("p-0");
+    expect(loading.querySelectorAll("[data-skeleton]")).toHaveLength(18);
+    const map = screen.getByTestId("campus-map");
+    expect(await screen.findByText("Building catalog unavailable")).toBeTruthy();
+    expect(screen.queryByRole("status", { name: "Loading building catalog" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await screen.findByRole("combobox", { name: "Search buildings" });
+    expect(screen.getByTestId("campus-map")).toBe(map);
+    expect(container.querySelector("[data-workspace-composition='split']")).toBeTruthy();
+  });
+
   it("renders the search rail only in Tools", async () => {
     const tools = renderMap("tools");
     await screen.findByText(iblc.name);

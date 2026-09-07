@@ -280,6 +280,31 @@ describe("Redesign — event modal closes on Escape", () => {
 });
 
 describe("Compact calendar agenda", () => {
+  it("keeps month cells and padded upcoming skeletons visible until data arrives", async () => {
+    let resolve!: (response: Response) => void;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        () =>
+          new Promise<Response>((done) => {
+            resolve = done;
+          }),
+      ),
+    );
+    const { container } = render(<CalendarPane state={{ cursor: "2025-03" }} setState={vi.fn()} />);
+    expect(container.querySelectorAll("[data-calendar-day] [data-skeleton]").length).toBeGreaterThan(0);
+    expect(container.querySelector("[data-calendar-upcoming] [data-skeleton]")).not.toBeNull();
+    expect(container.querySelector("[data-workspace-canvas]")?.className).toContain("p-4");
+    expect(container.querySelector(".animate-spin")).toBeNull();
+    expect(screen.queryByText("No events upcoming.")).toBeNull();
+    await act(async () => {
+      resolve(new Response("[]", { status: 200 }));
+    });
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+    expect(container.querySelector("[data-calendar-grid]")).not.toBeNull();
+    expect(screen.getByText("No events upcoming.")).not.toBeNull();
+  });
+
   it("opens one touch-sized day target and then the selected event", async () => {
     const events: CalendarEvent[] = [
       { kind: "holiday", date: "2025-02-17", label: "Family Day", source_url: null, tags: [] },

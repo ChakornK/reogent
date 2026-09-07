@@ -1,8 +1,9 @@
-import { Icon } from "@/src/components/icons";
+"use client";
 
-function Skeleton({ className }: { className: string }) {
-  return <span aria-hidden="true" className={`shell-skeleton block ${className}`} />;
-}
+import { Icon } from "@/src/components/icons";
+import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
+import { Skeleton, SkeletonText } from "@/src/components/ui/skeleton";
+import { WorkspaceCanvas, WorkspacePage, WorkspacePanel, WorkspaceRail } from "@/src/components/ui/workspace";
 
 /** Matches the empty-chat composition while the new-conversation route resolves. */
 export function NewChatLoading() {
@@ -37,6 +38,16 @@ export function NewChatLoading() {
   );
 }
 
+/** Reserves the message shapes shared by route and in-panel history loading. */
+export function ChatMessagesSkeleton() {
+  return (
+    <div aria-hidden="true" className="flex h-full min-h-0 flex-col gap-6">
+      <Skeleton className="h-12 w-3/5 self-end rounded-[16px_16px_5px_16px]" />
+      <Skeleton className="h-20 w-4/5 rounded-[16px_16px_16px_5px]" />
+    </div>
+  );
+}
+
 /** Reserves the complete conversation panel while chat history resolves. */
 export function ChatPanelLoading() {
   return (
@@ -49,9 +60,8 @@ export function ChatPanelLoading() {
       <header className="flex h-15 shrink-0 items-center px-4">
         <Skeleton className="h-5 w-40 rounded-md" />
       </header>
-      <div className="chat-message-well flex min-h-0 flex-1 flex-col gap-6 overflow-hidden p-4 sm:p-6">
-        <Skeleton className="h-12 w-3/5 self-end rounded-[16px_16px_5px_16px]" />
-        <Skeleton className="h-20 w-4/5 rounded-[16px_16px_16px_5px]" />
+      <div className="chat-message-well min-h-0 flex-1 overflow-hidden p-4 sm:p-6">
+        <ChatMessagesSkeleton />
       </div>
       <div className="shrink-0 px-3 pt-2 pb-4 sm:px-4">
         <Skeleton className="h-14 w-full rounded-2xl" />
@@ -70,70 +80,52 @@ export function WorkspaceRouteLoading({
   composition?: "single" | "split";
   controls?: boolean;
 }) {
-  const split = composition === "split";
-  return (
-    <section
-      data-workspace-route-loading
-      data-workspace-composition={composition}
-      data-workspace-view={split ? "main" : undefined}
-      role="status"
-      aria-label={label}
-      className="workspace-page h-full min-h-0 w-full min-w-0 overflow-hidden"
+  const toolbar = controls ? (
+    <div
+      data-workspace-loading-controls
+      className="grid min-h-11 grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-center gap-3"
     >
-      <div className="workspace-page-layout flex h-full min-h-0 flex-col gap-4 p-6">
-        <header className="flex shrink-0 flex-col gap-3">
-          <div className="flex min-h-12 flex-col justify-center gap-2">
-            <Skeleton className="h-5 w-40 rounded-md" />
-            <Skeleton className="h-3 w-64 max-w-full rounded" />
-          </div>
-          {controls ? (
-            <div data-workspace-loading-controls className="flex h-11 items-center justify-between gap-3">
-              <Skeleton className="h-9 w-72 max-w-3/5 rounded-lg" />
-              <Skeleton className="h-9 w-44 max-w-2/5 rounded-lg" />
-            </div>
-          ) : null}
-        </header>
-        {split ? (
-          <fieldset
-            data-workspace-view-toggle
-            className="workspace-page-toggle neu-inset bg-surface-container-low h-13 shrink-0 gap-1 rounded-lg p-1"
-          >
-            <legend className="sr-only">Loading workspace view</legend>
-            <Skeleton className="h-11 flex-1 rounded-md" />
-            <Skeleton className="h-11 flex-1 rounded-md" />
-          </fieldset>
-        ) : null}
-        <div className="workspace-page-body grid min-h-0 min-w-0 flex-1 gap-4">
-          {split ? (
-            <aside data-workspace-region="rail" className="workspace-page-region min-h-0 min-w-0">
-              <div
-                data-workspace-panel
-                className="neu-panel bg-surface flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl"
-              >
-                <header className="flex h-12 shrink-0 items-center px-4">
-                  <Skeleton className="h-4 w-28 rounded" />
-                </header>
-                <div className="border-border-subtle flex min-h-0 flex-1 flex-col gap-2 border-t p-3">
-                  <Skeleton className="h-11 w-full rounded-lg" />
-                  <Skeleton className="h-11 w-5/6 rounded-lg" />
-                  <Skeleton className="h-11 w-2/3 rounded-lg" />
-                </div>
-              </div>
-            </aside>
-          ) : null}
-          <div data-workspace-region="main" className="workspace-page-region min-h-0 min-w-0">
-            <div
-              data-workspace-canvas
-              className="neu-inset neu-shadow-on-surface bg-surface-container-low flex h-full min-h-0 flex-col gap-3 rounded-xl p-4"
-            >
-              <Skeleton className="h-11 w-full rounded-lg" />
-              <Skeleton className="h-11 w-5/6 rounded-lg" />
-              <Skeleton className="h-11 w-2/3 rounded-lg" />
-            </div>
-          </div>
-        </div>
+      <Skeleton className="h-11 w-72 rounded-lg" />
+      <Skeleton className="h-11 w-44 justify-self-end rounded-lg" />
+    </div>
+  ) : undefined;
+  const canvas = (
+    <WorkspaceCanvas padding="md">
+      <div aria-hidden="true" className="flex flex-col gap-4">
+        <SkeletonText />
+        <SkeletonText />
+        <SkeletonText />
       </div>
-    </section>
+    </WorkspaceCanvas>
+  );
+  return composition === "split" ? (
+    <WorkspacePage
+      loading
+      title={label}
+      composition="split"
+      toolbar={toolbar}
+      view="main"
+      onViewChange={() => {}}
+      mainLabel="Content"
+      railLabel="Controls"
+      rail={
+        <WorkspaceRail>
+          <WorkspacePanel title="Controls">
+            <div aria-hidden="true" className="flex flex-col gap-3">
+              <Skeleton className="h-11 w-full rounded-lg" />
+              <SkeletonText />
+              <SkeletonText />
+            </div>
+          </WorkspacePanel>
+        </WorkspaceRail>
+      }
+    >
+      {canvas}
+    </WorkspacePage>
+  ) : (
+    <WorkspacePage loading title={label} composition="single" toolbar={toolbar}>
+      {canvas}
+    </WorkspacePage>
   );
 }
 
@@ -220,7 +212,15 @@ export function ShellBootLoading({ pathname = "/chat" }: { pathname?: string }) 
                 {pathname === "/chat" ? <NewChatLoading /> : <ChatPanelLoading />}
               </div>
               <div className="shell-boot-workspace hidden h-full min-h-0 w-full">
-                <WorkspaceRouteLoading composition={splitWorkspace ? "split" : "single"} controls={workspaceControls} />
+                <WorkspaceHostProvider
+                  host={mode === "unity" ? "unity" : mode === "settings" ? "settings" : "tools"}
+                  menuClearance
+                >
+                  <WorkspaceRouteLoading
+                    composition={splitWorkspace ? "split" : "single"}
+                    controls={workspaceControls}
+                  />
+                </WorkspaceHostProvider>
               </div>
             </div>
           </main>

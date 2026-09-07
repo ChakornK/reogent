@@ -8,6 +8,29 @@ import { ScheduleGrid } from "./schedule-grid";
 afterEach(cleanup);
 
 describe("ScheduleGrid", () => {
+  it("uses a decorative loading overlay without inventing meetings or showing empty guidance", () => {
+    const view = render(
+      <ScheduleGrid
+        model={buildScheduleGrid([])}
+        activeDay="Mon"
+        onActiveDayChange={vi.fn()}
+        onBlockActivate={vi.fn()}
+        loading="Loading saved schedule"
+        empty={{ title: "Empty week", description: "Add courses." }}
+      />,
+    );
+    expect(
+      view.getByRole("status", { name: "Loading saved schedule" }).querySelectorAll("[data-skeleton]"),
+    ).toHaveLength(3);
+    expect(view.container.querySelectorAll("[data-schedule-block]")).toHaveLength(0);
+    expect(view.getAllByText("Mon").length).toBeGreaterThan(0);
+    expect(view.getByText("10 PM")).toBeTruthy();
+    expect(view.queryByText("Empty week")).toBeNull();
+    const scroller = view.getByRole("region", { name: "Timetable scroll area" });
+    expect(scroller.getAttribute("tabindex")).toBe("0");
+    expect(scroller.className).toContain("focus-visible:ring-2");
+  });
+
   it("keeps the week visible behind an actionable empty state", () => {
     const onAction = vi.fn();
     const onActiveDayChange = vi.fn();

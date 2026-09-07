@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+const getRequirementsFor = vi.hoisted(() => vi.fn());
 const values = new Map<string, string>();
 const storage: Storage = {
   getItem: (key) => values.get(key) ?? null,
@@ -18,6 +19,7 @@ vi.mock("@/src/lib/program-requirements", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/src/lib/program-requirements")>();
   return {
     ...actual,
+    getRequirementsFor,
     getProgramIndex: async () => ({
       faculties: ["Science"],
       majorsByFaculty: new Map([["Science", [{ url: "https://calendar.ubc.ca/program", label: "Computer Science" }]]]),
@@ -29,15 +31,22 @@ vi.mock("@/src/lib/program-requirements", async (importOriginal) => {
 Object.defineProperty(window, "localStorage", { configurable: true, value: storage });
 Object.defineProperty(globalThis, "localStorage", { configurable: true, value: storage });
 
-const { ProgramSelectors } = await import("./program-requirements");
+const { ProgramSelectors, ProgramSelectorsLoading, ProgramProgress } = await import("./program-requirements");
 const { usePlanner } = await import("./planner-store");
 
 afterEach(() => {
   cleanup();
   values.clear();
+  getRequirementsFor.mockReset();
 });
 
 describe("ProgramSelectors", () => {
+  it("reserves the responsive three-field row while programs load", () => {
+    const { container } = render(<ProgramSelectorsLoading />);
+    expect(screen.getByRole("status", { name: "Loading programs…" }).className).toContain("grid-cols-2");
+    expect(container.querySelectorAll("[data-skeleton]")).toHaveLength(6);
+    expect(screen.queryByRole("combobox")).toBeNull();
+  });
   it("keeps external navigation separate from the major field label", async () => {
     usePlanner.setState({
       faculty: "Science",
@@ -54,5 +63,35 @@ describe("ProgramSelectors", () => {
     await waitFor(() => expect((input as HTMLInputElement).value).toBe("Computer Science"));
     expect(link.closest("label")).toBeNull();
     expect(screen.getByText("Major / program").tagName).toBe("LABEL");
+  });
+});
+
+describe("ProgramProgress loading", () => {
+  it("removes the previous program while the next requirements load", async () => {
+    getRequirementsFor.mockResolvedValueOnce({
+      kind: "prose",
+      program_url: "first",
+      text: "",
+      referenced_courses: ["CPSC 110"],
+    });
+    usePlanner.setState({ major: "first" });
+    render(<ProgramProgress courseIndex={new Map()} plannedCodes={new Set()} />);
+    expect(await screen.findByText("CPSC 110")).not.toBeNull();
+    getRequirementsFor.mockReturnValue(new Promise(() => {}));
+    act(() => usePlanner.setState({ major: "second" }));
+    expect(screen.getByRole("status", { name: "Loading requirements…" })).not.toBeNull();
+    expect(screen.queryByText("CPSC 110")).toBeNull();
+  });
+
+  it.each(["missing", "failed"])("settles %s requirements instead of keeping a skeleton", async (outcome) => {
+    usePlanner.setState({ major: "unknown" });
+    if (outcome === "missing") getRequirementsFor.mockResolvedValue(null);
+    else getRequirementsFor.mockRejectedValue(new Error("offline"));
+    const { container } = render(<ProgramProgress courseIndex={new Map()} plannedCodes={new Set()} />);
+    await waitFor(() => expect(screen.queryByRole("status")).toBeNull());
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+    expect(
+      outcome === "failed" ? screen.getByRole("alert") : screen.getByText(/No requirements are available/),
+    ).not.toBeNull();
   });
 });

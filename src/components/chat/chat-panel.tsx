@@ -17,10 +17,12 @@ import {
 } from "@/src/components/chat/message";
 import { Icon } from "@/src/components/icons";
 import { useApi } from "@/src/components/providers";
+import { ChatMessagesSkeleton } from "@/src/components/shell/shell-loading";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { Button } from "@/src/components/ui/button";
 import { ErrorBoundary } from "@/src/components/ui/error-boundary";
 import { RetryState } from "@/src/components/ui/feedback";
+import { SkeletonGroup } from "@/src/components/ui/skeleton";
 import { ApiError, type ChatMessage, type ToolCall } from "@/src/lib/api-types";
 import { uuid } from "@/src/lib/uuid";
 import { toolCallToCanvasView } from "@/src/lib/walking";
@@ -613,10 +615,9 @@ export function ChatPanel({ sessionId: initialSessionId }: { sessionId: string |
         className="chat-message-well min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6"
       >
         {historyState === "loading" && (
-          <div role="status" aria-label="Loading conversation" className="flex h-full flex-col gap-6">
-            <div className="neu-inset bg-surface-container h-12 w-3/5 animate-pulse self-end rounded-[16px_16px_5px_16px]" />
-            <div className="neu-inset bg-surface-container h-20 w-4/5 animate-pulse rounded-[16px_16px_16px_5px]" />
-          </div>
+          <SkeletonGroup label="Loading conversation" className="h-full">
+            <ChatMessagesSkeleton />
+          </SkeletonGroup>
         )}
 
         {historyState === "failed" ? (

@@ -171,6 +171,29 @@ function controlOrder(container: HTMLElement) {
 }
 
 describe("ScheduleApp group loading", () => {
+  it("reserves boot controls and toolbar inside the workspace without an extra notice", async () => {
+    const pending = deferredResponse();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: string | URL | Request) =>
+        String(input).endsWith("/schedule") ? pending.promise : Promise.resolve(json({ groups: [] })),
+      ),
+    );
+    const view = render(<ScheduleApp />);
+    expect(
+      screen.getByRole("status", { name: "Loading schedule controls" }).querySelector("[data-skeleton]"),
+    ).toBeTruthy();
+    expect(screen.getByRole("status", { name: "Loading schedule terms" }).querySelector(".sm\\:h-8")).toBeTruthy();
+    expect(screen.getByRole("status", { name: "Loading your weekly schedule" })).toBeTruthy();
+    expect(screen.getByText("9 AM")).toBeTruthy();
+    expect(view.container.querySelectorAll("[data-schedule-block]")).toHaveLength(0);
+    expect(screen.queryByText("Loading schedules…")).toBeNull();
+    expect(screen.queryByText("Your empty week is ready")).toBeNull();
+    await act(async () => pending.resolve(json({ person: null })));
+    expect(await screen.findByText("Your empty week is ready")).toBeTruthy();
+    expect(view.container.querySelector("[data-skeleton]")).toBeNull();
+  });
+
   it("shows the shared week immediately and defaults mobile to Schedule", async () => {
     vi.stubGlobal(
       "fetch",
@@ -237,7 +260,9 @@ describe("ScheduleApp group loading", () => {
 
     expect(screen.getByRole("heading", { name: "Group B" })).toBeTruthy();
     expect(screen.getAllByText("Opening Group B…")).not.toHaveLength(0);
-    expect(screen.getByText("Opening Group B")).toBeTruthy();
+    expect(screen.getByRole("status", { name: "Opening Group B…" }).querySelector("[data-skeleton]")).toBeTruthy();
+    expect(screen.getByRole("status", { name: "Loading Group B weekly schedule" })).toBeTruthy();
+    expect(document.querySelectorAll("[data-schedule-block]")).toHaveLength(0);
     expect(screen.queryAllByText("Person A")).toHaveLength(0);
     expect(screen.queryByRole("button", { name: /Copy share link/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "Leave" })).toBeNull();
@@ -286,6 +311,8 @@ describe("ScheduleApp group loading", () => {
     await waitFor(() =>
       expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/groups/AAAAAA"))).toHaveLength(2),
     );
+    expect(document.querySelector("[data-skeleton]")).toBeNull();
+    expect(screen.getAllByText("Person A").length).toBeGreaterThan(0);
     const refreshCall = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/groups/AAAAAA"))[1];
     expect(refreshCall[1]?.method).toBe("GET");
 

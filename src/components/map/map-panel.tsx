@@ -13,7 +13,8 @@ import {
 import { CampusMap, type MapControls, type MapStatus } from "@/src/components/map/campus-map";
 import { useApi } from "@/src/components/providers";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
-import { LoadingStatus, RetryState } from "@/src/components/ui/feedback";
+import { RetryState } from "@/src/components/ui/feedback";
+import { Skeleton, SkeletonGroup, SkeletonList } from "@/src/components/ui/skeleton";
 import { WorkspaceCanvas, WorkspacePage, WorkspacePanel } from "@/src/components/ui/workspace";
 import type { BuildingSummary } from "@/src/lib/api-types";
 import {
@@ -309,7 +310,9 @@ function MapSurface({
             controls={controls}
           />
           {status === "loading" && (
-            <div className="bg-surface-container-low absolute inset-0 animate-pulse" aria-hidden="true" />
+            <SkeletonGroup label="Loading campus map" className="pointer-events-none absolute inset-0">
+              <Skeleton className="h-full w-full rounded-none" />
+            </SkeletonGroup>
           )}
 
           {/* AI keeps a compact highlight summary; Tools uses its rail or bottom sheet. */}
@@ -364,6 +367,25 @@ function writeBuildingParam(building: BuildingSummary | null): void {
   if (building) url.searchParams.set("building", building.code);
   else url.searchParams.delete("building");
   window.history.pushState(null, "", url);
+}
+
+function BuildingCatalogLoading() {
+  return (
+    <WorkspacePanel title="Explore" bodyMode="contained" padding="none">
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="shrink-0 px-3 py-3">
+          <Skeleton className="h-11 w-full rounded-lg sm:h-9" />
+        </div>
+        <SkeletonList
+          label="Loading building catalog"
+          rows={6}
+          icon
+          padding="none"
+          className="min-h-0 flex-1 overflow-hidden px-5 py-3"
+        />
+      </div>
+    </WorkspacePanel>
+  );
 }
 
 function CampusMapExplorer() {
@@ -707,9 +729,7 @@ function CampusMapExplorer() {
 
   const rail =
     catalogStatus === "loading" ? (
-      <WorkspacePanel title="Explore">
-        <LoadingStatus>Loading building catalog…</LoadingStatus>
-      </WorkspacePanel>
+      <BuildingCatalogLoading />
     ) : catalogStatus === "error" ? (
       <WorkspacePanel title="Explore">
         <RetryState
@@ -824,12 +844,34 @@ function CampusMapExplorer() {
 }
 
 function MapExplorerLoading() {
+  const [sheetOpen, setSheetOpen] = useState(false);
   return (
-    <WorkspacePage composition="canvas" title="Campus map" description="Find buildings, rooms, and walking routes.">
-      <WorkspaceCanvas overflow="hidden">
-        <div className="bg-surface-container-low h-full animate-pulse" role="status" aria-label="Loading campus map" />
-      </WorkspaceCanvas>
-    </WorkspacePage>
+    <div data-map-explorer className="h-full min-h-0">
+      <WorkspacePage
+        composition="split"
+        title="Campus map"
+        description="Find buildings, inspect rooms and services, and plan a campus walk."
+        rail={
+          <MapExploreSheet
+            open={sheetOpen}
+            mode="discover"
+            selected={null}
+            route={{ status: "idle" }}
+            onOpenChange={setSheetOpen}
+          >
+            <BuildingCatalogLoading />
+          </MapExploreSheet>
+        }
+        view={sheetOpen ? "rail" : "main"}
+        onViewChange={(next) => setSheetOpen(next === "rail")}
+        mainLabel="Map"
+        railLabel="Explore"
+      >
+        <WorkspaceCanvas overflow="hidden">
+          <MapSurface hideHighlightCard showBuildingPopup={false} />
+        </WorkspaceCanvas>
+      </WorkspacePage>
+    </div>
   );
 }
 

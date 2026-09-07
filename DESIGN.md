@@ -398,6 +398,14 @@ Fallback: without `backdrop-filter` support, renders as solid `var(--surface)`.
 
 ## Components
 
+### Loading states
+
+Use `src/components/ui/skeleton.tsx` for content loading. `Skeleton` supplies the shared neutral material, sheen, and reduced-motion treatment. `SkeletonGroup` announces a loading label and hides decorative content from assistive technology. `SkeletonText`, `SkeletonList`, and `SkeletonFields` compose recurring text, result-row, and labeled-control shapes. Import these components directly; do not add local pulse animations or raw skeleton classes.
+
+Keep the loaded frame mounted: page padding, panel headers, search controls, table columns, calendar dates, and timetable grids. Use `WorkspacePage`, `WorkspacePanel`, and `WorkspaceCanvas` for route fallbacks as well as loaded pages, including host-specific menu clearance and compact views. Match field label line heights and reserve action, feedback, and footer space. `SkeletonList` owns a 16px inset by default; use `padding="none"` inside an already-padded region. Keep feature-specific skeleton compositions beside their content and share them across matching consumers.
+
+Use skeletons only until content arrives. Retain usable data during refresh, show `LoadingStatus` in a fixed header or footer, and distinguish failure from a successful empty result. Saving, sending, importing, route calculation, and authentication redirects keep progress labels because the pending result has no known content layout. Skeletons expose no interactive placeholder controls; loading dialogs retain a real Cancel action and keyboard dismissal. Scrollable calendars and timetables remain keyboard-accessible while loading.
+
 ### Buttons
 
 Use `src/components/ui/button.tsx` for native action buttons. `Button` owns variant, size, focus, disabled, pressed, and parent-material shadow classes while feature code owns the label, icon, layout, and event handler. Use `InlineAction` for compact link-styled choices inside messages and error text; it reaches the 44px mobile touch floor and returns to inline height on larger screens. `RetryAlert` combines the semantic error surface and inline retry action for load failures. Keep links, tabs, radios, menu items, navigation rows, pills, and compound controls on their native contracts.

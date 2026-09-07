@@ -79,6 +79,21 @@ afterEach(() => {
 });
 
 describe("PlannerCourseModule", () => {
+  it("reserves section controls until a course without cached entries resolves", () => {
+    const view = render(<PlannerCourseModule {...baseProps} doc={undefined} entries={[]} />);
+    expect(
+      view.getByRole("status", { name: "Loading CPSC 110 section options" }).querySelector("[data-skeleton]"),
+    ).toBeTruthy();
+    expect(
+      view.queryByText("No sections are listed for this term. Cached meetings remain on the timetable."),
+    ).toBeNull();
+    view.rerender(<PlannerCourseModule {...baseProps} entries={[]} doc={{ ...doc, sections: [] }} />);
+    expect(view.container.querySelector("[data-skeleton]")).toBeNull();
+    expect(
+      view.getByText("No sections are listed for this term. Cached meetings remain on the timetable."),
+    ).toBeTruthy();
+  });
+
   it("keeps known selectors visible and independent additional groups disclosed", () => {
     const view = render(<PlannerCourseModule {...baseProps} />);
 

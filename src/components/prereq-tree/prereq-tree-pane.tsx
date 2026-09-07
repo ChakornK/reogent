@@ -9,9 +9,10 @@ import { useApi } from "@/src/components/providers";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { useWorkspaceHost } from "@/src/components/shell/workspace-host";
 import { Button } from "@/src/components/ui/button";
-import { LoadingStatus, RetryAlert } from "@/src/components/ui/feedback";
+import { RetryAlert } from "@/src/components/ui/feedback";
 import { InlineAction } from "@/src/components/ui/inline-action";
 import { announce } from "@/src/components/ui/live-region";
+import { SkeletonList } from "@/src/components/ui/skeleton";
 import { WorkspaceCanvas, WorkspacePage } from "@/src/components/ui/workspace";
 import { courseCodeToSlug } from "@/src/lib/pane-route";
 import { isOkanagan } from "@/src/shared/course-code";
@@ -736,7 +737,6 @@ export function PrereqTreePane({
 
   const feedback = (
     <>
-      {indexStatus === "loading" ? <LoadingStatus>Loading course index…</LoadingStatus> : null}
       {indexStatus === "error" ? (
         <RetryAlert onRetry={() => setLoadNonce((nonce) => nonce + 1)}>Couldn't load the tree.</RetryAlert>
       ) : null}
@@ -784,7 +784,13 @@ export function PrereqTreePane({
     <div ref={rootRef} data-pane="prereq-tree" className="relative h-full w-full overflow-hidden">
       <ReactFlowProvider>
         <div data-prereq-canvas className="bg-surface-container-low absolute inset-0">
-          {toolsMode && noPrereqs ? (
+          {indexStatus === "loading" ? (
+            <SkeletonList
+              label="Loading course index…"
+              rows={4}
+              className={!toolsMode && !titlebarOutlet ? "pt-20" : undefined}
+            />
+          ) : toolsMode && noPrereqs ? (
             noPrereqState
           ) : graph.nodes.length > 0 ? (
             <PaneErrorBoundary
@@ -815,6 +821,15 @@ export function PrereqTreePane({
             </PaneErrorBoundary>
           ) : indexStatus === "ready" && !missingCode && !activeCode ? (
             noRootState
+          ) : null}
+          {indexStatus === "ready" && awaitingFit && graph.nodes.length > 0 ? (
+            <div className="pointer-events-none absolute inset-0">
+              <SkeletonList
+                label="Preparing prerequisite map"
+                rows={4}
+                className={!toolsMode && !titlebarOutlet ? "pt-20" : undefined}
+              />
+            </div>
           ) : null}
         </div>
         {ctxMenu ? (
@@ -876,8 +891,14 @@ export function PrereqTreePane({
           </div>
           <div data-prereq-compact-view={compactView} className="min-h-0 flex-1">
             <WorkspaceCanvas overflow="hidden">
-              <div className={compactView === "outline" ? "h-full" : "hidden"}>{outlineSurface}</div>
-              <div className={compactView === "map" ? "h-full" : "hidden"}>{graphSurface}</div>
+              {indexStatus === "loading" ? (
+                <SkeletonList label="Loading course index…" rows={4} />
+              ) : (
+                <>
+                  <div className={compactView === "outline" ? "h-full" : "hidden"}>{outlineSurface}</div>
+                  <div className={compactView === "map" ? "h-full" : "hidden"}>{graphSurface}</div>
+                </>
+              )}
             </WorkspaceCanvas>
           </div>
         </div>

@@ -25,6 +25,7 @@ describe("PulseHistory", () => {
 
     expect(screen.getByRole("heading", { name: "Previous rounds" })).not.toBeNull();
     expect(screen.getByRole("status", { name: "Loading previous rounds" })).not.toBeNull();
-    expect(document.querySelectorAll(".shell-skeleton")).toHaveLength(2);
+    expect(document.querySelectorAll("[data-skeleton]")).toHaveLength(8);
+    expect(screen.getByRole("status", { name: "Loading previous rounds" }).querySelector(".p-4")).not.toBeNull();
   });
 });

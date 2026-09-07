@@ -6,6 +6,7 @@ import { ProductMock } from "@/src/components/landing/product-mock";
 import { TopoTexture } from "@/src/components/landing/topo-texture";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { ButtonLink } from "@/src/components/ui/button";
+import { LoadingStatus } from "@/src/components/ui/feedback";
 import { InlineAction } from "@/src/components/ui/inline-action";
 import { motion, useInView, useReducedMotion, useScroll, useTransform } from "motion/react";
 import Link from "next/link";
@@ -55,7 +56,7 @@ export function Landing() {
           <span className="bg-primary-container text-on-primary-container shadow-inset flex size-9 items-center justify-center rounded-xl">
             <Icon name="school" size={18} />
           </span>
-          <span className="text-primary animate-pulse text-xl font-medium tracking-[-0.02em]">Reodite</span>
+          <LoadingStatus>Opening Reodite…</LoadingStatus>
         </div>
       </div>
     );

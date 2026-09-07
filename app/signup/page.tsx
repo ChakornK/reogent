@@ -48,7 +48,9 @@ function SignupContent() {
             Create an account
           </h1>
           <p className="text-muted mb-6 text-center text-sm">Sign up to start using Reodite — it&apos;s free</p>
-          {loading ? <AuthFormLoading label="Loading sign up" /> : <AuthForm mode="signup" />}
+          <Suspense fallback={<AuthFormLoading label="Loading sign up" />}>
+            {loading ? <AuthFormLoading label="Loading sign up" /> : <AuthForm mode="signup" />}
+          </Suspense>
         </div>
       </motion.div>
       <footer className="flex items-center justify-center pb-2">
@@ -59,9 +61,5 @@ function SignupContent() {
 }
 
 export default function SignupPage() {
-  return (
-    <Suspense>
-      <SignupContent />
-    </Suspense>
-  );
+  return <SignupContent />;
 }

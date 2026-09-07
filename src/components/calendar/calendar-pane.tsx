@@ -8,6 +8,7 @@ import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
 import { LoadingStatus, RetryAlert } from "@/src/components/ui/feedback";
 import { InfoChip } from "@/src/components/ui/info-chip";
 import { announce } from "@/src/components/ui/live-region";
+import { Skeleton, SkeletonList } from "@/src/components/ui/skeleton";
 import {
   WorkspaceCanvas,
   WorkspacePage,
@@ -210,8 +211,6 @@ export function CalendarPane({ state, setState }: { state: Partial<State>; setSt
       </RetryAlert>
     ) : eventsState.status === "failed" ? (
       <RetryAlert onRetry={retry}>Couldn't load calendar dates.</RetryAlert>
-    ) : eventsState.status === "refreshing" ? (
-      <LoadingStatus announce={false}>Refreshing calendar…</LoadingStatus>
     ) : null;
 
   return (
@@ -230,10 +229,18 @@ export function CalendarPane({ state, setState }: { state: Partial<State>; setSt
         railLabel="Upcoming"
         rail={
           <WorkspaceRail>
-            <WorkspacePanel title="Upcoming" padding="sm">
+            <WorkspacePanel
+              title="Upcoming"
+              padding="sm"
+              actions={
+                eventsState.status === "refreshing" ? (
+                  <LoadingStatus announce={false}>Refreshing calendar…</LoadingStatus>
+                ) : undefined
+              }
+            >
               <div data-calendar-upcoming className="flex min-h-0 flex-col gap-3">
                 {eventsState.status === "loading" ? (
-                  <LoadingStatus>Loading upcoming events…</LoadingStatus>
+                  <SkeletonList label="Loading upcoming events…" rows={4} padding="none" />
                 ) : eventsState.status === "failed" ? (
                   <p className="text-muted text-xs">Upcoming events are unavailable.</p>
                 ) : upcoming.length === 0 ? (
@@ -278,15 +285,19 @@ export function CalendarPane({ state, setState }: { state: Partial<State>; setSt
         }
       >
         <WorkspaceCanvas
+          role="region"
+          aria-label="Calendar days"
+          tabIndex={0}
           aria-busy={eventsState.status === "loading" || eventsState.status === "refreshing"}
           padding="md"
         >
           {eventsState.status === "loading" ? (
-            <div className="bg-surface-container-low/70 pointer-events-none absolute inset-0 z-10 grid place-items-center">
-              <LoadingStatus className="bg-surface rounded-lg px-3 py-2">Loading calendar…</LoadingStatus>
-            </div>
+            <span role="status" className="sr-only">
+              Loading calendar…
+            </span>
           ) : null}
           <MonthGrid
+            loading={eventsState.status === "loading"}
             cells={cells}
             eventsByDate={eventsByDate}
             todayISO={todayISO}
@@ -426,6 +437,7 @@ function MonthYearPicker({
 }
 
 function MonthGrid({
+  loading,
   cells,
   eventsByDate,
   todayISO,
@@ -433,6 +445,7 @@ function MonthGrid({
   onEventClick,
   onDayAgenda,
 }: {
+  loading: boolean;
   cells: { date: Date | null; iso: string | null; key: string }[];
   eventsByDate: Record<string, CalendarEvent[]>;
   todayISO: string;
@@ -477,7 +490,9 @@ function MonthGrid({
               >
                 {d.getUTCDate()}
               </span>
-              {isCurrentMonth && hasEvents ? (
+              {loading && isCurrentMonth ? (
+                <Skeleton className="mt-1 h-3 w-full" />
+              ) : isCurrentMonth && hasEvents ? (
                 <>
                   <div className="calendar-event-labels flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden">
                     {dayEvents.slice(0, 2).map((event) => (

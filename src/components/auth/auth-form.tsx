@@ -4,6 +4,7 @@ import { useAppAuth } from "@/src/components/auth/app-auth";
 import { Button } from "@/src/components/ui/button";
 import { Field, TextInput } from "@/src/components/ui/form-controls";
 import { InlineLink } from "@/src/components/ui/inline-action";
+import { Skeleton, SkeletonGroup } from "@/src/components/ui/skeleton";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
@@ -14,17 +15,17 @@ interface AuthFormProps {
 
 export function AuthFormLoading({ label }: { label: string }) {
   return (
-    <div role="status" aria-label={label} className="flex w-full max-w-80 flex-col gap-3">
+    <SkeletonGroup label={label} className="flex w-full max-w-80 flex-col gap-3">
       {["username", "password"].map((field) => (
         <div key={field} className="flex flex-col gap-1.5">
-          <span className="shell-skeleton h-3 w-20 rounded" />
-          <span className="shell-skeleton h-11 w-full rounded-lg" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-11 w-full rounded-lg" />
         </div>
       ))}
-      <span data-auth-loading-feedback className="h-8" />
-      <span data-auth-loading-action className="shell-skeleton h-12 w-full rounded-xl" />
-      <span className="shell-skeleton h-11 w-full rounded-lg" />
-    </div>
+      <span data-auth-loading-feedback className="h-8 shrink-0" />
+      <Skeleton data-auth-loading-action className="h-12 w-full rounded-xl" />
+      <Skeleton className="h-11 w-full rounded-lg" />
+    </SkeletonGroup>
   );
 }
 

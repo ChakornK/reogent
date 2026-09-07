@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import type { PanInfo } from "motion/react";
 import { useRef, useState } from "react";
@@ -13,6 +14,23 @@ export interface PulseCardData {
   disagreeCount?: number;
   pending?: boolean;
   error?: string;
+}
+
+/** Reserves question text and the vote or tally row while a Pulse list loads. */
+export function PulseCardsLoading({ label }: { label: string }) {
+  return (
+    <SkeletonGroup label={label} className="flex flex-col gap-3">
+      {[0, 1].map((index) => (
+        <div key={index} className="neu-panel bg-surface rounded-2xl p-4">
+          <SkeletonText lines={2} />
+          <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        </div>
+      ))}
+    </SkeletonGroup>
+  );
 }
 
 const COMMIT_OFFSET = 100;

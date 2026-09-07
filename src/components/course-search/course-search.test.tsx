@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { CourseSearchField, useCourseAutocomplete, type Candidate } from "@/src/components/course-search/course-search";
-import type { CourseDoc } from "@/src/lib/api-types";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { ApiError, type CourseDoc } from "@/src/lib/api-types";
+import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const apiState = vi.hoisted(() => ({
@@ -222,5 +222,300 @@ describe("useCourseAutocomplete request state", () => {
     });
 
     expect(screen.queryByText("CPSC 110,CPSC 121")).toBeNull();
+  });
+});
+
+describe("CourseSearchField loading compositions", () => {
+  it.each(["inline", "overlay"] as const)("uses padded shared suggestions in %s presentation", (presentation) => {
+    const { container } = render(
+      <CourseSearchField {...baseProps} list={null} status="loading" presentation={presentation} />,
+    );
+    const skeleton = screen.getByRole("status", { name: "Loading course suggestions" });
+    expect(skeleton.className).toContain("p-3");
+    expect(skeleton.querySelectorAll("[data-skeleton]")).toHaveLength(6);
+    expect(container.querySelector(".animate-pulse")).toBeNull();
+    expect(screen.queryByText(/No courses matching/)).toBeNull();
+    expect(screen.getByLabelText("Course code").getAttribute("aria-busy")).toBe("true");
+    if (presentation === "overlay") {
+      const listbox = screen.getByRole("listbox");
+      expect(listbox.getAttribute("aria-busy")).toBe("true");
+      expect(listbox.contains(skeleton)).toBe(false);
+      expect(screen.queryByRole("option")).toBeNull();
+      expect(screen.getByRole("combobox").getAttribute("aria-controls")).toBe(listbox.id);
+    }
+  });
+
+  it("keeps refresh progress and retry controls outside the listbox while retaining options", () => {
+    const onRetry = vi.fn();
+    const view = render(<CourseSearchField {...baseProps} presentation="overlay" />);
+    const input = screen.getByRole("combobox");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    view.rerender(<CourseSearchField {...baseProps} presentation="overlay" status="loading" />);
+    const listbox = screen.getByRole("listbox");
+    expect(screen.getAllByRole("option")).toHaveLength(2);
+    expect(listbox.getAttribute("aria-busy")).toBe("true");
+    expect(listbox.contains(screen.getByRole("status"))).toBe(false);
+    expect(view.container.querySelector("[data-skeleton]")).toBeNull();
+    expect(document.getElementById(input.getAttribute("aria-activedescendant") ?? "")?.getAttribute("role")).toBe(
+      "option",
+    );
+
+    view.rerender(<CourseSearchField {...baseProps} presentation="overlay" error="offline" onRetry={onRetry} />);
+    expect(screen.getAllByRole("option")).toHaveLength(2);
+    expect(listbox.contains(screen.getByRole("alert"))).toBe(false);
+    expect(listbox.contains(screen.getByRole("button", { name: "Retry" }))).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(onRetry).toHaveBeenCalledOnce();
+  });
+
+  it("keeps inline results visible during refresh", () => {
+    const { container } = render(<CourseSearchField {...baseProps} status="loading" />);
+    expect(screen.getByText("Updating courses…")).not.toBeNull();
+    expect(screen.getByRole("button", { name: /CPSC 110/ })).not.toBeNull();
+    expect(container.querySelector("[data-course-list]")?.getAttribute("aria-busy")).toBe("true");
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+  });
+
+  it("removes the active descendant while new suggestions have not loaded", () => {
+    const view = render(<CourseSearchField {...baseProps} presentation="overlay" />);
+    const input = screen.getByRole("combobox");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    view.rerender(<CourseSearchField {...baseProps} presentation="overlay" list={null} status="loading" />);
+    expect(input.getAttribute("aria-activedescendant")).toBeNull();
+    expect(screen.queryByRole("option")).toBeNull();
+  });
+
+  it("retains caller-owned pending candidate progress instead of replacing it with skeletons", () => {
+    const { container } = render(
+      <CourseSearchField
+        {...baseProps}
+        presentation="overlay"
+        getCandidatePresentation={() => ({ pending: true, annotation: "Adding course…" })}
+      />,
+    );
+    const options = screen.getAllByRole("option") as HTMLButtonElement[];
+    expect(options.every((option) => option.disabled && option.getAttribute("aria-busy") === "true")).toBe(true);
+    expect(screen.getAllByText("Adding course…")).toHaveLength(2);
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+  });
+});
+
+describe("useCourseAutocomplete refresh retention", () => {
+  it("keeps loaded suggestions through a refresh failure and clears them for a different query", async () => {
+    vi.useFakeTimers();
+    apiState.searchCourses.mockResolvedValueOnce({ courses: candidates });
+    const { result, rerender } = renderHook(({ value }) => useCourseAutocomplete(value), {
+      initialProps: { value: "CPSC" },
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250);
+    });
+    expect(result.current.list?.candidates).toEqual(candidates);
+    let fail!: (error: Error) => void;
+    apiState.searchCourses.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        fail = reject;
+      }),
+    );
+    let refresh!: Promise<void>;
+    act(() => {
+      refresh = result.current.lookup("CPSC");
+    });
+    expect(result.current.status).toBe("loading");
+    expect(result.current.list?.candidates).toEqual(candidates);
+    await act(async () => {
+      fail(new Error("offline"));
+      await refresh;
+    });
+    expect(result.current.status).toBe("idle");
+    expect(result.current.error).toBe("offline");
+    expect(result.current.list?.candidates).toEqual(candidates);
+    rerender({ value: "MATH" });
+    expect(result.current.list).toBeNull();
+    expect(result.current.error).toBeNull();
+  });
+
+  it("keeps a loaded detail record through a same-course refresh failure", async () => {
+    vi.useFakeTimers();
+    const resolveSingle = vi.fn().mockResolvedValueOnce(fullRecord);
+    const { result } = renderHook(() => useCourseAutocomplete("CPSC 210", { resolveSingle }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250);
+    });
+    expect(result.current.record).toEqual(fullRecord);
+    let fail!: (error: Error) => void;
+    resolveSingle.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        fail = reject;
+      }),
+    );
+    let refresh!: Promise<void>;
+    act(() => {
+      refresh = result.current.lookup("CPSC 210");
+    });
+    expect(result.current.status).toBe("loading");
+    expect(result.current.record).toEqual(fullRecord);
+    await act(async () => {
+      fail(new Error("offline"));
+      await refresh;
+    });
+    expect(result.current.status).toBe("idle");
+    expect(result.current.error).toBe("offline");
+    expect(result.current.record).toEqual(fullRecord);
+  });
+});
+
+describe("useCourseAutocomplete exact-course fallback failures", () => {
+  it("settles a rejected fallback to error/idle and lets retry load the record", async () => {
+    vi.useFakeTimers();
+    const resolveSingle = vi
+      .fn()
+      .mockRejectedValueOnce(new ApiError(404, "Missing course"))
+      .mockResolvedValueOnce(fullRecord);
+    apiState.searchCourses.mockRejectedValueOnce(new Error("Catalog unavailable"));
+    const { result } = renderHook(() => useCourseAutocomplete("CPSC 210", { resolveSingle }));
+
+    await act(async () => {
+      await expect(result.current.lookup("CPSC 210")).resolves.toBeUndefined();
+    });
+    expect(apiState.searchCourses).toHaveBeenCalledWith({ subject: "CPSC" });
+    expect(result.current.status).toBe("idle");
+    expect(result.current.error).toBe("Catalog unavailable");
+    expect(result.current.record).toBeNull();
+    expect(result.current.list).toBeNull();
+
+    const { rerender } = render(
+      <CourseSearchField
+        {...baseProps}
+        value="CPSC 210"
+        {...result.current}
+        onRetry={() => void result.current.lookup("CPSC 210")}
+      />,
+    );
+    expect(screen.queryByRole("status")).toBeNull();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    });
+    rerender(<CourseSearchField {...baseProps} value="CPSC 210" {...result.current} />);
+    expect(result.current.status).toBe("idle");
+    expect(result.current.error).toBeNull();
+    expect(result.current.record).toEqual(fullRecord);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it.each(["resolve", "reject"] as const)(
+    "ignores an older fallback %s after the next query settles",
+    async (outcome) => {
+      vi.useFakeTimers();
+      let resolveFallback!: (value: { courses: CourseDoc[] }) => void;
+      let rejectFallback!: (error: Error) => void;
+      apiState.searchCourses.mockReturnValueOnce(
+        new Promise((resolve, reject) => {
+          resolveFallback = resolve;
+          rejectFallback = reject;
+        }),
+      );
+      const resolveSingle = vi
+        .fn()
+        .mockRejectedValueOnce(new ApiError(404, "Missing course"))
+        .mockResolvedValueOnce(fullRecord);
+      const { result, rerender } = renderHook(({ value }) => useCourseAutocomplete(value, { resolveSingle }), {
+        initialProps: { value: "CPSC 999" },
+      });
+      let olderLookup!: Promise<void>;
+      await act(async () => {
+        olderLookup = result.current.lookup("CPSC 999");
+      });
+      expect(apiState.searchCourses).toHaveBeenCalledOnce();
+
+      rerender({ value: "CPSC 210" });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(250);
+      });
+      expect(result.current.record).toEqual(fullRecord);
+      await act(async () => {
+        if (outcome === "resolve") resolveFallback({ courses: [] });
+        else rejectFallback(new Error("Old fallback failed"));
+        await expect(olderLookup).resolves.toBeUndefined();
+      });
+      expect(result.current.record).toEqual(fullRecord);
+      expect(result.current.list).toBeNull();
+      expect(result.current.error).toBeNull();
+      expect(result.current.status).toBe("idle");
+    },
+  );
+
+  it("does not settle the next query when an older fallback rejects during loading", async () => {
+    vi.useFakeTimers();
+    let rejectFallback!: (error: Error) => void;
+    apiState.searchCourses.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rejectFallback = reject;
+      }),
+    );
+    let resolveNext!: (record: CourseDoc) => void;
+    const resolveSingle = vi
+      .fn()
+      .mockRejectedValueOnce(new ApiError(404, "Missing course"))
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveNext = resolve;
+        }),
+      );
+    const { result, rerender } = renderHook(({ value }) => useCourseAutocomplete(value, { resolveSingle }), {
+      initialProps: { value: "CPSC 999" },
+    });
+    let olderLookup!: Promise<void>;
+    await act(async () => {
+      olderLookup = result.current.lookup("CPSC 999");
+    });
+    rerender({ value: "CPSC 210" });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250);
+    });
+    await act(async () => {
+      rejectFallback(new Error("Old fallback failed"));
+      await expect(olderLookup).resolves.toBeUndefined();
+    });
+    expect(result.current.status).toBe("loading");
+    expect(result.current.error).toBeNull();
+    expect(result.current.record).toBeNull();
+    await act(async () => {
+      resolveNext(fullRecord);
+    });
+    expect(result.current.record).toEqual(fullRecord);
+    expect(result.current.status).toBe("idle");
+  });
+
+  it("does not start fallback work for an exact lookup from an older generation", async () => {
+    vi.useFakeTimers();
+    let rejectExact!: (error: ApiError) => void;
+    const resolveSingle = vi
+      .fn()
+      .mockReturnValueOnce(
+        new Promise((_, reject) => {
+          rejectExact = reject;
+        }),
+      )
+      .mockResolvedValueOnce(fullRecord);
+    const { result, rerender } = renderHook(({ value }) => useCourseAutocomplete(value, { resolveSingle }), {
+      initialProps: { value: "CPSC 999" },
+    });
+    let olderLookup!: Promise<void>;
+    act(() => {
+      olderLookup = result.current.lookup("CPSC 999");
+    });
+    rerender({ value: "CPSC 210" });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250);
+    });
+    await act(async () => {
+      rejectExact(new ApiError(404, "Missing course"));
+      await expect(olderLookup).resolves.toBeUndefined();
+    });
+    expect(apiState.searchCourses).not.toHaveBeenCalled();
+    expect(result.current.record).toEqual(fullRecord);
+    expect(result.current.error).toBeNull();
+    expect(result.current.status).toBe("idle");
   });
 });

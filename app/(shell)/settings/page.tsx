@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/src/components/theme-toggle";
 import { Button } from "@/src/components/ui/button";
 import { RetryState } from "@/src/components/ui/feedback";
 import { Field, SelectInput, TextInput } from "@/src/components/ui/form-controls";
+import { Skeleton, SkeletonGroup } from "@/src/components/ui/skeleton";
 import {
   WorkspaceCanvas,
   WorkspacePage,
@@ -21,22 +22,22 @@ type ProfileStatus = "loading" | "load-error" | "idle" | "saving" | "saved" | "e
 
 function ProfileFormLoading() {
   return (
-    <div role="status" aria-label="Loading student profile" className="flex flex-col gap-3">
+    <SkeletonGroup label="Loading student profile" className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
-        <span className="shell-skeleton h-3 w-16 rounded" />
-        <span className="shell-skeleton h-11 w-full rounded-lg" />
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-11 w-full rounded-lg" />
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {["year", "student-type"].map((field) => (
           <div key={field} className="flex flex-col gap-1.5">
-            <span className="shell-skeleton h-3 w-20 rounded" />
-            <span className="shell-skeleton h-11 w-full rounded-lg" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-11 w-full rounded-lg" />
           </div>
         ))}
       </div>
-      <span data-profile-loading-action className="shell-skeleton h-11 w-36 rounded-xl sm:h-10" />
-      <span className="shell-skeleton h-3 w-4/5 rounded" />
-    </div>
+      <Skeleton data-profile-loading-action className="h-11 w-36 rounded-xl sm:h-10" />
+      <Skeleton className="h-3 w-4/5" />
+    </SkeletonGroup>
   );
 }
 

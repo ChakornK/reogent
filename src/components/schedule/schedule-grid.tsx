@@ -6,6 +6,7 @@ import {
   useDragOverlayPhysics,
 } from "@/src/components/dnd/drag-overlay-physics";
 import { Button } from "@/src/components/ui/button";
+import { SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
 import { courseColor } from "@/src/lib/schedule/calendar/colors";
 import {
   buildScheduleGrid,
@@ -70,6 +71,7 @@ interface ScheduleGridProps {
   bands?: ScheduleGridBand[];
   now?: ScheduleGridNow;
   empty?: ScheduleGridEmptyState;
+  loading?: string;
   renderBlockFooter?: (block: ScheduleGridOccurrence) => ReactNode;
   ariaLabel?: string;
   blockContentAlignment?: "start" | "center";
@@ -259,6 +261,7 @@ export function ScheduleGrid({
   bands = [],
   now,
   empty,
+  loading,
   renderBlockFooter,
   ariaLabel = "Weekly schedule",
   blockContentAlignment = "start",
@@ -359,7 +362,12 @@ export function ScheduleGrid({
           </button>
         ))}
       </div>
-      <div className="bg-surface min-h-0 flex-1 [scrollbar-gutter:stable] overflow-auto rounded-lg">
+      <section
+        aria-label="Timetable scroll area"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users scroll the timetable before any classes load.
+        tabIndex={0}
+        className="bg-surface focus-visible:ring-primary/40 min-h-0 flex-1 [scrollbar-gutter:stable] overflow-auto rounded-lg focus-visible:ring-2 focus-visible:ring-inset"
+      >
         <div
           className="schedule-grid-columns border-border-subtle bg-surface sticky top-0 z-30 grid border-b"
           style={{ ["--schedule-day-count" as string]: model.days.length }}
@@ -460,7 +468,13 @@ export function ScheduleGrid({
               ) : null}
             </div>
           ))}
-          {!hasBlocks && empty ? (
+          {!hasBlocks && loading ? (
+            <div className="pointer-events-none absolute inset-x-4 top-20 z-20 flex justify-center sm:top-28">
+              <SkeletonGroup label={loading} className="bg-surface/95 w-full max-w-sm rounded-lg px-5 py-4">
+                <SkeletonText lines={3} />
+              </SkeletonGroup>
+            </div>
+          ) : !hasBlocks && empty ? (
             <div className="pointer-events-none absolute inset-x-4 top-20 z-20 flex justify-center sm:top-28">
               <div className="bg-surface/95 pointer-events-auto max-w-sm rounded-lg px-5 py-4 text-center">
                 <h2 className="text-on-surface text-base font-medium">{empty.title}</h2>
@@ -474,7 +488,7 @@ export function ScheduleGrid({
             </div>
           ) : null}
         </div>
-      </div>
+      </section>
       {showNow ? <p className="sr-only">{now.label}</p> : null}
     </section>
   );

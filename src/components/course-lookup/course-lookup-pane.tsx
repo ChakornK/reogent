@@ -9,11 +9,13 @@ import { useApi } from "@/src/components/providers";
 import type { PaneState } from "@/src/components/shell/pane-registry";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { Button } from "@/src/components/ui/button";
-import { RetryState } from "@/src/components/ui/feedback";
+import { LoadingStatus, RetryAlert, RetryState } from "@/src/components/ui/feedback";
 import { SelectInput } from "@/src/components/ui/form-controls";
+import { Skeleton, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
 import { WorkspaceCanvas, WorkspacePage } from "@/src/components/ui/workspace";
 import { courseCodeToSlug } from "@/src/lib/pane-route";
 import { defaultSession, SESSIONS } from "@/src/server/course-records";
+import { canonicalize } from "@/src/shared/course-code";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function SessionPicker({ session, onChange }: { session: string; onChange: (session: string) => void }) {
@@ -41,11 +43,51 @@ function SessionPicker({ session, onChange }: { session: string; onChange: (sess
 
 function CourseDetailSkeleton() {
   return (
-    <div role="status" aria-label="Loading course details" className="flex flex-col gap-3">
-      <span className="bg-surface-container h-5 w-32 animate-pulse rounded" />
-      <span className="bg-surface-container h-3 w-64 max-w-full animate-pulse rounded" />
-      <span className="bg-surface-container h-24 w-full animate-pulse rounded" />
-    </div>
+    <SkeletonGroup label="Loading course details" className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-5 w-16 rounded-full" />
+        <Skeleton className="h-5 w-12 rounded-full" />
+      </div>
+      <Skeleton className="h-5 w-80" />
+      <SkeletonText className="py-1" />
+      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+        {[0, 1, 2, 3].map((index) => (
+          <div
+            key={index}
+            className="neu-inset bg-surface-container-low flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-2 py-2"
+          >
+            <Skeleton className="my-0.5 h-3 w-16" />
+            <Skeleton className="my-1 h-3 w-12" />
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-28 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="mx-auto h-3 w-48" />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        {[0, 1].map((index) => (
+          <div key={index} className="flex flex-col gap-0.5">
+            <Skeleton className="my-0.5 h-3 w-24" />
+            <Skeleton className="my-1 h-3 w-2/3" />
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-col gap-2">
+        <Skeleton className="my-1 h-3 w-20" />
+        {[0, 1].map((index) => (
+          <div
+            key={index}
+            className="border-border-subtle bg-surface-container-low flex min-h-11 items-center justify-between gap-3 rounded-lg border px-3"
+          >
+            <Skeleton className="h-3 w-40" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        ))}
+      </div>
+    </SkeletonGroup>
   );
 }
 
@@ -126,14 +168,28 @@ export function CourseLookupPane({
             <Icon name="left" size={17} />
           </Button>
         }
-        toolbar={<SessionPicker session={session} onChange={setSession} />}
+        toolbar={
+          <div className="flex items-center gap-3">
+            <SessionPicker session={session} onChange={setSession} />
+            {record && status === "loading" ? (
+              <LoadingStatus aria-label="Updating course details">Updating…</LoadingStatus>
+            ) : null}
+          </div>
+        }
       >
         <WorkspaceCanvas padding="md">
           <div className="mx-auto flex h-full w-full max-w-6xl flex-col">
-            {status === "loading" ? (
+            {record ? (
+              <div aria-busy={status === "loading"} className="flex flex-col gap-3">
+                {error ? (
+                  <RetryAlert onRetry={() => lookup(code)}>
+                    Couldn't refresh course details. Showing the previous record.
+                  </RetryAlert>
+                ) : null}
+                <CourseDetailCard record={record} session={session} onOpenPrereqs={openPrereqs} />
+              </div>
+            ) : status === "loading" ? (
               <CourseDetailSkeleton />
-            ) : record ? (
-              <CourseDetailCard record={record} session={session} onOpenPrereqs={openPrereqs} />
             ) : error ? (
               <RetryState
                 title="Course unavailable"
@@ -180,11 +236,13 @@ export function CourseLookupPane({
         list={list}
         error={error}
         rejected={rejected}
+        record={record}
+        loadingFallback={canonicalize(code)?.kind === "code" ? <CourseDetailSkeleton /> : undefined}
       />
-      {status === "loading" ? (
-        <CourseDetailSkeleton />
-      ) : record ? (
-        <CourseDetailCard record={record} session={session} onOpenPrereqs={openPrereqs} />
+      {record ? (
+        <div aria-busy={status === "loading"}>
+          <CourseDetailCard record={record} session={session} onOpenPrereqs={openPrereqs} />
+        </div>
       ) : null}
     </div>
   );

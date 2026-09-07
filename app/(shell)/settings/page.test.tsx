@@ -32,7 +32,7 @@ describe("Settings", () => {
 
     const loading = screen.getByRole("status", { name: "Loading student profile" });
     expect(loading).not.toBeNull();
-    expect(document.querySelectorAll(".shell-skeleton").length).toBeGreaterThan(0);
+    expect(document.querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0);
     const action = loading.querySelector("[data-profile-loading-action]");
     expect(action?.className).toContain("h-11");
     expect(action?.className).toContain("sm:h-10");

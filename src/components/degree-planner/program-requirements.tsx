@@ -5,7 +5,9 @@
 // year-by-year checklist or a flat course fallback.
 import type { CourseIndexEntry } from "@/app/api/course-index/route";
 import { Icon } from "@/src/components/icons";
+import { RetryAlert } from "@/src/components/ui/feedback";
 import { TextInput } from "@/src/components/ui/form-controls";
+import { Skeleton, SkeletonGroup, SkeletonList } from "@/src/components/ui/skeleton";
 import {
   getProgramIndex,
   getRequirementsFor,
@@ -26,6 +28,23 @@ interface ProgramRequirementsProps {
 
 function creditValue(entry: CourseIndexEntry | undefined): number {
   return entry?.credits ?? 0;
+}
+
+/** Reserves the responsive faculty, major, and minor control row. */
+export function ProgramSelectorsLoading() {
+  return (
+    <SkeletonGroup
+      label="Loading programs…"
+      className="grid w-full grid-cols-2 items-end gap-2 @min-[55rem]:flex @min-[55rem]:flex-wrap @min-[55rem]:gap-x-3"
+    >
+      {["@min-[55rem]:w-44", "@min-[55rem]:w-52", "@min-[55rem]:w-40"].map((width) => (
+        <div key={width} className={`flex w-full min-w-0 flex-col gap-1.5 ${width}`}>
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-11 w-full rounded-lg sm:h-9" />
+        </div>
+      ))}
+    </SkeletonGroup>
+  );
 }
 
 // Program selectors write the faculty, major, and minor to the planner store.
@@ -67,7 +86,7 @@ export function ProgramSelectors() {
     return <div className="text-error text-sm">Couldn’t load program index: {loadError}</div>;
   }
   if (!index) {
-    return <div className="text-muted text-sm">Loading programs…</div>;
+    return <ProgramSelectorsLoading />;
   }
 
   return (
@@ -226,24 +245,27 @@ function RequirementProgressCard({
 // Resolves the selected program into progress bars and requirement rows.
 export function ProgramProgress({ courseIndex, plannedCodes }: ProgramRequirementsProps) {
   const major = usePlanner((s) => s.major);
-  const [requirements, setRequirements] = useState<ProgramRequirements | null>(null);
+  const [result, setResult] = useState<{
+    major: string;
+    requirements: ProgramRequirements | null;
+    error: boolean;
+  } | null>(null);
 
   // Re-resolve requirements whenever major changes.
   useEffect(() => {
     let cancelled = false;
     if (!major) {
-      // Defer the clear off the render path; the user-visible effect is
-      // identical since we run before paint.
-      queueMicrotask(() => {
-        if (!cancelled) setRequirements(null);
-      });
       return () => {
         cancelled = true;
       };
     }
-    getRequirementsFor(major).then((req) => {
-      if (!cancelled) setRequirements(req);
-    });
+    getRequirementsFor(major)
+      .then((requirements) => {
+        if (!cancelled) setResult({ major, requirements, error: false });
+      })
+      .catch(() => {
+        if (!cancelled) setResult({ major, requirements: null, error: true });
+      });
     return () => {
       cancelled = true;
     };
@@ -256,12 +278,22 @@ export function ProgramProgress({ courseIndex, plannedCodes }: ProgramRequiremen
       </p>
     );
   }
-  if (!requirements) {
-    return <div className="text-muted text-sm">Loading requirements…</div>;
+  if (!result || result.major !== major) {
+    return <SkeletonList label="Loading requirements…" padding="none" rows={4} />;
+  }
+  if (result.error) {
+    return <RetryAlert>Couldn’t load requirements. Reload the page to try again.</RetryAlert>;
+  }
+  if (!result.requirements) {
+    return (
+      <p className="text-muted p-4 text-sm">
+        No requirements are available for this program. Choose another program in the top bar.
+      </p>
+    );
   }
   return (
     <div className="flex min-h-0 min-w-0 flex-col gap-2">
-      <RequirementsPanel req={requirements} courseIndex={courseIndex} plannedCodes={plannedCodes} />
+      <RequirementsPanel req={result.requirements} courseIndex={courseIndex} plannedCodes={plannedCodes} />
     </div>
   );
 }

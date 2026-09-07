@@ -4,6 +4,7 @@ import { CourseSearchField, useCourseAutocomplete, type Candidate } from "@/src/
 import { Icon } from "@/src/components/icons";
 import { useApi } from "@/src/components/providers";
 import { ScheduleGrid, type ScheduleGridDragConfig } from "@/src/components/schedule/schedule-grid";
+import { ScheduleToolbarSkeleton } from "@/src/components/schedule/schedule-loading";
 import { ScheduleWorkspace, type ScheduleWorkspaceView } from "@/src/components/schedule/schedule-workspace";
 import { TermSwitcher } from "@/src/components/schedule/term-switcher";
 import { ToastProvider } from "@/src/components/schedule/toast";
@@ -19,7 +20,7 @@ import { buildScheduleGrid } from "@/src/lib/schedule/grid";
 import type { DayCode, Schedule } from "@/src/lib/schedule/types";
 import { minutesToFullLabel } from "@/src/lib/schedule/util/time";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PlannerCourseModule, type PlannerCourseFocusRequest } from "./planner-course-module";
+import { PlannerCourseModule, PlannerCoursesSkeleton, type PlannerCourseFocusRequest } from "./planner-course-module";
 import {
   plannerConflictLabels,
   plannerDragOptions,
@@ -211,7 +212,7 @@ export function SchedulePlannerPane() {
 }
 
 function SchedulePlannerPaneInner() {
-  useScheduleSync();
+  const hydrating = useScheduleSync();
   const api = useApi();
   const entries = useSchedule((state) => state.entries);
   const activeTerm = useSchedule((state) => state.activeTerm);
@@ -226,6 +227,7 @@ function SchedulePlannerPaneInner() {
   const [query, setQuery] = useState("");
   const [docs, setDocs] = useState<Map<string, CourseDoc>>(new Map());
   const [catalogError, setCatalogError] = useState(false);
+  const [failedCatalogCodes, setFailedCatalogCodes] = useState<Set<string>>(new Set());
   const [mobileView, setMobileView] = useState<ScheduleWorkspaceView>("schedule");
   const [activeDay, setActiveDay] = useState<DayCode>("Mon");
   const [importReview, setImportReview] = useState<PlannerImportReview | null>(null);
@@ -310,7 +312,7 @@ function SchedulePlannerPaneInner() {
 
   useEffect(() => {
     if (!storedCodeKey) return;
-    const codes = storedCodeKey.split("\u0000").filter((code) => !docs.has(code));
+    const codes = storedCodeKey.split("\u0000").filter((code) => !docs.has(code) && !failedCatalogCodes.has(code));
     if (codes.length === 0) return;
     let cancelled = false;
     Promise.allSettled(codes.map((code) => api.getCourse(code))).then((results) => {
@@ -322,12 +324,14 @@ function SchedulePlannerPaneInner() {
         });
         return next;
       });
-      setCatalogError(results.some((result) => result.status === "rejected"));
+      const failed = codes.filter((_, index) => results[index].status === "rejected");
+      setFailedCatalogCodes((current) => new Set([...current, ...failed]));
+      setCatalogError(failed.length > 0);
     });
     return () => {
       cancelled = true;
     };
-  }, [api, docs, storedCodeKey]);
+  }, [api, docs, failedCatalogCodes, storedCodeKey]);
 
   const allTerms = useMemo(() => {
     const terms = entries.map((entry) => entry.term);
@@ -506,7 +510,10 @@ function SchedulePlannerPaneInner() {
       </div>
     ) : undefined;
 
-  const termToolbar = (
+  const initialLoading = hydrating && entries.length === 0;
+  const termToolbar = initialLoading ? (
+    <ScheduleToolbarSkeleton />
+  ) : (
     <div className="flex min-w-max items-center justify-between gap-4">
       {allTerms.length === 0 ? (
         <span className="text-muted px-2 py-1.5 text-xs">Terms appear after you add a course.</span>
@@ -583,7 +590,15 @@ function SchedulePlannerPaneInner() {
               <PlannerCourseModule
                 key={code}
                 code={code}
-                title={doc?.title ?? selected[0]?.snapshot.title ?? "Loading course details…"}
+                title={doc?.title ?? selected[0]?.snapshot.title ?? code}
+                catalogError={failedCatalogCodes.has(code)}
+                onRetry={() =>
+                  setFailedCatalogCodes((current) => {
+                    const next = new Set(current);
+                    next.delete(code);
+                    return next;
+                  })
+                }
                 doc={doc}
                 term={activeTerm}
                 entries={selected}
@@ -599,7 +614,9 @@ function SchedulePlannerPaneInner() {
               />
             );
           })}
-          {pickedCodes.size === 0 ? (
+          {initialLoading ? (
+            <PlannerCoursesSkeleton />
+          ) : pickedCodes.size === 0 ? (
             <p className="text-muted py-4 text-sm leading-relaxed">
               Add a course from search to configure its lecture, lab, and tutorial here.
             </p>
@@ -650,6 +667,7 @@ function SchedulePlannerPaneInner() {
           ariaLabel="Weekly course schedule"
           blockContentAlignment="center"
           drag={dragConfig}
+          loading={initialLoading ? "Loading your weekly course schedule" : undefined}
           empty={{
             title: "Build your first timetable",
             description: "Search for a course, then choose its lecture, lab, or tutorial.",

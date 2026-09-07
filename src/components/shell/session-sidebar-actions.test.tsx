@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { ChatShellProvider } from "@/src/components/chat/chat-shell-context";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { ChatShellProvider, useChatShell } from "@/src/components/chat/chat-shell-context";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SessionSidebar } from "./session-sidebar";
 
@@ -46,11 +46,50 @@ vi.mock("next/navigation", () => ({ useParams: () => ({}), usePathname: () => "/
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.clearAllMocks();
   values.clear();
 });
 
+function RefreshSessions() {
+  const { refreshSessions } = useChatShell();
+  return (
+    <button type="button" onClick={refreshSessions}>
+      Refresh sessions
+    </button>
+  );
+}
+
 describe("SessionSidebar actions", () => {
+  it("keeps loaded session rows during refresh and refresh failure", async () => {
+    const { container } = render(
+      <ChatShellProvider>
+        <SessionSidebar />
+        <RefreshSessions />
+      </ChatShellProvider>,
+    );
+    await screen.findByRole("button", { name: "A conversation with a long title" });
+    let reject!: (error: Error) => void;
+    api.listSessions.mockImplementationOnce(
+      () =>
+        new Promise((_, fail) => {
+          reject = fail;
+        }),
+    );
+    vi.useFakeTimers();
+    fireEvent.click(screen.getByRole("button", { name: "Refresh sessions" }));
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByRole("button", { name: "A conversation with a long title" })).not.toBeNull();
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+    expect(screen.getByText("Updating conversations…")).not.toBeNull();
+    await act(async () => {
+      reject(new Error("offline"));
+    });
+    expect(screen.getByRole("alert").textContent).toContain("Couldn’t refresh conversations");
+    expect(screen.getByRole("button", { name: "A conversation with a long title" })).not.toBeNull();
+  });
   it("keeps routine row actions visible and touchable on mobile", async () => {
     const { container } = render(
       <ChatShellProvider>

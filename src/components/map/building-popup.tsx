@@ -7,6 +7,7 @@ import { Icon } from "@/src/components/icons";
 import { useApi } from "@/src/components/providers";
 import { Button } from "@/src/components/ui/button";
 import { RetryState } from "@/src/components/ui/feedback";
+import { Skeleton, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
 import type { BuildingDetails, BuildingSummary } from "@/src/lib/api-types";
 import { useEffect, useRef, useState } from "react";
 
@@ -196,10 +197,19 @@ export function BuildingPopup({ building, onClose }: { building: SelectedBuildin
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto [overscroll-behavior-y:contain] px-3.5 py-3">
         {!details && !failed && (
-          <div className="flex flex-col gap-2" role="status" aria-label="Loading details">
-            <div className="bg-surface-container h-32 animate-pulse rounded-lg" />
-            <div className="bg-surface-container h-4 w-2/3 animate-pulse rounded" />
-          </div>
+          <SkeletonGroup label="Loading building details" className="border-border-subtle border-t pt-2.5">
+            <Skeleton className="mb-2 h-5 w-28" />
+            <div className="flex items-center gap-1">
+              <Skeleton className="size-11 rounded-full" />
+              <div className="bg-surface-container-low min-w-0 flex-1 overflow-hidden rounded-lg">
+                <Skeleton className="h-32 w-full rounded-none" />
+                <div className="px-2.5 py-2">
+                  <SkeletonText lines={3} />
+                </div>
+              </div>
+              <Skeleton className="size-11 rounded-full" />
+            </div>
+          </SkeletonGroup>
         )}
         {failed ? (
           <RetryState

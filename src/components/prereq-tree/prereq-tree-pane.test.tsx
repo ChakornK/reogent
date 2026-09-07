@@ -79,9 +79,15 @@ describe("PrereqTreePane", () => {
     });
   });
 
-  it("renders the literal 'Loading course index…' text while the index loads (REQ-10.5)", () => {
+  it("renders one padded canvas skeleton while the index loads (REQ-10.5)", () => {
     apiState.getCourseIndex.mockReturnValue(new Promise(() => {}));
-    render(<PrereqTreePane />);
+    const { container } = render(<PrereqTreePane />);
+    const loading = screen.getByRole("status", { name: "Loading course index…" });
+    expect(loading.className).toContain("p-4");
+    expect(loading.closest("[data-workspace-canvas]")).not.toBeNull();
+    expect(loading.querySelector("[data-skeleton]")).not.toBeNull();
+    expect(container.querySelector(".animate-spin")).toBeNull();
+    expect(screen.queryByText("Search for a course above to render its prerequisite tree.")).toBeNull();
     expect(screen.getByText(/Loading course index/)).toBeTruthy();
     expect(screen.getByRole("heading", { level: 1, name: "Prereq tree" })).toBeTruthy();
     expect(screen.getByLabelText("Root course code").className).toContain("neu-shadow-on-surface");
@@ -125,6 +131,9 @@ describe("PrereqTreePane", () => {
     expect(document.querySelector("[data-workspace-view-toggle]")).toBeNull();
     expect(routerPush).toHaveBeenCalledWith("/tools/prereq/CPSC210");
     expect(screen.getByTestId("rf-canvas")).toBeTruthy();
+    expect(
+      screen.getByRole("status", { name: "Preparing prerequisite map", hidden: true }).querySelector("[data-skeleton]"),
+    ).not.toBeNull();
   });
 
   it("renders the not-found state with CPSC 110 / MATH 200 suggestions on a missing submit (REQ-10.4)", async () => {

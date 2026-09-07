@@ -409,7 +409,7 @@ details[open] > *:not(summary) {
   }
 }
 
-@keyframes shell-skeleton-sheen {
+@keyframes skeleton-sheen {
   from {
     transform: translateX(-120%);
   }
@@ -619,19 +619,26 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
   animation: shell-progress-travel 900ms ease-in-out 80ms infinite;
 }
 
-.shell-skeleton {
+.skeleton {
   background: var(--surface-container);
   overflow: hidden;
   position: relative;
 }
 
-.shell-skeleton::after {
+.skeleton::after {
   position: absolute;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 72%, transparent), transparent);
   content: "";
   inset: 0;
   transform: translateX(-120%);
-  animation: shell-skeleton-sheen 1.4s var(--neu-ease) 120ms infinite;
+  animation: skeleton-sheen 1.4s var(--neu-ease) 120ms infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+    display: none;
+  }
 }
 
 .shell-boot-workspace {

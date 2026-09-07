@@ -1,0 +1,101 @@
+import { Button } from "@/src/components/ui/button";
+import { DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
+import { Skeleton, SkeletonFields, SkeletonGroup, SkeletonText } from "@/src/components/ui/skeleton";
+import type { Avatar } from "@/src/lib/schedule/types";
+
+export function ScheduleToolbarSkeleton() {
+  return (
+    <SkeletonGroup label="Loading schedule terms" className="flex w-max gap-1 rounded-lg p-1">
+      <Skeleton className="h-11 w-32 rounded-md sm:h-8" />
+      <Skeleton className="h-11 w-32 rounded-md sm:h-8" />
+    </SkeletonGroup>
+  );
+}
+
+export function ScheduleControlsSkeleton({ label, includeGroup = false }: { label: string; includeGroup?: boolean }) {
+  return (
+    <SkeletonGroup label={label}>
+      {includeGroup ? (
+        <div className="space-y-2 pb-4">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-11 w-full rounded-lg" />
+        </div>
+      ) : null}
+      <div className="border-border-subtle grid grid-cols-2 gap-2 border-t py-4">
+        <Skeleton className="h-11 rounded-xl sm:h-10" />
+        <Skeleton className="h-11 rounded-xl sm:h-10" />
+      </div>
+      <div className="border-border-subtle border-t py-4">
+        <div className="mb-2 flex min-h-9 items-center">
+          <Skeleton className="h-5 w-20" />
+        </div>
+        {[0, 1].map((row) => (
+          <div key={row} className="flex min-h-11 items-center gap-2.5 px-2 py-1.5">
+            <Skeleton className="size-[30px] rounded-full" />
+            <SkeletonText lines={2} className="flex-1" />
+            <Skeleton className="size-5" />
+          </div>
+        ))}
+      </div>
+      <div className="border-border-subtle space-y-2 border-t py-4">
+        <div className="flex min-h-11 items-center justify-between gap-3">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="size-5" />
+        </div>
+        <SkeletonText lines={2} />
+      </div>
+      <div className="border-border-subtle space-y-2 border-t py-4">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-11 w-full rounded-lg" />
+      </div>
+    </SkeletonGroup>
+  );
+}
+
+export function ScheduleProfileSkeleton({
+  title,
+  avatarKind = "initials",
+  onCancel,
+}: {
+  title: string;
+  avatarKind?: Avatar["kind"];
+  onCancel: () => void;
+}) {
+  return (
+    <DialogRoot onDismiss={onCancel} backdropLabel="Cancel schedule profile">
+      <DialogPanel aria-label={title} size="md" className="p-5">
+        <h2 className="text-on-surface text-base font-medium">{title}</h2>
+        <SkeletonGroup
+          label="Loading schedule profile"
+          className="bg-surface-container-low mt-3 flex items-center gap-3 rounded-lg p-3"
+        >
+          <Skeleton className="size-10 rounded-full" />
+          <SkeletonText lines={2} className="flex-1" />
+        </SkeletonGroup>
+        <div className="mt-4">
+          <SkeletonFields label="Loading handle field" fields={1} />
+        </div>
+        <SkeletonGroup label="Loading avatar choices" className="mt-4 flex flex-col gap-2">
+          <Skeleton className="h-4 w-12" />
+          <div className="flex gap-1.5">
+            {[0, 1, 2].map((tab) => (
+              <Skeleton key={tab} className="h-9 flex-1 rounded-lg" />
+            ))}
+          </div>
+          {avatarKind === "emoji" ? (
+            <Skeleton className="h-40 w-full rounded-lg" />
+          ) : avatarKind === "image" ? (
+            <Skeleton className="h-11 w-full rounded-xl sm:h-10" />
+          ) : null}
+          <Skeleton className="h-6 w-72 rounded-full" />
+        </SkeletonGroup>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button size="prominent" data-dialog-initial-focus onClick={onCancel}>
+            Cancel
+          </Button>
+          <Skeleton className="h-11 w-36 rounded-xl sm:h-10" />
+        </div>
+      </DialogPanel>
+    </DialogRoot>
+  );
+}

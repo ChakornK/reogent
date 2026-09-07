@@ -416,3 +416,109 @@ describe("course-lookup-pane — tools-mode list/detail split", () => {
     expect(routerPush).toHaveBeenCalledWith("/tools/courses");
   });
 });
+
+describe("course loading consistency", () => {
+  it.each(["ai", "tools"])("uses one shared detail composition in %s mode", (mode) => {
+    shellState.mode = mode;
+    apiState.getCourse.mockReturnValue(new Promise(() => {}));
+    const { container } = render(<CourseLookupPane state={{ code: "CPSC 110" }} setState={vi.fn()} />);
+
+    const skeleton = screen.getByRole("status", { name: "Loading course details" });
+    expect(screen.getAllByRole("status")).toHaveLength(1);
+    expect(skeleton.className).toContain("gap-3");
+    expect(skeleton.querySelectorAll("[data-skeleton]").length).toBeGreaterThan(10);
+    expect(skeleton.querySelector(".sm\\:grid-cols-4")).not.toBeNull();
+    expect(skeleton.querySelectorAll(".min-h-11.px-3")).toHaveLength(2);
+    expect(container.querySelector(".animate-pulse")).toBeNull();
+    expect(container.querySelector("article")).toBeNull();
+  });
+
+  it("reserves suggestions, not a detail record, for a partial query", () => {
+    render(<CourseLookupPane state={{ code: "CPSC" }} setState={vi.fn()} />);
+    expect(screen.getByRole("status", { name: "Loading course suggestions" })).not.toBeNull();
+    expect(screen.queryByRole("status", { name: "Loading course details" })).toBeNull();
+  });
+
+  it("matches the loaded table header, padded cells, compact metadata, and count footer", async () => {
+    shellState.mode = "tools";
+    const pending = deferred<{ courses: CourseDoc[]; subject_total: number }>();
+    apiState.searchCourses.mockReturnValue(pending.promise);
+    const { container } = render(<CourseLookupPane state={{}} setState={vi.fn()} />);
+    const skeleton = screen.getByRole("status", { name: "Loading courses" });
+    const header = skeleton.querySelector("thead")?.outerHTML;
+    const cells = skeleton.querySelectorAll("tbody tr:first-child td");
+    expect(cells).toHaveLength(4);
+    expect([...cells].every((cell) => cell.className.includes("px-3 py-1.5"))).toBe(true);
+    expect(cells[1].querySelector(".sm\\:hidden[data-skeleton]")).not.toBeNull();
+    expect(cells[2].className).toContain("max-sm:hidden");
+    expect(container.querySelector("footer [data-skeleton]")).not.toBeNull();
+    expect(container.querySelector("footer")?.textContent).not.toContain("0 courses");
+
+    await act(async () => pending.resolve({ courses: [fullRecord], subject_total: 1 }));
+    expect(screen.getByRole("table").querySelector("thead")?.outerHTML).toBe(header);
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+    expect(container.querySelector("footer")?.textContent).toContain("1 course");
+  });
+
+  it("keeps loaded rows, count, and pagination actionable during a refresh", async () => {
+    shellState.mode = "tools";
+    const courses = Array.from({ length: 101 }, (_, index) =>
+      makeCourse(`CPSC ${100 + index}`, "CPSC", `${100 + index}`),
+    );
+    apiState.searchCourses.mockResolvedValueOnce({ courses, subject_total: 101 });
+    const { container } = render(<CourseLookupPane state={{}} setState={vi.fn()} />);
+    await screen.findByRole("button", { name: "CPSC 100" });
+    const pending = deferred<{ courses: CourseDoc[]; subject_total: number }>();
+    apiState.searchCourses.mockReturnValueOnce(pending.promise);
+    fireEvent.change(screen.getByLabelText("Sort by"), { target: { value: "code" } });
+
+    expect(screen.getByText("Updating courses…")).not.toBeNull();
+    expect(container.querySelector("[aria-busy='true']")).not.toBeNull();
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+    expect(container.querySelector("footer")?.textContent).toContain("101 courses");
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByRole("button", { name: "CPSC 200" })).not.toBeNull();
+    await act(async () => pending.resolve({ courses: [fullRecord], subject_total: 1 }));
+    expect(screen.queryByText("Updating courses…")).toBeNull();
+  });
+
+  it("keeps previous results after a failed refresh and retries without replacing them", async () => {
+    shellState.mode = "tools";
+    apiState.searchCourses.mockResolvedValueOnce({ courses: [fullRecord], subject_total: 1 });
+    const { container } = render(<CourseLookupPane state={{}} setState={vi.fn()} />);
+    await screen.findByRole("button", { name: "CPSC 110" });
+    apiState.searchCourses.mockRejectedValueOnce(new Error("offline"));
+    fireEvent.change(screen.getByLabelText("Sort by"), { target: { value: "code" } });
+    expect(await screen.findByText(/Couldn't refresh courses/)).not.toBeNull();
+    expect(screen.getByRole("button", { name: "CPSC 110" })).not.toBeNull();
+    apiState.searchCourses.mockReturnValueOnce(new Promise(() => {}));
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(screen.getByText("Updating courses…")).not.toBeNull();
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+  });
+
+  it("does not replace a successful empty result with initial skeletons during refresh", async () => {
+    shellState.mode = "tools";
+    apiState.searchCourses.mockResolvedValueOnce({ courses: [], subject_total: 0 });
+    const { container } = render(<CourseLookupPane state={{}} setState={vi.fn()} />);
+    await screen.findByText("No courses match this search.");
+    apiState.searchCourses.mockReturnValueOnce(new Promise(() => {}));
+    fireEvent.change(screen.getByLabelText("Sort by"), { target: { value: "code" } });
+    expect(screen.getByText("Updating courses…")).not.toBeNull();
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+    expect(container.querySelector("footer")?.textContent).toContain("0 courses");
+  });
+
+  it("replaces initial loading with retry and an unavailable count after failure", async () => {
+    shellState.mode = "tools";
+    apiState.searchCourses.mockRejectedValueOnce(new Error("offline"));
+    const { container } = render(<CourseLookupPane state={{}} setState={vi.fn()} />);
+    expect(await screen.findByText("Courses unavailable")).not.toBeNull();
+    expect(screen.getByText("Course count unavailable")).not.toBeNull();
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+    apiState.searchCourses.mockReturnValueOnce(new Promise(() => {}));
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(screen.getByRole("status", { name: "Loading courses" })).not.toBeNull();
+    expect(container.querySelector("footer [data-skeleton]")).not.toBeNull();
+  });
+});

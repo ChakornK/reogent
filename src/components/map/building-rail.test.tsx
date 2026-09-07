@@ -163,6 +163,69 @@ function props(overrides: Partial<BuildingRailProps> = {}): BuildingRailProps {
 afterEach(cleanup);
 
 describe("BuildingRail", () => {
+  it("reserves detail geometry inside the scroller while keeping identity and actions mounted", () => {
+    const railProps = props({ mode: "details", selected: iblc, details: { status: "loading" } });
+    const view = render(<BuildingRail {...railProps} />);
+    const identity = screen.getByRole("heading", { name: iblc.name });
+    const directions = screen.getByRole("button", { name: "Directions" });
+    const loading = screen.getByRole("status", { name: "Loading building details" });
+    expect(loading.parentElement?.className).toContain("px-3 py-4");
+    expect(loading.querySelector("[data-skeleton]")?.className).toContain("h-36");
+    expect(loading.querySelectorAll("[data-skeleton]").length).toBeGreaterThan(8);
+    expect(view.container.querySelector(".animate-pulse")).toBeNull();
+
+    view.rerender(<BuildingRail {...railProps} details={{ status: "error" }} />);
+    expect(screen.queryByRole("status", { name: "Loading building details" })).toBeNull();
+    expect(screen.getByText("Couldn't load building details.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(railProps.onRetryDetails).toHaveBeenCalledOnce();
+
+    view.rerender(<BuildingRail {...railProps} details={{ status: "ready", data: details }} />);
+    expect(screen.getByRole("heading", { name: iblc.name })).toBe(identity);
+    expect(screen.getByRole("button", { name: "Directions" })).toBe(directions);
+    expect(screen.getByText("IBLC 100")).toBeTruthy();
+    expect(screen.queryByRole("status", { name: "Loading building details" })).toBeNull();
+  });
+
+  it("insets saved-list skeleton rows once without hiding curated or stale buildings", () => {
+    const railProps = props({ favoriteStatus: "loading", favorites: new Set() });
+    const view = render(<BuildingRail {...railProps} />);
+    const loading = screen.getByRole("status", { name: "Loading saved buildings" });
+    expect(loading.className).toContain("p-0");
+    expect(loading.className).toContain("px-3");
+    expect(loading.querySelectorAll("[data-skeleton]")).toHaveLength(6);
+    expect(screen.getByRole("listbox", { name: "Curated popular buildings" })).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Search buildings" })).toBeTruthy();
+
+    view.rerender(<BuildingRail {...railProps} favorites={new Set(["CHEM"])} />);
+    expect(screen.queryByRole("status", { name: "Loading saved buildings" })).toBeNull();
+    expect(screen.getByRole("listbox", { name: "Saved" }).textContent).toContain(chem.name);
+
+    view.rerender(<BuildingRail {...railProps} favoriteStatus="error" />);
+    expect(screen.getByRole("alert").textContent).toContain("Saved buildings are unavailable");
+    expect(screen.queryByRole("status", { name: "Loading saved buildings" })).toBeNull();
+    view.rerender(<BuildingRail {...railProps} favoriteStatus="idle" />);
+    expect(screen.queryByRole("heading", { name: "Saved" })).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("keeps route calculation as action progress beside editable endpoints", () => {
+    render(
+      <BuildingRail
+        {...props({
+          mode: "directions",
+          selected: iblc,
+          routeOrigin: chem,
+          route: { status: "loading", from: chem, to: iblc },
+        })}
+      />,
+    );
+    expect(screen.getByRole("status").textContent).toContain("Finding a walking route…");
+    expect(screen.getByRole("combobox", { name: "From building" })).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "To building" })).toBeTruthy();
+    expect(document.querySelector("[data-skeleton]")).toBeNull();
+  });
+
   it("shows saved buildings before the curated starting list", () => {
     render(<BuildingRail {...props()} />);
     const headings = screen.getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent);
