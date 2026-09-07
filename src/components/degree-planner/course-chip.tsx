@@ -24,7 +24,7 @@ interface CourseChipProps {
   listeners?: DraggableSyntheticListeners;
 }
 
-/** Keeps course identity, metadata, and action slots stable across lookup, plan, and drag states. */
+/** Renders compact course text and available actions, preserving each source layout during dragging. */
 export function CourseChip({
   code,
   entry,
@@ -62,9 +62,9 @@ export function CourseChip({
         aria-hidden={ghost || undefined}
         onMouseDown={ghost ? undefined : startDrag}
         onTouchStart={ghost ? undefined : startDrag}
-        className={`neu-raised bg-surface-container relative flex w-full min-w-0 shrink-0 cursor-grab touch-pan-y flex-col gap-0.5 rounded-lg border px-2.5 py-1.5 font-sans select-none active:cursor-grabbing ${invalid ? "border-error" : "border-transparent"} ${flashing ? "planner-flash" : ""}`}
+        className={`neu-raised bg-surface-container relative flex w-full min-w-0 shrink-0 cursor-grab touch-pan-y flex-col rounded-lg border px-2 py-1 font-sans select-none active:cursor-grabbing ${invalid ? "border-error" : "border-transparent"} ${flashing ? "planner-flash" : ""}`}
       >
-        <div className="flex h-11 min-w-0 items-center gap-1 sm:h-8">
+        <div className="flex min-w-0 items-center gap-1">
           <span
             className={`min-w-0 flex-1 truncate text-sm leading-5 font-medium ${invalid ? "text-error" : "text-on-surface"}`}
             title={code}
@@ -98,30 +98,28 @@ export function CourseChip({
               size="compact"
               aria-expanded={placing}
               onClick={ghost ? undefined : () => setPlacing((current) => !current)}
-              style={{ justifyContent: "flex-start" }}
-              className="w-14"
             >
               {blockId ? "Move" : "Add"}
             </Button>
-            <Button
-              variant="ghost"
-              size="denseIcon"
-              aria-label={`Remove ${code}`}
-              aria-hidden={!blockId || undefined}
-              disabled={!blockId}
-              title={`Remove ${code}`}
-              onClick={ghost || !blockId ? undefined : () => removeBlock(blockId)}
-              className={`text-muted enabled:hover:bg-error-container enabled:hover:text-error ${blockId ? "" : "invisible"}`}
-            >
-              <Icon name="close" size={14} />
-            </Button>
+            {blockId ? (
+              <Button
+                variant="ghost"
+                size="denseIcon"
+                aria-label={`Remove ${code}`}
+                title={`Remove ${code}`}
+                onClick={ghost ? undefined : () => removeBlock(blockId)}
+                className="text-muted enabled:hover:bg-error-container enabled:hover:text-error"
+              >
+                <Icon name="close" size={14} />
+              </Button>
+            ) : null}
           </div>
         </div>
         <div className="flex min-w-0 items-center gap-2 leading-5">
-          <span className="text-on-surface-variant text-body-sm min-w-0 flex-1 truncate" title={title}>
+          <span className="text-on-surface-variant text-body-sm min-w-0 flex-1 truncate leading-5" title={title}>
             {title}
           </span>
-          <span className="text-muted w-9 shrink-0 text-right text-xs tabular-nums">
+          <span className="text-muted shrink-0 text-right text-xs whitespace-nowrap tabular-nums">
             {entry?.credits != null ? `${entry.credits} cr` : ""}
           </span>
         </div>

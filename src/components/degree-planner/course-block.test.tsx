@@ -51,12 +51,12 @@ afterEach(() => {
 function chipLayout(chip: HTMLElement) {
   return [chip, ...chip.querySelectorAll<HTMLElement>("div, button, span")].map((element) => ({
     tag: element.tagName,
-    classes: element.className.replace(/\binvisible\b/g, "").trim(),
+    classes: element.className.trim(),
   }));
 }
 
 describe("Course chip layout", () => {
-  it("preserves geometry and typography from the finder through dragging and placement", () => {
+  it("keeps shared typography and mirrors each source layout in its drag preview", () => {
     const { container, rerender } = render(<LookupBlock entry={course} />);
     const source = container.firstElementChild as HTMLElement;
     const layout = chipLayout(source);
@@ -71,13 +71,31 @@ describe("Course chip layout", () => {
 
     rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />);
     const placed = container.firstElementChild as HTMLElement;
-    expect(chipLayout(placed)).toEqual(layout);
+    const placedLayout = chipLayout(placed);
+    expect(placedLayout[0]).toEqual(layout[0]);
+    expect(placedLayout.filter(({ tag }) => tag === "SPAN")).toEqual(layout.filter(({ tag }) => tag === "SPAN"));
     expect(placed.hasAttribute("inert")).toBe(false);
 
     rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} ghost />);
     const blockGhost = container.firstElementChild as HTMLElement;
-    expect(chipLayout(blockGhost)).toEqual(layout);
+    expect(chipLayout(blockGhost)).toEqual(placedLayout);
     expect(blockGhost.hasAttribute("inert")).toBe(true);
+  });
+
+  it("omits the remove slot from finder cards and gives actions their natural width", () => {
+    const { container, rerender } = render(<LookupBlock entry={course} />);
+    const chip = container.firstElementChild as HTMLElement;
+    const add = screen.getByRole("button", { name: "Add" });
+    expect(chip.querySelectorAll("button")).toHaveLength(2);
+    expect(chip.querySelector('[aria-label="Remove CPSC 221"]')).toBeNull();
+    expect(chip.querySelector(".invisible")).toBeNull();
+    expect(add.classList.contains("w-14")).toBe(false);
+    expect(add.parentElement?.lastElementChild).toBe(add);
+
+    rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />);
+    expect(container.querySelectorAll("button")).toHaveLength(3);
+    expect(screen.getByRole("button", { name: "Remove CPSC 221" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Move" }).classList.contains("w-14")).toBe(false);
   });
 
   it("keeps course text outside a separate square details button", () => {
@@ -96,11 +114,11 @@ describe("Course chip layout", () => {
     }
 
     checkDetailsButton();
-    expect(getComputedStyle(screen.getByRole("button", { name: "Add" })).justifyContent).toBe("flex-start");
+    expect(screen.getByRole("button", { name: "Add" }).hasAttribute("style")).toBe(false);
 
     rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />);
     checkDetailsButton();
-    expect(getComputedStyle(screen.getByRole("button", { name: "Move" })).justifyContent).toBe("flex-start");
+    expect(screen.getByRole("button", { name: "Move" }).hasAttribute("style")).toBe(false);
   });
 
   it("keeps the term picker outside the measured drag surface", () => {
