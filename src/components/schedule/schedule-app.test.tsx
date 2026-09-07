@@ -361,7 +361,12 @@ describe("ScheduleApp controls", () => {
     const freeSection = view.container.querySelector('[data-control-section="free-time"]');
 
     expect(freeSection?.querySelector('[aria-label="Common free-time intervals"]')).toBeTruthy();
-    expect(freeSection?.querySelector(".max-h-36.overflow-y-auto")).toBeTruthy();
+    const results = freeSection?.querySelector<HTMLElement>(".max-h-36.overflow-y-auto");
+    expect(screen.getByRole("region", { name: "Common free-time results" })).toBe(results);
+    expect(results?.getAttribute("aria-label")).toBe("Common free-time results");
+    expect(results?.tabIndex).toBe(0);
+    results?.focus();
+    expect(document.activeElement).toBe(results);
     expect(freeSection?.className).not.toContain("neu-panel");
     expect(freeSection?.className).not.toContain("secondary");
 

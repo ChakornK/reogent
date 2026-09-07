@@ -480,7 +480,12 @@ function ScheduleAppInner({ groupCode }: Props) {
               />
             </label>
             {showFree ? (
-              <div className="bg-surface-container-low mt-2 max-h-36 overflow-y-auto rounded-lg px-2.5 py-2">
+              <section
+                aria-label="Common free-time results"
+                // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users need a focus target to scroll these results.
+                tabIndex={0}
+                className="bg-surface-container-low mt-2 max-h-36 overflow-y-auto rounded-lg px-2.5 py-2"
+              >
                 {enabledPeopleWithSchedules.length === 0 ? (
                   <p className="text-muted text-xs leading-5">
                     Show at least one person with a schedule to compare free time.
@@ -504,7 +509,7 @@ function ScheduleAppInner({ groupCode }: Props) {
                     ))}
                   </ul>
                 )}
-              </div>
+              </section>
             ) : null}
           </section>
           {termIsLive ? (
