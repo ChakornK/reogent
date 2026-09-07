@@ -65,32 +65,34 @@ export function CourseChip({
         className={`neu-raised bg-surface-container relative flex w-full min-w-0 shrink-0 cursor-grab touch-pan-y flex-col gap-0.5 rounded-lg border px-2.5 py-1.5 font-sans select-none active:cursor-grabbing ${invalid ? "border-error" : "border-transparent"} ${flashing ? "planner-flash" : ""}`}
       >
         <div className="flex h-11 min-w-0 items-center gap-1 sm:h-8">
-          <Button
-            variant="ghost"
-            size="compact"
-            disabled={!entry}
-            aria-label={
-              invalid
-                ? `Show ${code} details (${issueCount} placement issue${issueCount === 1 ? "" : "s"})`
-                : `Show ${code} details`
-            }
-            onClick={
-              ghost
-                ? undefined
-                : (event) => {
-                    const rect = event.currentTarget.getBoundingClientRect();
-                    setAnchorRect((current) => (current ? null : rect));
-                  }
-            }
-            style={{ padding: 0, justifyContent: "flex-start" }}
-            className={`min-w-0 flex-1 ${invalid ? "text-error" : "text-on-surface"}`}
+          <span
+            className={`min-w-0 flex-1 truncate text-sm leading-5 font-medium ${invalid ? "text-error" : "text-on-surface"}`}
+            title={code}
           >
-            <span className="truncate text-sm leading-5 font-medium" title={code}>
-              {code}
-            </span>
-            <Icon name={invalid ? "alert" : "info"} size={12} className="shrink-0" />
-          </Button>
-          <div className="flex shrink-0 items-center gap-0.5">
+            {code}
+          </span>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              variant="ghost"
+              size="denseIcon"
+              disabled={!entry}
+              aria-label={
+                invalid
+                  ? `Show ${code} details (${issueCount} placement issue${issueCount === 1 ? "" : "s"})`
+                  : `Show ${code} details`
+              }
+              onClick={
+                ghost
+                  ? undefined
+                  : (event) => {
+                      const rect = event.currentTarget.getBoundingClientRect();
+                      setAnchorRect((current) => (current ? null : rect));
+                    }
+              }
+              className={invalid ? "text-error" : undefined}
+            >
+              <Icon name={invalid ? "alert" : "info"} size={14} />
+            </Button>
             <Button
               variant="ghost"
               size="compact"

@@ -80,16 +80,26 @@ describe("Course chip layout", () => {
     expect(blockGhost.hasAttribute("inert")).toBe(true);
   });
 
-  it("anchors text instead of inheriting compact button insets and centering", () => {
+  it("keeps course text outside a separate square details button", () => {
     const { rerender } = render(<LookupBlock entry={course} />);
-    const details = screen.getByRole("button", { name: "Show CPSC 221 details" });
-    expect(getComputedStyle(details).paddingLeft).toBe("0px");
-    expect(getComputedStyle(details).paddingRight).toBe("0px");
-    expect(getComputedStyle(details).justifyContent).toBe("flex-start");
+
+    function checkDetailsButton() {
+      expect(screen.getByText(course.code).closest("button")).toBeNull();
+      expect(screen.getByText(course.title).closest("button")).toBeNull();
+      const details = screen.getByRole("button", { name: "Show CPSC 221 details" });
+      expect(details.textContent).toBe("");
+      expect(details.querySelector("svg")).toBeTruthy();
+      expect(details.classList.contains("size-11")).toBe(true);
+      expect(details.classList.contains("sm:size-8")).toBe(true);
+      expect(details.classList.contains("p-0")).toBe(true);
+      expect(details.hasAttribute("style")).toBe(false);
+    }
+
+    checkDetailsButton();
     expect(getComputedStyle(screen.getByRole("button", { name: "Add" })).justifyContent).toBe("flex-start");
 
     rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />);
-    expect(getComputedStyle(screen.getByRole("button", { name: "Show CPSC 221 details" })).paddingLeft).toBe("0px");
+    checkDetailsButton();
     expect(getComputedStyle(screen.getByRole("button", { name: "Move" })).justifyContent).toBe("flex-start");
   });
 
@@ -123,20 +133,22 @@ describe("Course chip layout", () => {
 describe("CourseBlock drag activation", () => {
   it("forwards mouse and touch activators from the chip but not its controls", () => {
     const { container } = render(
-      <CourseBlock blockId="block-1" code="CPSC 221" entry={undefined} validation={validation} />,
+      <CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} />,
     );
     const chip = container.querySelector<HTMLElement>("[data-block-id='block-1']");
     if (!chip) throw new Error("Missing course chip");
 
-    fireEvent.mouseDown(chip, { button: 0 });
-    fireEvent.touchStart(chip, { touches: [{ clientX: 10, clientY: 10 }] });
+    const code = screen.getByText(course.code);
+    fireEvent.mouseDown(code, { button: 0 });
+    fireEvent.touchStart(code, { touches: [{ clientX: 10, clientY: 10 }] });
 
     expect(activators.mouseDown).toHaveBeenCalledTimes(1);
     expect(activators.touchStart).toHaveBeenCalledTimes(1);
 
-    const remove = screen.getByRole("button", { name: "Remove CPSC 221" });
-    fireEvent.mouseDown(remove, { button: 0 });
-    fireEvent.touchStart(remove, { touches: [{ clientX: 10, clientY: 10 }] });
+    for (const button of chip.querySelectorAll("button")) {
+      fireEvent.mouseDown(button, { button: 0 });
+      fireEvent.touchStart(button, { touches: [{ clientX: 10, clientY: 10 }] });
+    }
 
     expect(activators.mouseDown).toHaveBeenCalledTimes(1);
     expect(activators.touchStart).toHaveBeenCalledTimes(1);

@@ -30,6 +30,10 @@ describe("LookupBlock course details", () => {
     expect(row.className).not.toContain("touch-none");
     const button = screen.getByRole("button", { name: "Show CPSC 221 details" });
 
+    fireEvent.click(screen.getByText(course.code));
+    fireEvent.click(screen.getByText(course.title));
+    expect(screen.queryByTestId("course-info-popup")).toBeNull();
+
     fireEvent.click(button);
     expect(screen.getByTestId("course-info-popup")).toBeTruthy();
 
