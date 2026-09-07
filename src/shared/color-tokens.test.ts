@@ -25,6 +25,24 @@ const EXPECTED_SURFACE_TOKENS = [
   "accent-subtle",
 ];
 
+function relativeLuminance(hex: string): number {
+  const channels = [1, 3, 5].map((offset) => {
+    const channel = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255;
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+}
+
+describe("semantic text contrast", () => {
+  it.each(["light", "dark"] as const)("keeps primary-container text readable in %s mode", (theme) => {
+    const foreground = COLOR_TOKENS.find((token) => token.name === "on-primary-container");
+    const background = COLOR_TOKENS.find((token) => token.name === "primary-container");
+    if (!foreground || !background) throw new Error("Missing primary-container color pair");
+    const values = [relativeLuminance(foreground[theme]), relativeLuminance(background[theme])];
+    expect((Math.max(...values) + 0.05) / (Math.min(...values) + 0.05)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
 describe("adjustHexLuminance", () => {
   it("matches the reference formula for known colors", () => {
     expect(adjustHexLuminance("#e0e0e0", -0.15)).toBe("#bebebe");

@@ -36,7 +36,7 @@ export const COLOR_TOKENS = [
   { name: "primary", light: "#4a4e7a", dark: "#b0b4d8", surface: true },
   { name: "primary-container", light: "#7a7ea8", dark: "#363a5e", surface: true },
   { name: "on-primary", light: "#ffffff", dark: "#0f1128" },
-  { name: "on-primary-container", light: "#1a1d3a", dark: "#d4d6ef" },
+  { name: "on-primary-container", light: "#0f1128", dark: "#d4d6ef" },
 
   { name: "secondary", light: "#2d6b47", dark: "#98d4a9", surface: true },
   { name: "secondary-container", light: "#b0efc2", dark: "#155130", surface: true },

@@ -27,7 +27,7 @@ colors:
   accent-subtle: "#edeef5"
   surface-tint: "#4a4e7a"
   on-primary: "#ffffff"
-  on-primary-container: "#1a1d3a"
+  on-primary-container: "#0f1128"
   on-secondary: "#ffffff"
   on-secondary-container: "#001f0e"
   on-tertiary-container: "#4a3010"
@@ -492,7 +492,7 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 - **Planner modules**: Selected courses use flat surface modules with 8px radius and a standard 1px border. Known component selectors remain visible. Unrecognized prefixes stay independent under “Additional component types” with a visible count when automatic selection skipped them. A timetable activation focuses the matching selector; drag remains the spatial shortcut.
 - **Week canvas**: The grid renders Monday through Friday, adding both weekend columns when needed. A 56px time gutter anchors an 8 AM–10 PM minimum range at 54px per hour. Day headers and the time gutter stay visible while the canvas scrolls. The grid remains visible in loading and empty states.
 - **Block anatomy**: Planner blocks center the course code and `section · type` on both axes; meetings below the tall threshold place all three on one line without changing time geometry. Sharer blocks keep course and component at the top left because Workday data carries no section identifier, while avatar footers sit at the bottom right on tall blocks. Full title, time, location, status, and people remain in accessible labels or read-only details. Blocks retain the documented course-color edge and surface mix; conflicts use the error ring.
-- **Sharer flow**: Sharer controls remain read-only and follow one order: group, management, people, common free time, Right now, then personal import. People and live status use flat 44px rows without nested panels. Grid, common-free calculations, and Right now share the same enabled-person set. Keyed loading clears old group content before a new selector value appears; Share is the sole header action.
+- **Sharer flow**: Sharer controls remain read-only and follow one order: group, management, people, common free time, Right now, then personal import. People and live status use flat 44px rows without nested panels. Grid, common-free calculations, and Right now share the same enabled-person set. Name the bounded common-free-time list and keep it keyboard-focusable. Keyed loading clears old group content before a new selector value appears; Share is the sole header action.
 - **Radius hierarchy**: 16px is reserved for protected modals and mobile sheets; 12px for actions and floating search; 10px for the timetable frame; 8px for course modules, fields, rows, and blocks; 6px for selected term/view cells and compact subcontrols; full radius for status pills, avatars, and identity dots only.
 - **Typography**: Schedule titles use the 20px title step; section headings and buttons use 14px; helper copy uses 13px; labels and metadata use 12px. Planner and sharer surfaces use Aspekta throughout, including course codes, section identifiers, times, rooms, and counts. Schedule controls use no tracked uppercase labels and no text below 12px.
 - **Import**: Both routes parse Workday Excel exports in the browser. Planner imports reconcile term, component, days, and times with catalog identifiers, require a choice for ambiguous matches, list skipped rows, and ask whether to merge or replace before one atomic update. Sharer imports remain read-only calendar data.
@@ -627,7 +627,7 @@ The landing page uses an expressive motion vocabulary distinct from the app:
 
 ### Reduced Motion
 
-`prefers-reduced-motion: reduce` collapses all CSS animations to 0.01ms with single iteration. Spring animations pass `{ duration: 0 }` explicitly when `useReducedMotion()` returns true, resolving to their end state instantly. Scroll reveals show immediately (opacity: 1). Thinking orb freezes. View-transition ripple disabled via `animation: none`.
+Under `prefers-reduced-motion: reduce`, use 0.01ms CSS animations with a single iteration and disable CSS transitions so keyboard focus can enter newly positioned popovers. Pass `{ duration: 0 }` to spring animations when `useReducedMotion()` returns true. Scroll reveals show immediately (opacity: 1). Thinking orb freezes. View-transition ripple disabled via `animation: none`.
 
 ## Accessibility Patterns
 
