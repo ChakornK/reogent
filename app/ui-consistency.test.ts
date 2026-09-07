@@ -16,6 +16,11 @@ const uiFiles = ["app", "src/components"].flatMap((root) => {
 });
 
 describe("shared UI ownership", () => {
+  it("disables transitions in reduced motion so positioned popovers can receive focus", () => {
+    const reducedMotion = globalsCss.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+    expect(reducedMotion).toContain("transition-duration: 0s !important;");
+  });
+
   it("uses the same body metrics for inherited text and explicit controls", () => {
     expect(globalsCss).toContain("font-size: var(--text-sm);");
     expect(globalsCss).toContain("line-height: var(--text-sm--line-height);");
