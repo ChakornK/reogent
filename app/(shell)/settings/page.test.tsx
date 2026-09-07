@@ -68,6 +68,23 @@ describe("Settings", () => {
     expect(screen.getByRole("button", { name: "Save profile" })).not.toBeNull();
   });
 
+  it.each([
+    ["Program", "Statistics"],
+    ["Year", "3"],
+    ["Student type", "international"],
+  ])("clears saved feedback when %s changes", async (label, value) => {
+    api.getProfile.mockResolvedValue({ profile: { program: "Mathematics", year: 2, student_type: "domestic" } });
+    api.saveProfile.mockResolvedValue(undefined);
+    render(<ProfileForm />);
+    await screen.findByLabelText("Program");
+    fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    await screen.findByText("Saved");
+
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    expect(screen.queryByText("Saved")).toBeNull();
+    expect(api.saveProfile).toHaveBeenCalledTimes(1);
+  });
+
   it("disables the entire fieldset while saving without clearing values", async () => {
     let finish: (() => void) | undefined;
     api.getProfile.mockResolvedValue({ profile: { program: "Mathematics" } });

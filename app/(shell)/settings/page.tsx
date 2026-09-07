@@ -62,6 +62,11 @@ export function ProfileForm() {
     void loadProfile();
   }, [loadProfile]);
 
+  function updateProfile(update: Partial<StudentProfile>) {
+    setProfile((current) => ({ ...current, ...update }));
+    setStatus("idle");
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (status === "loading" || status === "load-error" || status === "saving") return;
@@ -98,7 +103,7 @@ export function ProfileForm() {
             maxLength={120}
             placeholder="e.g. Computer Science"
             value={profile.program ?? ""}
-            onChange={(event) => setProfile({ ...profile, program: event.target.value || undefined })}
+            onChange={(event) => updateProfile({ program: event.target.value || undefined })}
           />
         </Field>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -106,9 +111,7 @@ export function ProfileForm() {
             <SelectInput
               id="settings-year"
               value={profile.year ?? ""}
-              onChange={(event) =>
-                setProfile({ ...profile, year: event.target.value ? Number(event.target.value) : undefined })
-              }
+              onChange={(event) => updateProfile({ year: event.target.value ? Number(event.target.value) : undefined })}
             >
               <option value="">Not set</option>
               {[1, 2, 3, 4, 5, 6, 7].map((year) => (
@@ -123,8 +126,7 @@ export function ProfileForm() {
               id="settings-student-type"
               value={profile.student_type ?? ""}
               onChange={(event) =>
-                setProfile({
-                  ...profile,
+                updateProfile({
                   student_type: (event.target.value || undefined) as StudentProfile["student_type"],
                 })
               }
