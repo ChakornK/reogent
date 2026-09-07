@@ -164,8 +164,8 @@ function ProgramCombobox({
 
   useEffect(() => setQuery(selectedLabel), [selectedLabel]);
 
-  function apply(value: string): boolean {
-    const normalized = value.trim().toLowerCase();
+  function apply(input: string): boolean {
+    const normalized = input.trim().toLowerCase();
     const match = options.find(
       (option) => option.label.toLowerCase() === normalized || option.value.toLowerCase() === normalized,
     );

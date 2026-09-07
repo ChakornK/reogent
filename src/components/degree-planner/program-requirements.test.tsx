@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const getRequirementsFor = vi.hoisted(() => vi.fn());
@@ -47,6 +47,23 @@ describe("ProgramSelectors", () => {
     expect(container.querySelectorAll("[data-skeleton]")).toHaveLength(6);
     expect(screen.queryByRole("combobox")).toBeNull();
   });
+  it("commits an exact faculty choice and preserves its program when refocused", async () => {
+    usePlanner.setState({ faculty: null, major: null, minor: null });
+    render(<ProgramSelectors />);
+    const faculty = await screen.findByRole("combobox", { name: "Faculty" });
+    fireEvent.change(faculty, { target: { value: "Science" } });
+    expect(usePlanner.getState().faculty).toBe("Science");
+
+    const major = screen.getByRole("combobox", { name: "Major / program" }) as HTMLInputElement;
+    expect(major.disabled).toBe(false);
+    fireEvent.change(major, { target: { value: "Computer Science" } });
+    expect(usePlanner.getState().major).toBe("https://calendar.ubc.ca/program");
+
+    fireEvent.focus(faculty);
+    fireEvent.blur(faculty);
+    expect(usePlanner.getState().major).toBe("https://calendar.ubc.ca/program");
+  });
+
   it("keeps external navigation separate from the major field label", async () => {
     usePlanner.setState({
       faculty: "Science",
