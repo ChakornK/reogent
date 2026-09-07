@@ -35,6 +35,160 @@ function DialogHarness({ dismissDisabled = false }: { dismissDisabled?: boolean 
 }
 
 describe("Dialog", () => {
+  it.each(["center", "mobile-sheet"] as const)(
+    "bounds default panels to the padded %s root on short viewports",
+    async (placement) => {
+      render(
+        <DialogRoot onDismiss={() => {}} backdropLabel="Close long dialog" placement={placement}>
+          <DialogPanel aria-label="Long dialog" className="p-4">
+            <div style={{ height: 1200 }}>Long content</div>
+            <button type="button">Bottom action</button>
+          </DialogPanel>
+        </DialogRoot>,
+      );
+      const panel = await screen.findByRole("dialog");
+      const root = panel.closest("[data-dialog-root]");
+      expect(root?.classList.contains("fixed")).toBe(true);
+      expect(root?.classList.contains("inset-0")).toBe(true);
+      expect(root?.classList.contains("flex")).toBe(true);
+      expect(panel.classList.contains("min-h-0")).toBe(true);
+      expect(panel.classList.contains("[:where(&)]:max-h-full")).toBe(true);
+      expect(panel.classList.contains("[:where(&)]:overflow-y-auto")).toBe(true);
+      if (placement === "mobile-sheet") {
+        expect(root?.classList.contains("pt-3")).toBe(true);
+        expect(root?.classList.contains("pb-[max(0.75rem,env(safe-area-inset-bottom))]")).toBe(true);
+        expect(root?.classList.contains("sm:p-6")).toBe(true);
+      } else {
+        expect(root?.classList.contains("p-4")).toBe(true);
+      }
+    },
+  );
+
+  it("preserves consumer height and contained scrolling classes", async () => {
+    render(
+      <DialogRoot onDismiss={() => {}} backdropLabel="Close contained dialog">
+        <DialogPanel aria-label="Contained dialog" className="flex max-h-80 flex-col overflow-hidden">
+          <header>Title</header>
+          <div className="min-h-0 overflow-y-auto">Scrollable content</div>
+          <footer>Actions</footer>
+        </DialogPanel>
+      </DialogRoot>,
+    );
+    const panel = await screen.findByRole("dialog");
+    expect(panel.classList.contains("max-h-80")).toBe(true);
+    expect(panel.classList.contains("overflow-hidden")).toBe(true);
+    expect(panel.classList.contains("[:where(&)]:max-h-full")).toBe(true);
+    expect(panel.classList.contains("[:where(&)]:overflow-y-auto")).toBe(true);
+  });
+
+  it.each(["Escape", "Tab"])("ignores %s already handled by a child control", async (key) => {
+    const dismiss = vi.fn();
+    render(
+      <DialogRoot onDismiss={dismiss} backdropLabel="Close handled dialog">
+        <DialogPanel aria-label="Handled dialog">
+          <input aria-label="Handles keys" data-dialog-initial-focus onKeyDown={(event) => event.preventDefault()} />
+          <button type="button">Other action</button>
+        </DialogPanel>
+      </DialogRoot>,
+    );
+    const input = screen.getByRole("textbox", { name: "Handles keys" });
+    await waitFor(() => expect(document.activeElement).toBe(input));
+    fireEvent.keyDown(input, { key, shiftKey: true });
+    expect(dismiss).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(input);
+  });
+
+  it.each([false, true])(
+    "keeps keyboard handling in the upper dialog and restores the parent (dismissDisabled=%s)",
+    async (dismissDisabled) => {
+      function NestedHarness() {
+        const [parentOpen, setParentOpen] = useState(false);
+        const [childOpen, setChildOpen] = useState(false);
+        return (
+          <>
+            <button type="button" onClick={() => setParentOpen(true)}>
+              Open parent
+            </button>
+            {parentOpen ? (
+              <DialogRoot onDismiss={() => setParentOpen(false)} backdropLabel="Close parent">
+                <DialogPanel aria-label="Parent dialog">
+                  <input aria-label="Parent input" data-dialog-initial-focus />
+                  <button type="button" onClick={() => setChildOpen(true)}>
+                    Open child
+                  </button>
+                  {childOpen ? (
+                    <DialogRoot
+                      onDismiss={() => setChildOpen(false)}
+                      dismissDisabled={dismissDisabled}
+                      backdropLabel="Close child"
+                    >
+                      <DialogPanel aria-label="Child dialog">
+                        <input aria-label="Child input" data-dialog-initial-focus />
+                        <button type="button" onClick={() => setChildOpen(false)}>
+                          Finish child
+                        </button>
+                      </DialogPanel>
+                    </DialogRoot>
+                  ) : null}
+                </DialogPanel>
+              </DialogRoot>
+            ) : null}
+          </>
+        );
+      }
+
+      document.body.style.overflow = "scroll";
+      const { container } = render(<NestedHarness />);
+      const trigger = screen.getByRole("button", { name: "Open parent" });
+      trigger.focus();
+      fireEvent.click(trigger);
+      const parent = await screen.findByRole("dialog", { name: "Parent dialog" });
+      const parentRoot = parent.closest<HTMLElement>("[data-dialog-root]");
+      const parentInput = screen.getByRole("textbox", { name: "Parent input" });
+      fireEvent.change(parentInput, { target: { value: "Unsaved parent input" } });
+      parentInput.focus();
+      fireEvent.click(screen.getByRole("button", { name: "Open child" }));
+      const child = await screen.findByRole("dialog", { name: "Child dialog" });
+      const childInput = screen.getByRole("textbox", { name: "Child input" });
+      const finish = screen.getByRole("button", { name: "Finish child" });
+      expect(document.activeElement).toBe(childInput);
+      expect(parentRoot?.inert).toBe(true);
+      expect(child.closest<HTMLElement>("[data-dialog-root]")?.inert).toBe(false);
+      expect(container.inert).toBe(true);
+      expect(document.body.style.overflow).toBe("hidden");
+
+      const parentFocus = vi.fn();
+      parentInput.addEventListener("focus", parentFocus);
+      fireEvent.keyDown(childInput, { key: "Tab", shiftKey: true });
+      expect(document.activeElement).toBe(finish);
+      fireEvent.keyDown(finish, { key: "Tab" });
+      expect(document.activeElement).toBe(childInput);
+      expect(parentFocus).not.toHaveBeenCalled();
+      parentInput.removeEventListener("focus", parentFocus);
+      fireEvent.keyDown(childInput, { key: "Escape" });
+      if (dismissDisabled) {
+        expect(screen.getByRole("dialog", { name: "Child dialog" })).toBe(child);
+        expect(parent.isConnected).toBe(true);
+        fireEvent.click(finish);
+      }
+
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Child dialog" })).toBeNull());
+      expect(screen.getByRole("dialog", { name: "Parent dialog" })).toBe(parent);
+      expect(parentRoot?.inert).toBe(false);
+      expect(container.inert).toBe(true);
+      expect(document.body.style.overflow).toBe("hidden");
+      expect((parentInput as HTMLInputElement).value).toBe("Unsaved parent input");
+      expect(document.activeElement).toBe(parentInput);
+      fireEvent.keyDown(parentInput, { key: "Tab", shiftKey: true });
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Open child" }));
+      fireEvent.keyDown(screen.getByRole("button", { name: "Open child" }), { key: "Escape" });
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(container.inert).toBe(false);
+      expect(document.body.style.overflow).toBe("scroll");
+      expect(document.activeElement).toBe(trigger);
+    },
+  );
+
   it("traps focus, inerts the page, locks scrolling, and restores the trigger", async () => {
     const { container } = render(<DialogHarness />);
     const trigger = screen.getByRole("button", { name: "Open dialog" });

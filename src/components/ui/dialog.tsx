@@ -48,6 +48,7 @@ export function DialogRoot({
     (activePanel.querySelector<HTMLElement>("[data-dialog-initial-focus]") ?? activePanel).focus();
 
     function onKeyDown(event: KeyboardEvent) {
+      if (event.defaultPrevented || overlay?.inert || activePanel.closest("[inert]")) return;
       if (event.key === "Escape") {
         if (disabledRef.current) return;
         event.preventDefault();
@@ -127,7 +128,7 @@ export function DialogPanel(props: DivPanelProps | FormPanelProps) {
   if (!panelRef) throw new Error("DialogPanel must be rendered inside DialogRoot");
 
   const { as = "div", size = "md", className, ...panelProps } = props;
-  const classes = `neu-panel bg-surface relative w-full rounded-2xl ${PANEL_SIZE_CLASSES[size]} ${className ?? ""}`;
+  const classes = `neu-panel bg-surface relative min-h-0 w-full rounded-2xl [:where(&)]:max-h-full [:where(&)]:overflow-y-auto ${PANEL_SIZE_CLASSES[size]} ${className ?? ""}`;
 
   if (as === "form") {
     return (
