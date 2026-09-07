@@ -1,6 +1,7 @@
 "use client";
 
 import { Checkbox } from "@/src/components/ui/form-controls";
+import { InlineAction } from "@/src/components/ui/inline-action";
 import { displayHandles } from "@/src/lib/schedule/display";
 import type { Person } from "@/src/lib/schedule/types";
 import { AvatarChip } from "./avatar-chip";
@@ -26,9 +27,9 @@ export function PeoplePanel({ people, meId, onToggle, onEnableAll }: Props) {
           People <span className="text-muted ml-1 text-xs">{people.length}</span>
         </h3>
         {!allOn && (
-          <button type="button" onClick={onEnableAll} className="text-primary text-xs font-medium hover:underline">
+          <InlineAction onClick={onEnableAll} className="text-xs font-medium">
             Show all
-          </button>
+          </InlineAction>
         )}
       </div>
       <ul className="flex flex-col gap-1">

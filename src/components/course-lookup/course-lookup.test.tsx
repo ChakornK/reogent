@@ -354,6 +354,8 @@ describe("course-lookup-pane — tools-mode list/detail split", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Filters" }));
     expect(screen.getByRole("region", { name: "Advanced course filters" })).not.toBeNull();
+    expect(screen.getByLabelText("Faculty").className).toContain("h-11");
+    expect(screen.getByLabelText("Faculty").className).not.toContain("sm:h-9");
     fireEvent.change(screen.getByLabelText("Year"), { target: { value: "300" } });
     expect(screen.getByRole("button", { name: "Filters (1)" })).not.toBeNull();
     expect(screen.queryByRole("button", { name: "Show courses" })).toBeNull();

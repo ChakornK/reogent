@@ -355,7 +355,6 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
                 value={faculty}
                 onChange={(event) => setFaculty(event.target.value)}
                 placeholder="Faculty of Science"
-                controlSize="compact"
               />
             </Field>
             <Button variant="ghost" size="field" disabled={activeFilterCount === 0} onClick={resetAdvancedFilters}>
