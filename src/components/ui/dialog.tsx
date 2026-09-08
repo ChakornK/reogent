@@ -1,5 +1,6 @@
 "use client";
 
+import { lockBodyScroll } from "@/src/components/ui/body-scroll-lock";
 import { Heading } from "@/src/components/ui/heading";
 import { useOverlayPresence } from "@/src/components/ui/use-overlay-presence";
 import { createContext, useContext, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
@@ -9,6 +10,39 @@ const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
 const DialogPanelContext = createContext<React.MutableRefObject<HTMLElement | null> | null>(null);
+const inertOwners = new WeakMap<HTMLElement, { count: number; previous: boolean }>();
+
+function acquireInert(element: HTMLElement): () => void {
+  const state = inertOwners.get(element) ?? { count: 0, previous: element.inert };
+  inertOwners.set(element, state);
+  state.count += 1;
+  element.inert = true;
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    state.count -= 1;
+    if (state.count > 0) return;
+    element.inert = state.previous;
+    inertOwners.delete(element);
+  };
+}
+
+/** Checks that a return-focus target is connected, enabled, and outside hidden or inert regions. */
+export function canRestoreFocus(element: HTMLElement | null): element is HTMLElement {
+  if (
+    !element?.isConnected ||
+    element.matches(':disabled, input[type="hidden"]') ||
+    element.closest('[inert], [hidden], [aria-hidden="true"]') ||
+    !element.matches('a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]')
+  )
+    return false;
+  for (let current: HTMLElement | null = element; current; current = current.parentElement) {
+    const style = getComputedStyle(current);
+    if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse") return false;
+  }
+  return true;
+}
 
 interface DialogRootProps {
   children: ReactNode;
@@ -16,15 +50,18 @@ interface DialogRootProps {
   backdropLabel: string;
   dismissDisabled?: boolean;
   placement?: "center" | "mobile-sheet";
+  /** Resolves a fallback after modal cleanup when the original trigger is unavailable. */
+  returnFocusFallback?: () => HTMLElement | null;
 }
 
-/** Portals a modal, traps focus, inerts the page, and restores the exact trigger. */
+/** Portals a modal, traps focus, and owns page locks; restores the trigger or an available caller fallback. */
 export function DialogRoot({
   children,
   onDismiss,
   backdropLabel,
   dismissDisabled = false,
   placement = "center",
+  returnFocusFallback,
 }: DialogRootProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -33,8 +70,10 @@ export function DialogRoot({
   useOverlayPresence(backdropRef, "fade");
   const dismissRef = useRef(onDismiss);
   const disabledRef = useRef(dismissDisabled);
+  const focusFallbackRef = useRef(returnFocusFallback);
   dismissRef.current = onDismiss;
   disabledRef.current = dismissDisabled;
+  focusFallbackRef.current = returnFocusFallback;
 
   useEffect(() => {
     if (!present) return;
@@ -44,13 +83,10 @@ export function DialogRoot({
     const activePanel: HTMLElement = panel;
 
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
-    const siblingStates = Array.from(document.body.children)
+    const releaseScroll = lockBodyScroll();
+    const releaseInert = Array.from(document.body.children)
       .filter((element): element is HTMLElement => element instanceof HTMLElement && element !== overlay)
-      .map((element) => ({ element, inert: element.inert }));
-
-    document.body.style.overflow = "hidden";
-    for (const { element } of siblingStates) element.inert = true;
+      .map(acquireInert);
     (activePanel.querySelector<HTMLElement>("[data-dialog-initial-focus]") ?? activePanel).focus();
 
     function onKeyDown(event: KeyboardEvent) {
@@ -83,9 +119,10 @@ export function DialogRoot({
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
-      for (const { element, inert } of siblingStates) element.inert = inert;
-      if (previousFocus?.isConnected) previousFocus.focus();
+      releaseScroll();
+      for (const release of releaseInert) release();
+      const target = canRestoreFocus(previousFocus) ? previousFocus : (focusFallbackRef.current?.() ?? null);
+      if (canRestoreFocus(target)) target.focus();
     };
   }, [present]);
 

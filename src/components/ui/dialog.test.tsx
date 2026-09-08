@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { useState } from "react";
+import { createRef, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "./dialog";
 
@@ -235,6 +235,76 @@ describe("Dialog", () => {
       expect(document.activeElement).toBe(trigger);
     },
   );
+
+  it("retains page locks when an earlier modal closes before a later one", () => {
+    function Layers({ first, second }: { first: boolean; second: boolean }) {
+      return (
+        <>
+          <button type="button">Page action</button>
+          {first ? (
+            <DialogRoot onDismiss={() => {}} backdropLabel="Close first">
+              <DialogPanel aria-label="First">
+                <button type="button">First action</button>
+              </DialogPanel>
+            </DialogRoot>
+          ) : null}
+          {second ? (
+            <DialogRoot onDismiss={() => {}} backdropLabel="Close second">
+              <DialogPanel aria-label="Second">
+                <button type="button">Second action</button>
+              </DialogPanel>
+            </DialogRoot>
+          ) : null}
+        </>
+      );
+    }
+    document.body.style.overflow = "scroll";
+    const view = render(<Layers first second={false} />);
+    view.rerender(<Layers first second />);
+    view.rerender(<Layers first={false} second />);
+    expect.soft(document.body.style.overflow).toBe("hidden");
+    expect.soft(view.container.inert).toBe(true);
+    view.rerender(<Layers first={false} second={false} />);
+    expect.soft(document.body.style.overflow).toBe("scroll");
+    expect.soft(view.container.inert).toBe(false);
+  });
+
+  it.each([false, true])("uses a visible return-focus fallback only when the trigger hides (%s)", (hidden) => {
+    const origin = createRef<HTMLButtonElement>();
+    const fallback = createRef<HTMLButtonElement>();
+    function ReturnFocus({ open, hide }: { open: boolean; hide: boolean }) {
+      return (
+        <>
+          <div style={{ display: hide ? "none" : "block" }}>
+            <button ref={origin} type="button">
+              Original trigger
+            </button>
+          </div>
+          <button ref={fallback} type="button">
+            Visible fallback
+          </button>
+          {open ? (
+            <DialogRoot
+              onDismiss={() => {}}
+              backdropLabel="Close responsive dialog"
+              returnFocusFallback={() => fallback.current}
+            >
+              <DialogPanel aria-label="Responsive dialog">
+                <button type="button">Dialog action</button>
+              </DialogPanel>
+            </DialogRoot>
+          ) : null}
+        </>
+      );
+    }
+    const view = render(<ReturnFocus open={false} hide={false} />);
+    origin.current?.focus();
+    view.rerender(<ReturnFocus open hide={false} />);
+    view.rerender(<ReturnFocus open hide={hidden} />);
+    view.rerender(<ReturnFocus open={false} hide={hidden} />);
+    expect(document.activeElement).toBe(hidden ? fallback.current : origin.current);
+    expect(view.container.inert).toBe(false);
+  });
 
   it("traps focus, inerts the page, locks scrolling, and restores the trigger", async () => {
     const { container } = render(<DialogHarness />);

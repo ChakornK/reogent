@@ -1,6 +1,7 @@
 "use client";
 
 import type { CanvasView } from "@/src/components/shell/pane-registry";
+import { lockBodyScroll } from "@/src/components/ui/body-scroll-lock";
 import {
   useEffect,
   useLayoutEffect,
@@ -107,8 +108,7 @@ export function AnswerSheet({
     if (!sheet) return;
     const activeSheet: HTMLDivElement = sheet;
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const releaseScroll = lockBodyScroll();
     activeSheet.querySelector<HTMLElement>(FOCUSABLE)?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
@@ -147,7 +147,7 @@ export function AnswerSheet({
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
+      releaseScroll();
       if (previous?.isConnected) previous.focus();
     };
   }, [open]);

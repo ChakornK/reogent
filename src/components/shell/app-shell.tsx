@@ -21,6 +21,7 @@ import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { useMobileViewport } from "@/src/components/shell/use-mobile-viewport";
 import { shellModeForPath } from "@/src/components/shell/use-shell-mode";
 import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
+import { lockBodyScroll } from "@/src/components/ui/body-scroll-lock";
 import { Button } from "@/src/components/ui/button";
 import { tabStops } from "@/src/components/ui/floating-panel";
 import { LiveRegion } from "@/src/components/ui/live-region";
@@ -102,8 +103,7 @@ function SidebarDrawer({ id }: { id: string }) {
     if (!sidebarOpen) return;
     const btn = dialogRef.current?.querySelector<HTMLElement>("button");
     btn?.focus();
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const releaseScroll = lockBodyScroll();
     const onKeyDown = (event: KeyboardEvent) => {
       const dialog = dialogRef.current;
       if (!dialog || event.defaultPrevented || dialog.closest("[inert]")) return;
@@ -135,7 +135,7 @@ function SidebarDrawer({ id }: { id: string }) {
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = prev;
+      releaseScroll();
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [sidebarOpen, setSidebarOpen]);
