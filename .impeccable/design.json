@@ -262,9 +262,9 @@
       "name": "Nav Item",
       "kind": "nav",
       "refersTo": "nav-item-active",
-      "description": "Sidebar session item with left-border active indicator.",
-      "html": "<a class=\"ds-nav ds-nav-active\" href=\"#\"><span class=\"ds-nav-text\">Course planning for Fall</span></a>",
-      "css": ".ds-nav { display: flex; align-items: center; gap: 8px; padding: 8px 12px; height: 36px; border-radius: 12px; font-family: Aspekta, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: #3e4348; text-decoration: none; transition: background-color 150ms ease-out, color 150ms ease-out; } .ds-nav:hover { background: #e6e6e8; color: #18191b; } .ds-nav-active { background: #edeef5; color: #4a4e7a; font-weight: 500; border-left: 2px solid #4a4e7a; } .ds-nav-active:hover { background: #edeef5; } .ds-nav-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-nav:focus-visible { box-shadow: 0 0 0 2px rgba(74,78,122,0.4); outline: none; }"
+      "description": "Selected session row with one compact action disclosure and reserved title space.",
+      "html": "<div class=\"ds-session-row\"><button type=\"button\" class=\"ds-nav ds-nav-active\" aria-current=\"page\"><span class=\"ds-nav-text\">Course planning for Fall</span></button><button type=\"button\" class=\"ds-session-more\" aria-label=\"Actions for Course planning for Fall\" aria-haspopup=\"menu\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" d=\"M12.5 12a.5.5 0 1 1-1 0a.5.5 0 0 1 1 0Zm6 0a.5.5 0 1 1-1 0a.5.5 0 0 1 1 0Zm-12 0a.5.5 0 1 1-1 0a.5.5 0 0 1 1 0Z\"/></svg></button></div>",
+      "css": ".ds-session-row { position: relative; } .ds-nav { box-sizing: border-box; display: flex; width: 100%; align-items: center; gap: 8px; padding: 8px 40px 8px 12px; height: 36px; border: none; border-radius: 8px; background: transparent; font: 500 14px/20px Aspekta, ui-sans-serif, system-ui, sans-serif; color: var(--on-surface-variant, #3e4348); text-align: left; cursor: pointer; } .ds-nav-active { background: var(--surface-container, #ededee); color: var(--on-surface, #18191b); } .ds-nav-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-session-more { box-sizing: border-box; position: absolute; top: 2px; right: 2px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: none; border-radius: 8px; background: transparent; color: var(--on-surface-variant, #3e4348); cursor: pointer; } .ds-session-more:hover { background: var(--surface-container-high, #e6e6e8); } .ds-nav:focus-visible, .ds-session-more:focus-visible { outline: 2px solid color-mix(in srgb, var(--primary, #4a4e7a) 40%, transparent); outline-offset: 1px; } @media (width < 640px) { .ds-nav { height: 48px; padding-right: 52px; } .ds-session-more { width: 44px; height: 44px; } }"
     },
     {
       "name": "Tool Badge",
@@ -389,6 +389,7 @@
       "Do use [data-theme=\"dark\"] for theme switching — never prefers-color-scheme media query.",
       "Do keep mobile pages and their primary workspace regions flat and edge-to-edge. Use resting depth on controls, contained cards, desktop panels, and overlays.",
       "Do derive close inset corner radii from measured edges and preserve independent card geometry.",
+      "Do use one compact session-action menu, retain touch/no-hover access, preserve drafts and errors, and commit local mutations after server success.",
       "Do use asymmetric bubble radii to indicate message direction.",
       "Do use opacity modifiers on color tokens for tinted backgrounds.",
       "Do enforce 44px action targets, 48px drawer rows, and 60px bottom mode targets on phones.",

@@ -717,6 +717,42 @@ html.vt-active *::after {
   padding-left: max(0.75rem, env(safe-area-inset-left));
 }
 
+[data-session-actions] {
+  opacity: 1;
+  transition: opacity 150ms ease-out;
+}
+
+@media (min-width: 640px) and (hover: hover) {
+  [data-session-item][data-session-idle] [data-session-actions] {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  [data-session-item][data-session-idle]:is(:hover, :focus-within) [data-session-actions] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.shell-sidebar-drawer [data-session-item] [data-sidebar-item] {
+  height: 3rem;
+  padding-right: 3.25rem;
+}
+
+.shell-sidebar-drawer [data-session-editor-controls] {
+  min-height: 3rem;
+}
+
+.shell-sidebar-drawer [data-session-actions] > button,
+.shell-sidebar-drawer [data-session-editor-controls] > button {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.shell-sidebar-drawer [data-session-editor-controls] > input {
+  height: 2.75rem;
+}
+
 .auth-canvas {
   background-color: var(--background);
 }
@@ -1045,15 +1081,9 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
     height: 1.25rem;
   }
 
-  .shell-sidebar-drawer [data-session-actions] svg {
-    width: 1rem;
-    height: 1rem;
-  }
-
   .shell-sidebar-drawer [data-sidebar-item]:active,
   .shell-sidebar-drawer [data-session-actions] button:active,
-  .shell-sidebar-drawer [data-session-editing] button:active,
-  .shell-sidebar-drawer [data-session-delete-confirmation] button:active {
+  .shell-sidebar-drawer [data-session-editing] button:active {
     background: var(--surface-container);
   }
 

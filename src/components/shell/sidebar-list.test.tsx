@@ -47,7 +47,8 @@ describe("SidebarItemButton", () => {
       />,
     );
     const button = getByRole("button");
-    expect(button.className).toContain("pr-24 sm:pr-3");
+    expect(button.className).toContain("pr-13 sm:pr-10");
+    expect(button.hasAttribute("data-sidebar-accessories")).toBe(true);
     expect(button.className).toContain("disabled:opacity-45");
     fireEvent.click(button);
     expect(onClick).not.toHaveBeenCalled();

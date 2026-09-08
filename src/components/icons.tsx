@@ -21,6 +21,7 @@ const ICON_MAP = {
   alert: "alert-line",
   school: "school-line",
   menu: "menu-line",
+  more: "more-1-line",
   close: "close-line",
   left: "left-line",
   right: "right-line",

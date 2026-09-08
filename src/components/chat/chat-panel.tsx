@@ -373,9 +373,11 @@ export function ChatPanel({ sessionId: initialSessionId }: { sessionId: string |
     node.scrollTo({ top: node.scrollHeight, behavior });
   }, [messageCount, sending, lastMessageContent, lastActivityCount, prefersReducedMotion]);
 
-  // Focus the input when the conversation is ready and after each response.
+  // Preserve existing focus when history or a response finishes.
   useEffect(() => {
-    if (historyState === "ready" && !sending) inputRef.current?.focus();
+    if (historyState === "ready" && !sending && document.activeElement === document.body) {
+      inputRef.current?.focus();
+    }
   }, [historyState, sending]);
 
   // Honest expectations: flag responses that pass 5s.

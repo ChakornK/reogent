@@ -116,6 +116,18 @@ describe("mobile workspace framing", () => {
     expect(mobileLayout).toMatch(/\.shell-menu-trigger\s*\{\s*margin-inline-start: -0.5rem;/);
   });
 
+  it("keeps drawer session controls touch-sized and reveals actions without hover", () => {
+    const drawerRows =
+      globalsCss.match(/\.shell-sidebar-drawer \[data-session-item\] \[data-sidebar-item\]\s*\{([\s\S]*?)\}/)?.[1] ??
+      "";
+    expect(drawerRows).toContain("height: 3rem;");
+    expect(drawerRows).toContain("padding-right: 3.25rem;");
+    expect(globalsCss).toMatch(/\.shell-sidebar-drawer \[data-session-editor-controls\]\s*\{\s*min-height: 3rem;/);
+    const actions = globalsCss.match(/\[data-session-actions\]\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    expect(actions).toContain("opacity: 1;");
+    expect(globalsCss).toMatch(/@media \(min-width: 640px\) and \(hover: hover\)/);
+  });
+
   it("flattens live chat without changing the landing-page example", () => {
     expect(mobileLayout).toContain("[data-chat-frame] > .chat-message-well");
     expect(mobileLayout).toContain("background: var(--surface);");

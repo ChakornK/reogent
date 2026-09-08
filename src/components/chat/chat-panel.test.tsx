@@ -2,7 +2,7 @@
 import { ChatPanel } from "@/src/components/chat/chat-panel";
 import { ChatShellProvider, useChatShell, type ChatShellState } from "@/src/components/chat/chat-shell-context";
 import type { ChatMessage, ToolCall } from "@/src/lib/api-types";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -277,6 +277,60 @@ describe("14.3 — revisit an earlier widget + keyboard activation (REQ-3.4, REQ
     fireEvent.click(later as HTMLButtonElement);
     expect(shellRef.current?.workspaceView?.state.code).toBe("CPSC 320");
     expect(document.activeElement).toBe(later);
+  });
+});
+
+describe("ChatPanel focus ownership", () => {
+  it("focuses a ready composer when the page has no focused control", async () => {
+    const { getByRole } = renderPanel();
+    const composer = getByRole("textbox", { name: "Message the assistant" });
+    await waitFor(() => expect(document.activeElement).toBe(composer));
+  });
+
+  it("preserves restored sidebar focus when a new conversation mounts", async () => {
+    const { getByRole } = render(<button type="button">New conversation</button>);
+    const target = getByRole("button", { name: "New conversation" });
+    target.focus();
+    const panel = renderPanel();
+    const composer = panel.getByRole("textbox", { name: "Message the assistant" }) as HTMLTextAreaElement;
+    await waitFor(() => expect(composer.disabled).toBe(false));
+    expect(document.activeElement).toBe(target);
+  });
+
+  it("preserves focus moved during history loading", async () => {
+    const history = Promise.withResolvers<ChatMessage[]>();
+    api.getSession.mockReturnValue(history.promise);
+    const { getByRole } = render(<button type="button">Conversation actions</button>);
+    const target = getByRole("button", { name: "Conversation actions" });
+    const panel = renderPanel("held-history");
+    target.focus();
+    await act(async () => history.resolve([]));
+    expect((panel.getByRole("textbox", { name: "Message the assistant" }) as HTMLTextAreaElement).disabled).toBe(false);
+    expect(document.activeElement).toBe(target);
+  });
+
+  it.each(["sidebar", "page"])("finishes a response with focus owned by the %s", async (owner) => {
+    const response = Promise.withResolvers<ChatResult>();
+    api.chat.mockReturnValue(response.promise);
+    const { getByRole } = render(<button type="button">Conversation actions</button>);
+    const target = getByRole("button", { name: "Conversation actions" });
+    const panel = renderPanel();
+    await send("Hello");
+    const composer = panel.getByRole("textbox", { name: "Message the assistant" }) as HTMLTextAreaElement;
+    if (owner === "sidebar") target.focus();
+    else composer.blur();
+    await act(async () => response.resolve({ message: "Illustrative response", tool_calls: [] }));
+    expect(composer.disabled).toBe(false);
+    expect(document.activeElement).toBe(owner === "sidebar" ? target : composer);
+  });
+
+  it("focuses the composer for an explicit new-conversation action", async () => {
+    const { getByRole } = render(<button type="button">New conversation</button>);
+    const target = getByRole("button", { name: "New conversation" });
+    const panel = renderPanel();
+    target.focus();
+    act(() => shellRef.current?.startNewChat());
+    expect(document.activeElement).toBe(panel.getByRole("textbox", { name: "Message the assistant" }));
   });
 });
 
