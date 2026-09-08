@@ -229,7 +229,7 @@ export function ShellBootLoading({ pathname = "/chat" }: { pathname?: string }) 
         </div>
       </div>
       <div aria-hidden="true" data-mobile-navigation className="mobile-mode-bar shrink-0 sm:hidden">
-        <div className="grid h-15 grid-cols-3 gap-1 px-2">
+        <div className="grid h-15 grid-cols-3">
           {[0, 1, 2].map((key) => (
             <div key={key} className="flex flex-col items-center justify-center gap-1">
               <Skeleton className="size-5 rounded" />

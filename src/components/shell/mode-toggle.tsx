@@ -111,7 +111,7 @@ export function ModeToggle({
       <ul
         className={
           bottom
-            ? "relative grid h-15 grid-cols-3 gap-1 px-2"
+            ? "relative grid h-15 grid-cols-3"
             : `flex gap-1 rounded-xl p-1 ${collapsed ? "flex-col items-center" : ""}`
         }
       >
@@ -120,7 +120,7 @@ export function ModeToggle({
             aria-hidden="true"
             className="mobile-mode-indicator"
             style={{
-              transform: `translateX(calc(${DESTINATIONS.findIndex((destination) => destination.mode === mode)} * (100% + 4px)))`,
+              transform: `translateX(${DESTINATIONS.findIndex((destination) => destination.mode === mode) * 100}%)`,
             }}
           >
             <span />
@@ -159,7 +159,7 @@ export function ModeToggle({
                 onBlur={() => setTooltip((current) => (current === destination.mode ? null : current))}
                 className={
                   bottom
-                    ? `focus-visible:ring-primary/40 active:bg-surface-container-high flex h-15 w-full flex-col items-center justify-center gap-1 rounded-lg text-xs font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-inset ${active ? "text-primary" : "text-muted"}`
+                    ? `relative isolate flex h-15 w-full flex-col items-center justify-center gap-1 rounded-lg text-xs font-medium transition-colors duration-150 outline-none ${active ? "text-primary" : "text-muted"}`
                     : `focus-visible:ring-primary/40 flex h-11 items-center rounded-lg text-xs font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:h-9 ${
                         collapsed ? "w-11 justify-center sm:w-9" : "w-full justify-center gap-1.5"
                       } ${

@@ -103,6 +103,23 @@ describe("PrereqTreePane", () => {
     expect(screen.getByLabelText("Root course code").className).toContain("neu-shadow-on-surface");
   });
 
+  it("keeps the result close to controls when feedback is empty", async () => {
+    apiState.getCourseIndex.mockResolvedValue({ courses: COURSES });
+    const { container } = render(<PrereqTreePane initialRoot="CPSC 210" />);
+    await screen.findByTestId("rf-canvas");
+    const feedback = container.querySelector("[data-prereq-feedback]");
+    expect(feedback?.childElementCount).toBe(0);
+    expect(feedback?.classList.contains("empty:hidden")).toBe(true);
+    expect(feedback?.className).not.toContain("min-h-5");
+    const toggle = container.querySelector("[data-prereq-view-toggle]");
+    expect(toggle?.classList.contains("grid")).toBe(true);
+    expect(toggle?.classList.contains("grid-cols-2")).toBe(true);
+    expect(toggle?.parentElement?.className).toContain("@min-[40rem]:items-center");
+    for (const name of ["outline", "map"]) {
+      expect(screen.getByRole("button", { name }).classList.contains("whitespace-nowrap")).toBe(true);
+    }
+  });
+
   it("uses the explicit Answer Canvas titlebar outlet without DOM probing", async () => {
     apiState.getCourseIndex.mockReturnValue(new Promise(() => {}));
     const outlet = document.createElement("div");
@@ -158,6 +175,24 @@ describe("PrereqTreePane", () => {
     expect(screen.getByText("MATH 200")).toBeTruthy();
   });
 
+  it.each(["", "CPSC 210"])("clears missing-code feedback after an unknown submit from %s", async (initialRoot) => {
+    apiState.getCourseIndex.mockResolvedValue({ courses: COURSES });
+    const onChangeRoot = vi.fn();
+    const { container } = render(<PrereqTreePane initialRoot={initialRoot} onChangeRoot={onChangeRoot} />);
+    await waitFor(() => expect(screen.queryByText(/Loading course index/)).toBeNull());
+    fireEvent.change(screen.getByLabelText("Root course code"), { target: { value: "NOPE 999" } });
+    fireEvent.click(screen.getByRole("button", { name: "Show" }));
+    await screen.findByRole("alert");
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
+
+    expect((screen.getByLabelText("Root course code") as HTMLInputElement).value).toBe("");
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(container.querySelector("[data-prereq-feedback]")?.childElementCount).toBe(0);
+    expect(onChangeRoot).toHaveBeenLastCalledWith("");
+    expect(routerPush).toHaveBeenLastCalledWith("/tools/prereq");
+  });
+
   it("renders the empty state when a found course has no prereqs or coreqs (REQ-10.3)", async () => {
     apiState.getCourseIndex.mockResolvedValue({ courses: COURSES });
     render(<PrereqTreePane initialRoot="CPSC 110" />);
@@ -209,7 +244,7 @@ describe("PrereqTreePane", () => {
 
     expect(screen.getByRole("button", { name: "map" }).getAttribute("aria-pressed")).toBe("true");
     expect(container.querySelector("[data-prereq-view-toggle]")?.className).not.toContain("@min-[40rem]:hidden");
-    expect(container.querySelector("[data-prereq-layout]")?.className).toContain("gap-1");
+    expect(container.querySelector("[data-prereq-layout]")?.className).toContain("gap-2");
 
     fireEvent.click(screen.getByRole("button", { name: "outline" }));
     expect(screen.getByRole("button", { name: "outline" }).getAttribute("aria-pressed")).toBe("true");
@@ -271,10 +306,15 @@ describe("PrereqTreePane", () => {
 
   it("renders the retry alert when the index fetch fails", async () => {
     apiState.getCourseIndex.mockRejectedValue(new Error("boom"));
-    render(<PrereqTreePane />);
+    const { container } = render(<PrereqTreePane />);
     await waitFor(() => expect(screen.getByText(/Couldn't load the tree/)).toBeTruthy());
+    const feedback = container.querySelector("[data-prereq-feedback]");
+    expect(feedback?.contains(screen.getByRole("alert"))).toBe(true);
+    expect(feedback?.childElementCount).toBeGreaterThan(0);
     apiState.getCourseIndex.mockResolvedValue({ courses: COURSES });
     fireEvent.click(screen.getByText("Retry"));
     await waitFor(() => expect(screen.queryByText(/Couldn't load the tree/)).toBeNull());
+    expect(feedback?.childElementCount).toBe(0);
+    expect(feedback?.classList.contains("empty:hidden")).toBe(true);
   });
 });

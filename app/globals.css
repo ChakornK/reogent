@@ -664,11 +664,35 @@ html.vt-active *::after {
   padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
+.mobile-mode-bar [data-mode-toggle]::before {
+  content: "";
+  position: absolute;
+  inset: 0.5rem;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  transition: background-color 150ms ease-out;
+}
+
+@media (hover: hover) {
+  .mobile-mode-bar [data-mode-toggle]:hover::before {
+    background-color: var(--surface-container-high);
+  }
+}
+
+.mobile-mode-bar [data-mode-toggle]:active::before {
+  background-color: var(--surface-container-high);
+}
+
+.mobile-mode-bar [data-mode-toggle]:focus-visible::before {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
 .mobile-mode-indicator {
   position: absolute;
-  top: 0;
-  left: 0.5rem;
-  width: calc((100% - 1.5rem) / 3);
+  top: 0.25rem;
+  left: 0;
+  width: calc(100% / 3);
   pointer-events: none;
   transition: transform 280ms var(--neu-ease);
 }
@@ -1031,6 +1055,10 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
   .shell-sidebar-drawer [data-session-editing] button:active,
   .shell-sidebar-drawer [data-session-delete-confirmation] button:active {
     background: var(--surface-container);
+  }
+
+  .shell-menu-trigger {
+    margin-inline-start: -0.5rem;
   }
 
   .shell-menu-trigger,

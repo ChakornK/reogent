@@ -94,6 +94,9 @@ describe("shell loading surfaces", () => {
     expect(container.querySelector("[data-shell-boot-footer]")).not.toBeNull();
     expect(boot?.querySelector("[data-chat-frame] > header .shell-boot-menu")).not.toBeNull();
     expect(boot?.querySelector("[data-mobile-navigation]")?.getAttribute("aria-hidden")).toBe("true");
+    const tabs = boot?.querySelector("[data-mobile-navigation] > div");
+    expect(tabs?.className).toContain("grid-cols-3");
+    expect(tabs?.className).not.toMatch(/gap-1|px-2/);
   });
 
   it("selects boot geometry from the requested destination", () => {

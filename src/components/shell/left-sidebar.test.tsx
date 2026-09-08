@@ -128,6 +128,8 @@ describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
     expect(nav.className).toBe("mobile-mode-bar");
     expect(view.getByRole("list").className).toContain("grid-cols-3");
     expect(view.getByRole("list").className).toContain("h-15");
+    expect(view.getByRole("list").className).not.toMatch(/gap-1|px-2/);
+    expect(nav.querySelector<HTMLElement>(".mobile-mode-indicator")?.style.transform).toBe("translateX(100%)");
     expect(view.getAllByRole("link")).toHaveLength(3);
     for (const label of ["AI", "Tools", "Unity"]) {
       const link = view.getByRole("link", { name: label });
@@ -136,8 +138,11 @@ describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
       expect(link.className).toContain("flex-col");
       expect(link.className).toContain("gap-1");
       expect(link.className).toContain("text-xs");
-      expect(link.className).toContain("focus-visible:ring-inset");
-      expect(link.className).toContain("active:bg-surface-container-high");
+      expect(link.classList.contains("relative")).toBe(true);
+      expect(link.classList.contains("isolate")).toBe(true);
+      expect(link.classList.contains("outline-none")).toBe(true);
+      expect(link.className).not.toContain("active:bg-");
+      expect(link.className).not.toContain("focus-visible:ring-");
       expect(link.className).not.toContain("neu-");
       expect(link.querySelector("svg")?.getAttribute("width")).toBe("22");
       expect(link.getAttribute("aria-current")).toBe(label === "Tools" ? "page" : null);

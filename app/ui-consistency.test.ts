@@ -100,6 +100,22 @@ describe("mobile workspace framing", () => {
     expect(mobileLayout).toMatch(/\[data-chat-composer-footer\]\s*\{\s*padding-bottom: 0.75rem;/);
   });
 
+  it("insets mobile tab feedback within the full touch target", () => {
+    const effect = globalsCss.match(/\.mobile-mode-bar \[data-mode-toggle\]::before\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    expect(effect).toContain("inset: 0.5rem;");
+    expect(effect).toContain("pointer-events: none;");
+    expect(globalsCss).toContain(".mobile-mode-bar [data-mode-toggle]:active::before");
+    expect(globalsCss).toContain(".mobile-mode-bar [data-mode-toggle]:hover::before");
+    expect(globalsCss).toMatch(/\[data-mode-toggle\]:focus-visible::before\s*\{\s*box-shadow: inset/);
+    const marker = globalsCss.match(/\.mobile-mode-indicator\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    expect(marker).toContain("top: 0.25rem;");
+    expect(marker).toContain("width: calc(100% / 3);");
+  });
+
+  it("balances mobile menu paint clearance without changing its hit target", () => {
+    expect(mobileLayout).toMatch(/\.shell-menu-trigger\s*\{\s*margin-inline-start: -0.5rem;/);
+  });
+
   it("flattens live chat without changing the landing-page example", () => {
     expect(mobileLayout).toContain("[data-chat-frame] > .chat-message-well");
     expect(mobileLayout).toContain("background: var(--surface);");

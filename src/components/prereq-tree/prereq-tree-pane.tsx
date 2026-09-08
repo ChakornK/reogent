@@ -533,13 +533,13 @@ export function PrereqTreePane({
     (value: string) => {
       const next = value.toUpperCase();
       setQuery(next);
-      if (next.trim() || !activeCode) return;
+      if (next.trim() || (!activeCode && !missingCode)) return;
       setActiveCode(null);
       setMissingCode(null);
       onChangeRoot?.("");
       if (toolsMode) navigate("/tools/prereq");
     },
-    [activeCode, navigate, onChangeRoot, toolsMode],
+    [activeCode, missingCode, navigate, onChangeRoot, toolsMode],
   );
 
   const openInFinder = useCallback(
@@ -862,12 +862,12 @@ export function PrereqTreePane({
         title="Prereq tree"
         description="Choose a course, then trace the prerequisites and corequisites that lead to it."
       >
-        <div data-prereq-layout className="flex h-full min-h-0 flex-col gap-1">
-          <div className="mx-4 flex shrink-0 flex-col gap-2 sm:mx-0 @min-[40rem]:flex-row @min-[40rem]:items-start">
+        <div data-prereq-layout className="flex h-full min-h-0 flex-col gap-2">
+          <div className="mx-4 flex shrink-0 flex-col gap-2 sm:mx-0 @min-[40rem]:flex-row @min-[40rem]:items-center">
             {searchForm}
             <fieldset
               data-prereq-view-toggle
-              className="neu-inset bg-surface-container-low flex shrink-0 gap-1 rounded-lg p-1"
+              className="neu-inset bg-surface-container-low grid shrink-0 grid-cols-2 gap-1 rounded-lg p-1"
             >
               <legend className="sr-only">Prerequisite tree view</legend>
               {(["outline", "map"] as const).map((view) => (
@@ -879,7 +879,7 @@ export function PrereqTreePane({
                     viewSelectedRef.current = true;
                     setCompactView(view);
                   }}
-                  className={`focus-visible:ring-primary/40 min-h-11 flex-1 rounded-sm px-4 text-sm font-medium capitalize focus-visible:ring-2 ${
+                  className={`focus-visible:ring-primary/40 min-h-11 rounded-sm px-4 text-sm font-medium whitespace-nowrap capitalize focus-visible:ring-2 ${
                     compactView === view ? "neu-raised bg-surface text-primary" : "text-on-surface-variant"
                   }`}
                 >
@@ -888,7 +888,7 @@ export function PrereqTreePane({
               ))}
             </fieldset>
           </div>
-          <div data-prereq-feedback className="mx-4 min-h-5 shrink-0 sm:mx-0">
+          <div data-prereq-feedback className="mx-4 shrink-0 empty:hidden sm:mx-0">
             {feedback}
           </div>
           <div data-prereq-compact-view={compactView} className="min-h-0 flex-1">
