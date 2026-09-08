@@ -29,7 +29,7 @@ export function MiniCourseLookup({ courseIndex, plannedCodes, onPlaced }: MiniCo
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col">
-      <div className="min-w-0 shrink-0 p-3">
+      <div className="min-w-0 shrink-0 px-4 py-3">
         <SearchInput
           value={query}
           onChange={(event) => setQuery(event.target.value)}

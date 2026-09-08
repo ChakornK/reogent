@@ -218,7 +218,7 @@ describe("ScheduleApp group loading", () => {
     const contentCanvas = view.container.querySelector("[data-workspace-canvas]");
     expect(contentCanvas?.className).toContain("neu-inset");
     expect(contentCanvas?.className).toContain("bg-surface-container-low");
-    expect(contentCanvas?.className).toContain("p-2");
+    expect(contentCanvas?.classList.contains("p-0.5")).toBe(true);
     expect(screen.getAllByText("Mon").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Schedule" }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.getByRole("button", { name: "Controls" }).getAttribute("aria-pressed")).toBe("false");

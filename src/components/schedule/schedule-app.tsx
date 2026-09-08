@@ -440,7 +440,7 @@ function ScheduleAppInner({ groupCode }: Props) {
   );
 
   const controls = (
-    <div className="flex h-full min-h-0 [scrollbar-gutter:stable] flex-col overflow-y-auto px-3">
+    <div className="flex h-full min-h-0 [scrollbar-gutter:stable] flex-col overflow-y-auto px-4">
       {groupSelector}
       {group ? (
         <>

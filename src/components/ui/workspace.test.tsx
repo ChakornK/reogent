@@ -80,6 +80,8 @@ describe("WorkspacePage", () => {
     expect(heading?.querySelector("h1")?.textContent).toBe("Degree Planner");
     expect(heading?.contains(page?.querySelector("[data-workspace-toolbar]") ?? null)).toBe(false);
     expect(page?.querySelectorAll("[data-workspace-panel]")).toHaveLength(2);
+    expect(page?.querySelector("[data-workspace-panel-body]")?.classList.contains("p-4")).toBe(true);
+    expect(screen.getByRole("button", { name: "Plan" }).classList.contains("rounded-sm")).toBe(true);
     const canvas = page?.querySelector("[data-workspace-canvas]");
     expect(canvas?.className).toContain("p-4");
     expect(canvas?.className).toContain("neu-inset");
@@ -158,6 +160,11 @@ describe("WorkspacePage", () => {
     );
     const leading = container.querySelector("[data-workspace-leading]");
     expect(leading?.querySelector("button")?.textContent).toBe("");
+    expect(leading?.className).toContain("flex h-7");
+    expect(leading?.classList.contains("items-center")).toBe(true);
+    const title = leading?.nextElementSibling?.querySelector("h1");
+    expect(title?.classList.contains("min-h-7")).toBe(true);
+    expect(title?.className).not.toContain("sm:min-h-0");
     expect(leading?.parentElement?.className).toContain("gap-1.5");
     expect(leading?.nextElementSibling?.querySelector("h1")?.textContent).toBe("Course lookup");
   });

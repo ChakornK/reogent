@@ -118,7 +118,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
           onKeyDown={onKeyDown}
           placeholder={PLACEHOLDER}
           aria-label="Message the assistant"
-          className="text-on-surface placeholder:text-muted relative z-10 block max-h-24 min-h-11 min-w-0 flex-1 resize-none bg-transparent px-3 py-3 text-sm outline-none disabled:opacity-60"
+          className="text-on-surface placeholder:text-muted relative z-10 block max-h-24 min-h-11 min-w-0 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm leading-6 outline-none disabled:opacity-60 sm:py-3 sm:leading-5"
         />
         {onStop ? (
           <Button
@@ -126,7 +126,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
             aria-label="Stop generating"
             size="icon"
             shadowOn="surface-container-low"
-            className="relative z-10"
+            className="relative z-10 max-sm:rounded-[0.625rem] sm:rounded-md"
           >
             <span key="stop" aria-hidden="true" className="ui-content-enter inline-flex">
               <Icon name="stop" size={16} />
@@ -140,7 +140,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
             shadowOn="surface-container-low"
             disabled={!canSend}
             aria-label="Send message"
-            className="relative z-10"
+            className="relative z-10 max-sm:rounded-[0.625rem] sm:rounded-md"
           >
             <span key="send" aria-hidden="true" className="ui-content-enter inline-flex">
               <Icon name="arrowUp" size={18} />

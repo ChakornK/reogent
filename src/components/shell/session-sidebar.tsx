@@ -369,7 +369,7 @@ export function SessionSidebar({ onCollapse, onClose, footer }: SessionSidebarPr
         aria-label="Chat sessions"
         data-sidebar-list
         aria-busy={sessionsLoading}
-        className="bg-surface-container-low/60 min-h-0 flex-1 overflow-y-auto [overscroll-behavior-y:contain] rounded-xl p-2"
+        className="bg-surface-container-low/60 min-h-0 flex-1 overflow-y-auto [overscroll-behavior-y:contain] rounded-2xl p-2"
       >
         {sessionsLoading && sessions.length === 0 && (
           <SkeletonGroup label="Loading sessions" className="flex flex-col gap-2">

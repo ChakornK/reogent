@@ -53,7 +53,7 @@ describe("ScheduleWorkspace", () => {
     expect(rail?.querySelector("[data-testid='controls']")).not.toBeNull();
     expect(canvas?.className).toContain("neu-inset");
     expect(canvas?.className).toContain("bg-surface-container-low");
-    expect(canvas?.className).toContain("p-2");
+    expect(canvas?.classList.contains("p-0.5")).toBe(true);
     expect(canvas?.querySelector("[data-testid='canvas']")).not.toBeNull();
   });
 

@@ -51,6 +51,10 @@ describe("ThemeToggle", () => {
 
     const group = screen.getByRole("radiogroup", { name: "Appearance" });
     const dark = screen.getByRole("radio", { name: "Dark" });
+    expect(group.classList.contains("w-max")).toBe(true);
+    expect(group.classList.contains("shrink-0")).toBe(true);
+    expect(group.classList.contains("rounded-xl")).toBe(true);
+    expect(group.classList.contains("p-1")).toBe(true);
     expect(group.className.split(/\s+/)).not.toContain("border");
     expect(group.className).not.toContain("border-border-subtle");
     expect(dark.className).not.toContain("transition-all");

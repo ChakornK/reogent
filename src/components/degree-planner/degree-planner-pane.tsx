@@ -380,9 +380,20 @@ export function DegreePlannerPane() {
             <WorkspacePanel title="Requirements" padding="sm">
               <SkeletonList label="Loading requirements" padding="none" rows={4} />
             </WorkspacePanel>
-            <WorkspacePanel title="Find courses" description="Drag a result or use Add" padding="sm">
-              <Skeleton className="h-11 w-full rounded-lg" />
-              <SkeletonList label="Loading courses" padding="none" className="mt-3" />
+            <WorkspacePanel
+              title="Find courses"
+              description="Drag a result or use Add"
+              bodyMode="contained"
+              padding="none"
+            >
+              <div className="shrink-0 px-4 py-3">
+                <Skeleton className="h-11 w-full rounded-lg sm:h-9" />
+              </div>
+              <SkeletonList
+                label="Loading courses"
+                padding="none"
+                className="border-border-subtle min-h-0 flex-1 overflow-hidden border-t px-2 py-2"
+              />
             </WorkspacePanel>
           </WorkspaceRail>
         }

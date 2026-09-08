@@ -246,9 +246,9 @@
       "name": "Chat Composer",
       "kind": "input",
       "refersTo": "input",
-      "description": "Recessed input well with whisper inset shadow. Focus adds ring glow.",
-      "html": "<div class=\"ds-composer\"><textarea placeholder=\"Ask about courses, tuition, or campus...\"></textarea><button class=\"ds-send\" aria-label=\"Send\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 19V5M5 12l7-7 7 7\"/></svg></button></div>",
-      "css": ".ds-composer { position: relative; display: flex; align-items: flex-end; background: #f3f3f5; border-radius: 16px; padding: 6px; box-shadow: inset 1px 1px 3px rgba(105,112,116,0.045), inset -1px -1px 3px rgba(255,255,255,0.2); transition: box-shadow 150ms ease-out; } .ds-composer:focus-within { box-shadow: inset 1px 1px 3px rgba(105,112,116,0.045), inset -1px -1px 3px rgba(255,255,255,0.2); outline: 2px solid rgba(74,78,122,0.28); outline-offset: -2px; } .ds-composer textarea { background: transparent; border: none; outline: none; flex: 1; padding: 8px 12px; font-family: Aspekta, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: #18191b; resize: none; min-height: 36px; max-height: 96px; } .ds-composer textarea::placeholder { color: #5a6066; } .ds-send { width: 36px; height: 36px; border-radius: 16px; background: #4a4e7a; color: #fff; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; box-shadow: 0 3px 8px rgba(74,78,122,0.1), -2px -2px 6px rgba(255,255,255,0.2); transition: transform 150ms ease-out; } .ds-send:hover { transform: translateY(-1px); } .ds-send:active { transform: translateY(1px) scale(0.985); }"
+      "description": "Recessed composer with a 44px single-line field and concentric action corners. Phone and wider-screen actions retain their own target sizes.",
+      "html": "<div class=\"ds-composer\"><textarea rows=\"1\" aria-label=\"Message the assistant\" placeholder=\"Ask about courses, tuition, or campus...\"></textarea><button class=\"ds-send\" aria-label=\"Send\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 19V5M5 12l7-7 7 7\"/></svg></button></div>",
+      "css": ".ds-composer { position: relative; display: flex; align-items: center; background: #f3f3f5; border-radius: 16px; padding: 6px 10px 6px 6px; box-shadow: inset 1px 1px 3px rgba(105,112,116,0.045), inset -1px -1px 3px rgba(255,255,255,0.2); transition: box-shadow 150ms ease-out; } .ds-composer:focus-within { outline: 2px solid rgba(74,78,122,0.28); outline-offset: -2px; } .ds-composer textarea { box-sizing: border-box; background: transparent; border: none; outline: none; flex: 1; min-width: 0; padding: 12px; font: 400 14px/20px Aspekta, ui-sans-serif, system-ui, sans-serif; color: #18191b; resize: none; height: 44px; min-height: 44px; max-height: 96px; } .ds-composer textarea::placeholder { color: #5a6066; } .ds-send { box-sizing: border-box; width: 36px; height: 36px; border-radius: 6px; background: #4a4e7a; color: #fff; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; box-shadow: 0 3px 8px rgba(74,78,122,0.1), -2px -2px 6px rgba(255,255,255,0.2); transition: transform 150ms ease-out; } .ds-send:hover { transform: translateY(-1px); } .ds-send:active { transform: translateY(1px) scale(0.985); } @media (width < 640px) { .ds-composer { padding-right: 6px; } .ds-composer textarea { padding-block: 10px; font-size: 16px; line-height: 24px; } .ds-send { width: 44px; height: 44px; border-radius: 10px; } }"
     },
     {
       "name": "Mobile Mode Navigation",
@@ -321,6 +321,16 @@
     ],
     "rules": [
       {
+        "name": "Concentric contours",
+        "body": "For close matching corners, subtract the measured border-box inset from the outer radius. Expanded navigation uses 16/8/8, compact navigation and theme groups 12/4/8, segments 8/4/4, timetable layers 12/2/10 then 10/2/8, and single-line composer actions 16/6/10 on phones or 16/10/6 on wider screens (outer/inset/inner). Independent cards, fields, avatars and interior rows keep their own geometry.",
+        "section": "shapes"
+      },
+      {
+        "name": "Optical anchors",
+        "body": "Center workspace leading controls on a 28px title anchor without shrinking targets. Align plain panel content and discovery searches to the header's 16px inset. Keep dense list exceptions explicit. Theme groups stay intrinsic-width and non-shrinking at 144px phone or 108px wider-screen; narrow account rows wrap with an 8px row gap. Verify original-scale images alongside measured bounds, not class names alone.",
+        "section": "layout"
+      },
+      {
         "name": "The Muted-for-AA Rule",
         "body": "All subdued text uses --muted (#5a6066). Never --outline or --outline-variant for text — they fail WCAG AA on light surfaces.",
         "section": "colors"
@@ -378,6 +388,7 @@
       "Do respect reduced motion for both entry and exit, including native details and synchronous modal removal. Keep state changes immediate and legible.",
       "Do use [data-theme=\"dark\"] for theme switching — never prefers-color-scheme media query.",
       "Do keep mobile pages and their primary workspace regions flat and edge-to-edge. Use resting depth on controls, contained cards, desktop panels, and overlays.",
+      "Do derive close inset corner radii from measured edges and preserve independent card geometry.",
       "Do use asymmetric bubble radii to indicate message direction.",
       "Do use opacity modifiers on color tokens for tinted backgrounds.",
       "Do enforce 44px action targets, 48px drawer rows, and 60px bottom mode targets on phones.",

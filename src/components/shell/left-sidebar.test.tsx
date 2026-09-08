@@ -3,6 +3,7 @@ import { ChatShellProvider, useChatShell, type ChatShellState } from "@/src/comp
 import { LeftSidebar } from "@/src/components/shell/left-sidebar";
 import { ModeToggle } from "@/src/components/shell/mode-toggle";
 import { ShellNavigationProvider } from "@/src/components/shell/shell-navigation";
+import { SidebarListNav } from "@/src/components/shell/sidebar-list";
 import {
   LAST_CHAT_PATH_KEY,
   LAST_TOOLS_PATH_KEY,
@@ -100,6 +101,20 @@ function modeLink(container: HTMLElement, label: string): HTMLAnchorElement {
 }
 
 describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
+  it.each([
+    [false, "rounded-2xl", "p-2"],
+    [true, "rounded-xl", "p-1"],
+  ] as const)("derives the navigation well contour for collapsed=%s", (collapsed, radius, padding) => {
+    const view = render(
+      <SidebarListNav label="Tools" collapsed={collapsed}>
+        <li>Campus map</li>
+      </SidebarListNav>,
+    );
+    const well = view.getByRole("navigation", { name: "Tools" });
+    expect(well.classList.contains(radius)).toBe(true);
+    expect(well.classList.contains(padding)).toBe(true);
+  });
+
   it("renders bottom navigation as three labeled, flat links with the routed area current", () => {
     pathname.value = "/tools/map";
     const view = render(

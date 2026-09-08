@@ -79,7 +79,7 @@ export function UserMenu({ collapsed = false, onNavigate }: { collapsed?: boolea
 
             <div className="bg-border-subtle my-1 h-px" />
 
-            <div className="flex items-center justify-between gap-3 px-3 py-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2">
               <span className="text-on-surface-variant text-xs font-medium">Appearance</span>
               <ThemeToggle />
             </div>

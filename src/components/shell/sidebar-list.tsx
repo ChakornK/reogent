@@ -19,8 +19,8 @@ export function SidebarListNav({
       aria-label={label}
       data-sidebar-list
       data-tool-list={toolList || undefined}
-      className={`bg-surface-container-low/60 min-h-0 flex-1 overflow-x-hidden overflow-y-auto [overscroll-behavior-y:contain] rounded-xl ${
-        collapsed ? "p-1" : "p-2"
+      className={`bg-surface-container-low/60 min-h-0 flex-1 overflow-x-hidden overflow-y-auto [overscroll-behavior-y:contain] ${
+        collapsed ? "rounded-xl p-1" : "rounded-2xl p-2"
       }`}
     >
       <ul className={`flex flex-col gap-1 ${collapsed ? "items-center" : ""}`}>{children}</ul>

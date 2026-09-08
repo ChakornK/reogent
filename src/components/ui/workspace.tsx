@@ -113,12 +113,12 @@ export function WorkspacePage(props: WorkspacePageProps) {
             <div data-workspace-heading className="flex min-w-0 items-start gap-2 sm:gap-1.5">
               {navigation}
               {props.leading ? (
-                <div data-workspace-leading className="shrink-0">
+                <div data-workspace-leading className="flex h-7 shrink-0 items-center">
                   {props.leading}
                 </div>
               ) : null}
               <div className="min-w-0">
-                <Heading as="h1" size="title" className="flex min-h-7 items-center sm:min-h-0">
+                <Heading as="h1" size="title" className="flex min-h-7 items-center">
                   {props.loading ? (
                     <>
                       <span className="sr-only">{props.title}</span>
@@ -149,8 +149,8 @@ export function WorkspacePage(props: WorkspacePageProps) {
             aria-hidden="true"
             className="workspace-page-toggle neu-inset bg-surface-container-low shrink-0 gap-1 rounded-lg p-1"
           >
-            <Skeleton className="h-11 flex-1 rounded-md" />
-            <Skeleton className="h-11 flex-1 rounded-md" />
+            <Skeleton className="h-11 flex-1 rounded-sm" />
+            <Skeleton className="h-11 flex-1 rounded-sm" />
           </div>
         ) : split ? (
           <fieldset
@@ -166,7 +166,7 @@ export function WorkspacePage(props: WorkspacePageProps) {
               aria-pressed={props.view === "main"}
               aria-controls={mainId}
               onClick={() => props.onViewChange("main")}
-              className={`focus-visible:ring-primary/40 min-h-11 flex-1 rounded-md px-3 text-sm font-medium focus-visible:ring-2 ${
+              className={`focus-visible:ring-primary/40 min-h-11 flex-1 rounded-sm px-3 text-sm font-medium focus-visible:ring-2 ${
                 props.view === "main" ? "neu-raised bg-surface text-primary" : "text-on-surface-variant"
               }`}
             >
@@ -178,7 +178,7 @@ export function WorkspacePage(props: WorkspacePageProps) {
               aria-pressed={props.view === "rail"}
               aria-controls={railId}
               onClick={() => props.onViewChange("rail")}
-              className={`focus-visible:ring-primary/40 min-h-11 flex-1 rounded-md px-3 text-sm font-medium focus-visible:ring-2 ${
+              className={`focus-visible:ring-primary/40 min-h-11 flex-1 rounded-sm px-3 text-sm font-medium focus-visible:ring-2 ${
                 props.view === "rail" ? "neu-raised bg-surface text-primary" : "text-on-surface-variant"
               }`}
             >
@@ -263,7 +263,7 @@ export function WorkspaceRail({ children }: { children: ReactNode }) {
 const PANEL_PADDING_CLASSES = {
   none: "p-0",
   sm: "p-2",
-  md: "p-3",
+  md: "p-4",
 } as const;
 
 interface WorkspacePanelProps {
@@ -320,6 +320,7 @@ export function WorkspacePanel({
 
 const CANVAS_PADDING_CLASSES = {
   none: "p-0",
+  frame: "p-0.5",
   sm: "p-2",
   md: "p-4",
 } as const;

@@ -3,7 +3,7 @@ version: 1
 slug: "src-components-shell-app-shell-tsx"
 primary_target: "src/components/shell/app-shell.tsx"
 # prettier-ignore
-related_targets: ["src/components/chat/chat-frame.tsx", "src/components/ui/workspace.tsx", "src/components/shell/shell-loading.tsx", "src/components/shell/mode-toggle.tsx", "src/components/shell/left-sidebar.tsx", "src/components/shell/sidebar-list.tsx", "src/components/shell/session-sidebar.tsx", "src/components/shell/use-mobile-viewport.ts", "src/components/ui/use-overlay-presence.ts", "src/components/ui/disclosure.tsx", "app/globals.css"]
+related_targets: ["src/components/chat/chat-frame.tsx", "src/components/chat/chat-input.tsx", "src/components/theme-toggle.tsx", "src/components/ui/workspace.tsx", "src/components/shell/shell-loading.tsx", "src/components/shell/mode-toggle.tsx", "src/components/shell/left-sidebar.tsx", "src/components/shell/sidebar-list.tsx", "src/components/shell/session-sidebar.tsx", "src/components/shell/use-mobile-viewport.ts", "src/components/ui/use-overlay-presence.ts", "src/components/ui/disclosure.tsx", "app/globals.css"]
 ---
 
 ## Scope and mode
@@ -27,6 +27,12 @@ Keep the 55rem container threshold for rail/canvas switching, caller-owned view 
 Use the existing neutral surface and typography. Flatten page-level workspace panels and canvases, including the mobile chat message region. Preserve the material of buttons, inputs, course chips, Pulse questions, dialogs, and floating sheets. Keep the mobile timetable flush, with horizontally scrollable weekday tabs at least 44px wide when weekends do not fit. Embedded Answer Canvas workspaces retain their contained layout.
 
 Reserve top and side safe areas in the shell and the bottom safe area in the mode bar. Keep 12px composer padding above the bar without another safe-area inset. Independent overlays retain safe padding. Use the reported visual viewport height and offsets at normal scale for the shell and fixed overlays; preserve native pinch zoom. Phone text fields use 16px text. Keep the menu's 44px target inside the header, reserving its own width. Use an inset keyboard-focus outline at edge-to-edge canvas boundaries. Loading and recovery frames use the same geometry and header navigation as their destinations. Keep shell navigation usable during pending routes, while task controls remain inert. Gate underlying navigation from the effective visible modal state. Focus the drawer and account dialog on entry; keep nested Escape and Tab behavior within the active surface. The named Conversation messages section supports native keyboard scrolling without requiring an interactive message. Course results keep a 16rem minimum region so expanded filters can extend the page's scrollable content.
+
+## Optical geometry
+
+Center leading controls on the workspace's 28px title anchor without shrinking their hit targets. Plain rail content and discovery searches share the header's 16px horizontal inset; dense card/list bodies retain their explicit spacing. Keep ThemeToggle intrinsic-width and non-shrinking at 144px phone/108px wider-screen so each radio fills its grid track. Wrap the account Appearance row with an 8px row gap when its label and control cannot share a line.
+
+Derive close matching curves from real border-box insets: expanded navigation 16/8/8, collapsed navigation and theme 12/4/8, segmented controls 8/4/4, and timetable 12/2/10 followed by 10/2/8 (outer radius/inset/inner radius). The single-line composer keeps a 44px field inside a 56px well; action radius/inset is 10/6 on phones and 6/10 on wider screens. Preserve phone flattening and independent cards, avatars, input fields, and interior rows. Confirm measurements with original-scale images and enlarged details; reject image estimates that contradict actual bounds.
 
 ## Motion direction
 

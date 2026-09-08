@@ -21,7 +21,10 @@ describe("UserMenu", () => {
     fireEvent.click(trigger);
     const popup = getByRole("dialog", { name: "Account" });
     expect(document.activeElement).toBe(popup);
-    expect(popup.contains(getByRole("radiogroup"))).toBe(true);
+    const appearance = getByRole("radiogroup");
+    expect(popup.contains(appearance)).toBe(true);
+    expect(appearance.parentElement?.classList.contains("flex-wrap")).toBe(true);
+    expect(appearance.parentElement?.classList.contains("gap-y-2")).toBe(true);
     expect(getByRole("link", { name: "Settings" }).getAttribute("href")).toBe("/settings");
     expect(getByRole("button", { name: "Sign out" })).not.toBeNull();
     expect(queryByRole("menuitem")).toBeNull();

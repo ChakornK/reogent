@@ -23,6 +23,8 @@ Below 640px, Chat, Tools, Unity, and Settings use flat, edge-to-edge pages above
 
 Shared layout lives in `src/components/ui/workspace.tsx`, `src/components/chat/chat-frame.tsx`, and `app/globals.css`. `WorkspaceHostProvider` supplies header navigation to loaded, pending, and recovery frames. Keep navigation outside pending-only inert regions. `src/components/shell/mode-toggle.tsx` owns both mode presentations, and `use-mobile-viewport.ts` sizes the phone shell and overlays to the reported visible area without constraining pinch zoom. The bottom bar owns the page's bottom safe area. The 55rem workspace container threshold still controls rail/canvas switching.
 
+Shared optical contracts live in `src/components/ui/workspace.tsx`: a 28px title anchor, 16px plain panel insets, and a 2px `frame` canvas surround for timetables. Keep theme groups intrinsic-width. Follow the measured concentric-contour recipes in `DESIGN.md`; independent cards and controls keep their own geometry.
+
 Shared motion lives in `src/components/ui/use-overlay-presence.ts`, `src/components/ui/disclosure.tsx`, and the CSS arrival utilities. Keep `AnimatePresence` outside conditional overlay components, and let the shared primitives release focus and disable exiting controls. Data replacement stays immediate; avoid retaining obsolete search, group, or route content for a fade. Reduced-motion paths cover both entrances and exits.
 
 Development indicators stay disabled so framework chrome does not cover the mobile tabs; Next.js still surfaces compile and runtime errors.
