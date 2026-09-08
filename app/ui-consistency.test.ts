@@ -21,6 +21,11 @@ describe("shared UI ownership", () => {
     expect(reducedMotion).toContain("transition-duration: 0s !important;");
   });
 
+  it("does not delay account popup visibility before initial focus", () => {
+    const profileSurface = globalsCss.match(/\.profile-menu-surface\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    expect(profileSurface).not.toContain("visibility");
+  });
+
   it("uses the same body metrics for inherited text and explicit controls", () => {
     expect(globalsCss).toContain("font-size: var(--text-sm);");
     expect(globalsCss).toContain("line-height: var(--text-sm--line-height);");
@@ -70,7 +75,7 @@ describe("mobile workspace framing", () => {
 
   it("bleeds workspace content while preserving command insets and overlay material", () => {
     expect(mobileLayout).toContain('.workspace-page:not([data-workspace-host="answer-canvas"])');
-    expect(mobileLayout).toContain("padding: 1rem 0 env(safe-area-inset-bottom);");
+    expect(mobileLayout).toContain("padding: 1rem 0 0;");
     expect(mobileLayout).toMatch(/\.workspace-page-layout\s*>\s*:not\(\.workspace-page-body\)/);
     expect(mobileLayout).toContain("margin-inline: 1rem;");
     expect(mobileLayout).toContain(":is([data-workspace-canvas], [data-workspace-panel])");
@@ -78,6 +83,14 @@ describe("mobile workspace framing", () => {
     expect(mobileLayout).toContain("box-shadow: none;");
     expect(mobileLayout).toContain("[data-workspace-canvas]:focus-visible");
     expect(mobileLayout).toContain("outline-offset: -2px;");
+  });
+
+  it("assigns phone safe areas to bottom navigation and uses native-size text entry", () => {
+    const modeBar = globalsCss.match(/\.mobile-mode-bar\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    expect(modeBar).toContain("env(safe-area-inset-bottom)");
+    expect(mobileLayout).toContain('[data-mode-navigation="sidebar"]');
+    expect(mobileLayout).toMatch(/\.app-shell-frame :is\(input, textarea, select\)\s*\{\s*font-size: 1rem;/);
+    expect(mobileLayout).toMatch(/\[data-chat-composer-footer\]\s*\{\s*padding-bottom: 0.75rem;/);
   });
 
   it("flattens live chat without changing the landing-page example", () => {

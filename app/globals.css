@@ -573,9 +573,14 @@ html.vt-active *::after {
   background-color: var(--surface);
 }
 
-.shell-menu-trigger {
-  top: calc(env(safe-area-inset-top) + 0.5rem);
-  left: calc(env(safe-area-inset-left) + 0.75rem);
+:where([data-workspace-heading]) > .shell-menu-trigger {
+  margin-block: -0.5rem;
+}
+
+.mobile-mode-bar {
+  background: var(--surface);
+  border-top: 1px solid var(--border-subtle);
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .shell-sidebar-drawer {
@@ -625,11 +630,6 @@ html.vt-active *::after {
   .workspace-surface {
     border-radius: 1rem;
     box-shadow: var(--neu-surface-shadow);
-  }
-
-  .shell-menu-trigger {
-    top: 0.75rem;
-    left: 0.75rem;
   }
 }
 
@@ -714,20 +714,6 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
 
 .workspace-rail > [data-workspace-panel] {
   flex: 1 1 0%;
-}
-
-@media (max-width: 1279px) {
-  [data-workspace-host="tools"][data-menu-clearance] [data-workspace-heading],
-  [data-pane="settings"][data-shell-mode="tools"] [data-workspace-heading] {
-    padding-left: 3rem;
-  }
-}
-
-@media (max-width: 1023px) {
-  [data-workspace-host="unity"][data-menu-clearance] [data-workspace-heading],
-  [data-pane="settings"]:not([data-shell-mode="tools"]) [data-workspace-heading] {
-    padding-left: 3rem;
-  }
 }
 
 [data-map-sheet-handle] {
@@ -885,13 +871,90 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
 }
 
 @media (max-width: 639px) {
+  .app-shell-frame {
+    position: relative;
+    top: var(--app-viewport-top, 0px);
+  }
+
+  [data-mode-navigation="sidebar"] {
+    display: none;
+  }
+
+  .shell-sidebar-drawer {
+    top: var(--app-viewport-top, 0px);
+    width: min(20rem, calc(100vw - 3rem));
+    height: var(--app-viewport-height, 100dvh);
+    overflow: hidden;
+    padding: env(safe-area-inset-top) 0 max(0.5rem, env(safe-area-inset-bottom)) env(safe-area-inset-left);
+    background: var(--surface);
+    border-radius: 0 1rem 1rem 0;
+    box-shadow: var(--neu-surface-shadow);
+  }
+
+  .shell-sidebar-drawer [data-sidebar-frame] {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .shell-sidebar-drawer [data-sidebar-list] {
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .shell-sidebar-drawer [data-sidebar-item] {
+    height: 3rem;
+    box-shadow: none;
+  }
+
+  .shell-sidebar-drawer [data-sidebar-item] > span {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .shell-sidebar-drawer [data-sidebar-item] > svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .shell-sidebar-drawer [data-session-actions] svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .shell-sidebar-drawer [data-sidebar-item]:active,
+  .shell-sidebar-drawer [data-session-actions] button:active,
+  .shell-sidebar-drawer [data-session-editing] button:active,
+  .shell-sidebar-drawer [data-session-delete-confirmation] button:active {
+    background: var(--surface-container);
+  }
+
+  .shell-menu-trigger,
+  [data-mobile-mode-navigation] a,
+  .shell-sidebar-drawer button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-shell-frame :is(input, textarea, select) {
+    font-size: 1rem;
+  }
+
+  .app-shell-frame [data-chat-composer-footer] {
+    padding-bottom: 0.75rem;
+  }
+
+  .app-shell-frame [data-map-sheet-content] {
+    padding-bottom: 0;
+  }
+
   [data-chat-frame] > .chat-message-well {
     background: var(--surface);
     box-shadow: none;
   }
 
   :where(.workspace-page:not([data-workspace-host="answer-canvas"])) .workspace-page-layout {
-    padding: 1rem 0 env(safe-area-inset-bottom);
+    padding: 1rem 0 0;
   }
 
   :where(.workspace-page:not([data-workspace-host="answer-canvas"]))
@@ -1043,8 +1106,7 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
   transition:
     opacity 180ms ease-out,
     transform 240ms var(--neu-ease),
-    filter 180ms ease-out,
-    visibility 180ms;
+    filter 180ms ease-out;
 }
 
 /* ---- Assistant Markdown ---- */

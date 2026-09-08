@@ -14,22 +14,17 @@ vi.mock("@/src/components/shell/session-sidebar", () => ({ VersionBadge: () => n
 afterEach(cleanup);
 
 describe("UserMenu", () => {
-  it("links to /settings and cycles menu items with arrow keys", () => {
-    const { getByRole, getAllByRole } = render(<UserMenu />);
-    fireEvent.click(getByRole("button", { name: "Account menu" }));
-
-    expect(getByRole("menuitem", { name: "Settings" }).getAttribute("href")).toBe("/settings");
-
-    const items = getAllByRole("menuitem");
-    expect(items).toHaveLength(2);
-    fireEvent.keyDown(getByRole("menu"), { key: "ArrowDown" });
-    expect(document.activeElement).toBe(items[0]);
-    fireEvent.keyDown(items[0], { key: "ArrowDown" });
-    expect(document.activeElement).toBe(items[1]);
-    fireEvent.keyDown(items[1], { key: "ArrowDown" });
-    expect(document.activeElement).toBe(items[0]);
-    fireEvent.keyDown(items[0], { key: "ArrowUp" });
-    expect(document.activeElement).toBe(items[1]);
+  it("composes account actions and appearance as a labeled dialog", () => {
+    const { getByRole, queryByRole } = render(<UserMenu />);
+    const trigger = getByRole("button", { name: "Account menu" });
+    expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
+    fireEvent.click(trigger);
+    const popup = getByRole("dialog", { name: "Account" });
+    expect(document.activeElement).toBe(popup);
+    expect(popup.contains(getByRole("radiogroup"))).toBe(true);
+    expect(getByRole("link", { name: "Settings" }).getAttribute("href")).toBe("/settings");
+    expect(getByRole("button", { name: "Sign out" })).not.toBeNull();
+    expect(queryByRole("menuitem")).toBeNull();
   });
 
   it("keeps appearance arrow keys inside the radio group", () => {

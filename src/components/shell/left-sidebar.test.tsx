@@ -2,7 +2,13 @@
 import { ChatShellProvider, useChatShell, type ChatShellState } from "@/src/components/chat/chat-shell-context";
 import { LeftSidebar } from "@/src/components/shell/left-sidebar";
 import { ModeToggle } from "@/src/components/shell/mode-toggle";
-import { SHELL_MODE_STORAGE_KEY } from "@/src/lib/shell-mode";
+import { ShellNavigationProvider } from "@/src/components/shell/shell-navigation";
+import {
+  LAST_CHAT_PATH_KEY,
+  LAST_TOOLS_PATH_KEY,
+  LAST_UNITY_PATH_KEY,
+  SHELL_MODE_STORAGE_KEY,
+} from "@/src/lib/shell-mode";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -67,6 +73,7 @@ beforeAll(() => {
 
 afterEach(() => {
   pathname.value = "/chat";
+  window.history.replaceState(null, "", "/");
   auth.isGuest = false;
   mem.clear();
   routerPush.mockReset();
@@ -93,6 +100,143 @@ function modeLink(container: HTMLElement, label: string): HTMLAnchorElement {
 }
 
 describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
+  it("renders bottom navigation as three labeled, flat links with the routed area current", () => {
+    pathname.value = "/tools/map";
+    const view = render(
+      <ChatShellProvider>
+        <ModeToggle presentation="bottom" collapsed />
+      </ChatShellProvider>,
+    );
+    const nav = view.getByRole("navigation", { name: "Reodite areas" });
+    expect(nav.getAttribute("data-mode-navigation")).toBe("bottom");
+    expect(nav.hasAttribute("data-mobile-mode-navigation")).toBe(true);
+    expect(nav.className).toBe("mobile-mode-bar");
+    expect(view.getByRole("list").className).toContain("grid-cols-3");
+    expect(view.getByRole("list").className).toContain("h-15");
+    expect(view.getAllByRole("link")).toHaveLength(3);
+    for (const label of ["AI", "Tools", "Unity"]) {
+      const link = view.getByRole("link", { name: label });
+      expect(link.textContent).toBe(label);
+      expect(link.className).toContain("h-15");
+      expect(link.className).toContain("flex-col");
+      expect(link.className).toContain("gap-1");
+      expect(link.className).toContain("text-xs");
+      expect(link.className).toContain("focus-visible:ring-inset");
+      expect(link.className).toContain("active:bg-surface-container-high");
+      expect(link.className).not.toContain("neu-");
+      expect(link.querySelector("svg")?.getAttribute("width")).toBe("22");
+      expect(link.getAttribute("aria-current")).toBe(label === "Tools" ? "page" : null);
+      expect(link.className).toContain(label === "Tools" ? "text-primary" : "text-muted");
+    }
+  });
+
+  it.each(["AI", "Unity"])("shows the %s guest hint on a touch click without hover or focus", (label) => {
+    auth.isGuest = true;
+    pathname.value = "/tools/map";
+    const view = render(
+      <ChatShellProvider>
+        <ModeToggle presentation="bottom" />
+      </ChatShellProvider>,
+    );
+    const link = view.getByRole("link", { name: label });
+    fireEvent.pointerDown(link, { pointerType: "touch" });
+    fireEvent.pointerUp(link, { pointerType: "touch" });
+    expect(fireEvent.click(link)).toBe(false);
+    const tooltip = view.getByRole("tooltip");
+    expect(tooltip.textContent).toBe(`Sign in to use ${label}.`);
+    expect(link.getAttribute("aria-describedby")).toBe(tooltip.id);
+    expect(view.container.contains(tooltip)).toBe(false);
+    expect(routerPush).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["AI", "/chat", LAST_CHAT_PATH_KEY],
+    ["AI", "/chat/session-123", LAST_CHAT_PATH_KEY],
+    ["Tools", "/tools", LAST_TOOLS_PATH_KEY],
+    ["Tools", "/tools/prereq/CPSC320", LAST_TOOLS_PATH_KEY],
+    ["Unity", "/pulse", LAST_UNITY_PATH_KEY],
+    ["Unity", "/pulse/schedule/ABC123", LAST_UNITY_PATH_KEY],
+  ])("remembers the actual %s route %s and resumes it from Settings", (label, path, key) => {
+    pathname.value = path;
+    window.history.replaceState(null, "", path);
+    const content = (
+      <ChatShellProvider>
+        <ModeToggle presentation="bottom" />
+      </ChatShellProvider>
+    );
+    const view = render(content);
+    expect(sessionStorage.getItem(key)).toBe(path);
+    fireEvent.click(view.getByRole("link", { name: label }));
+    expect(routerPush).not.toHaveBeenCalled();
+
+    pathname.value = "/settings";
+    window.history.replaceState(null, "", "/settings");
+    view.rerender(
+      <ChatShellProvider>
+        <ModeToggle presentation="bottom" />
+      </ChatShellProvider>,
+    );
+    fireEvent.click(view.getByRole("link", { name: label }));
+    expect(routerPush).toHaveBeenCalledWith(path);
+    expect(sessionStorage.getItem(key)).toBe(path);
+  });
+
+  it.each([
+    ["AI", LAST_CHAT_PATH_KEY, "/chatty", "/chat"],
+    ["Tools", LAST_TOOLS_PATH_KEY, "/toolshed", "/tools/map"],
+    ["Unity", LAST_UNITY_PATH_KEY, "/settings", "/pulse"],
+    ["Tools", LAST_TOOLS_PATH_KEY, "/tools/../settings", "/tools/map"],
+  ])("uses the %s fallback for invalid stored path %s=%s", (label, key, stored, fallback) => {
+    pathname.value = "/settings";
+    window.history.replaceState(null, "", "/settings");
+    sessionStorage.setItem(key, stored);
+    const view = render(
+      <ChatShellProvider>
+        <ModeToggle presentation="bottom" />
+      </ChatShellProvider>,
+    );
+    fireEvent.click(view.getByRole("link", { name: label }));
+    expect(routerPush).toHaveBeenCalledWith(fallback);
+  });
+
+  it("shares restoration with the sidebar while keeping native modified-click hrefs", () => {
+    pathname.value = "/settings";
+    window.history.replaceState(null, "", "/settings");
+    sessionStorage.setItem(LAST_TOOLS_PATH_KEY, "/tools/courses/CPSC110");
+    const view = render(
+      <ChatShellProvider>
+        <ModeToggle />
+      </ChatShellProvider>,
+    );
+    expect(view.getByRole("navigation").getAttribute("data-mode-navigation")).toBe("sidebar");
+    const tools = view.getByRole("link", { name: "Tools" });
+    expect(tools.getAttribute("href")).toBe("/tools/map");
+    // Block Happy DOM's native navigation while checking modifier handling.
+    tools.addEventListener("click", (event) => event.preventDefault(), { once: true });
+    fireEvent.click(tools, { ctrlKey: true });
+    expect(routerPush).not.toHaveBeenCalled();
+    fireEvent.click(tools);
+    expect(routerPush).toHaveBeenCalledWith("/tools/courses/CPSC110");
+  });
+
+  it("remembers actual paths rather than pending mode destinations", () => {
+    window.history.replaceState(null, "", "/chat/actual-session");
+    pathname.value = "/chat/actual-session";
+    const view = render(
+      <ShellNavigationProvider>
+        <ChatShellProvider>
+          <ModeToggle presentation="bottom" />
+        </ChatShellProvider>
+      </ShellNavigationProvider>,
+    );
+    fireEvent.click(view.getByRole("link", { name: "Tools" }));
+    expect(view.getByRole("link", { name: "Tools" }).getAttribute("aria-current")).toBe("page");
+    fireEvent.click(view.getByRole("link", { name: "Unity" }));
+    expect(sessionStorage.getItem(LAST_CHAT_PATH_KEY)).toBe("/chat/actual-session");
+    expect(sessionStorage.getItem(LAST_TOOLS_PATH_KEY)).toBeNull();
+    expect(sessionStorage.getItem(LAST_UNITY_PATH_KEY)).toBeNull();
+  });
+
   it("ModeToggle persists intent and follows the committed route", () => {
     const view = render(
       <ChatShellProvider>

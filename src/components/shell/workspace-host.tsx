@@ -2,30 +2,35 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 
-export type WorkspaceHost = "tools" | "unity" | "answer-canvas" | "settings";
+export type WorkspaceHost = "chat" | "tools" | "unity" | "answer-canvas" | "settings";
 
 interface WorkspaceHostValue {
   host: WorkspaceHost;
-  menuClearance: boolean;
+  navigation: ReactNode;
   titlebarOutlet: HTMLElement | null;
 }
 
 const DEFAULT_HOST: WorkspaceHostValue = {
   host: "tools",
-  menuClearance: true,
+  navigation: null,
   titlebarOutlet: null,
 };
 
 const WorkspaceHostContext = createContext<WorkspaceHostValue>(DEFAULT_HOST);
 
-/** Supplies the shell location and titlebar outlet for a workspace page. */
+/** Supplies the shell location, header navigation, and Answer Canvas action outlet. */
 export function WorkspaceHostProvider({
   host,
-  menuClearance,
+  navigation = null,
   titlebarOutlet = null,
   children,
-}: Omit<WorkspaceHostValue, "titlebarOutlet"> & { titlebarOutlet?: HTMLElement | null; children: ReactNode }) {
-  const value = useMemo(() => ({ host, menuClearance, titlebarOutlet }), [host, menuClearance, titlebarOutlet]);
+}: {
+  host: WorkspaceHost;
+  navigation?: ReactNode;
+  titlebarOutlet?: HTMLElement | null;
+  children: ReactNode;
+}) {
+  const value = useMemo(() => ({ host, navigation, titlebarOutlet }), [host, navigation, titlebarOutlet]);
 
   return <WorkspaceHostContext.Provider value={value}>{children}</WorkspaceHostContext.Provider>;
 }

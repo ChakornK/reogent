@@ -16,7 +16,6 @@ export function UserMenu({ collapsed = false, onNavigate }: { collapsed?: boolea
   const [open, setOpen] = useState(false);
   const [signOutError, setSignOutError] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
   const username = auth.user?.username || "User";
@@ -38,7 +37,7 @@ export function UserMenu({ collapsed = false, onNavigate }: { collapsed?: boolea
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
         aria-controls={open ? menuId : undefined}
         aria-expanded={open}
         aria-label="Account menu"
@@ -61,22 +60,12 @@ export function UserMenu({ collapsed = false, onNavigate }: { collapsed?: boolea
 
       {open && (
         <FloatingPanel
-          ref={menuRef}
           id={menuId}
           anchorRef={triggerRef}
           onDismiss={() => setOpen(false)}
           matchAnchorWidth={!collapsed}
-          role="menu"
+          role="dialog"
           aria-label="Account"
-          onKeyDown={(event) => {
-            if (event.defaultPrevented || (event.key !== "ArrowDown" && event.key !== "ArrowUp")) return;
-            const items = Array.from(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
-            if (!items.length) return;
-            event.preventDefault();
-            const index = items.indexOf(document.activeElement as HTMLElement);
-            const step = event.key === "ArrowDown" ? 1 : -1;
-            items[(index + step + items.length) % items.length].focus();
-          }}
           className="profile-menu-surface glass-neu w-64 origin-bottom [animation:menu-in_180ms_ease-out] rounded-2xl p-2 motion-reduce:[animation:none]"
         >
           <div className="px-3 py-2">
@@ -97,7 +86,6 @@ export function UserMenu({ collapsed = false, onNavigate }: { collapsed?: boolea
 
           <Link
             href="/settings"
-            role="menuitem"
             onClick={() => {
               setOpen(false);
               onNavigate?.();
@@ -114,7 +102,6 @@ export function UserMenu({ collapsed = false, onNavigate }: { collapsed?: boolea
 
           <button
             type="button"
-            role="menuitem"
             onClick={handleSignOut}
             className="text-on-surface hover:bg-error/10 hover:text-error flex h-11 w-full items-center gap-2 rounded-lg px-3 text-sm transition-colors duration-150 sm:h-9"
           >

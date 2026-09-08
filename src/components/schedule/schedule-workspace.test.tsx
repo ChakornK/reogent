@@ -28,7 +28,7 @@ describe("ScheduleWorkspace", () => {
     const outlet = document.createElement("div");
     document.body.append(outlet);
     const { container } = render(
-      <WorkspaceHostProvider host="answer-canvas" menuClearance={false} titlebarOutlet={outlet}>
+      <WorkspaceHostProvider host="answer-canvas" titlebarOutlet={outlet}>
         {workspace()}
       </WorkspaceHostProvider>,
     );
@@ -65,11 +65,7 @@ describe("ScheduleWorkspace", () => {
   });
 
   it("preserves an explicit Unity host from the shell", () => {
-    const { container } = render(
-      <WorkspaceHostProvider host="unity" menuClearance>
-        {workspace()}
-      </WorkspaceHostProvider>,
-    );
+    const { container } = render(<WorkspaceHostProvider host="unity">{workspace()}</WorkspaceHostProvider>);
     expect(container.querySelector<HTMLElement>("[data-workspace-page]")?.dataset.workspaceHost).toBe("unity");
   });
 });

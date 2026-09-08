@@ -77,7 +77,7 @@ The app has three zones, left to right:
 
 - **Desktop (>=1024px)**: Sidebar + Chat + Visual Pane (when active). Sidebar is collapsible (flex layout with animated width). Visual pane transitions width.
 - **Tablet (640-1024px)**: Sidebar is a drawer (hidden by default, triggered by menu button). Chat + Visual Pane side-by-side.
-- **Mobile (<640px)**: Chat, Tools, Unity, and Settings use the available dynamic viewport with flat, edge-to-edge main views. Keep text and control insets inside the page, preserve 44px touch targets, and reserve safe areas for navigation and bottom-pinned controls. The sidebar remains a drawer with a backdrop scrim; the visual pane remains an 80dvh bottom sheet with drag-to-dismiss. Keep contained cards, input depth, and overlay shapes. At 640px and wider, retain the existing inset panel layout.
+- **Mobile (<640px)**: Chat, Tools, Unity, and Settings use flat, edge-to-edge main views above persistent AI, Tools, and Unity bottom tabs. Each mode restores its last routed screen; Settings keeps the prior mode without replacing that saved destination. A flat menu button in the route header opens the current mode's destinations in an edge-attached drawer. Keep text and control insets, 44px action targets, 48px drawer rows, and 60px mode targets. The bottom bar owns the bottom safe area. Size the shell and fixed overlays to the browser's reported visual viewport at normal scale, with the visual pane at 80% height. Keep contained cards and input depth. From 640px upward, retain the existing panel layout and sidebar mode controls.
 
 ## Capabilities and Constraints
 
@@ -233,4 +233,5 @@ The interface has warmth and character. Copy is human, varied, and specific to U
 - Screen reader support: messages are announced via sr-only live region, tool execution states communicated, icon buttons have aria-labels
 - Focus indicators are visible on keyboard navigation (`ring-primary/40 ring-2` with ring-offset), not hidden behind mouse-only styles
 - Interactive elements target 44x44px on mobile via `min-h-[44px]` on pills; some icon buttons remain at 36-40px where density is prioritized over the WCAG minimum
-- Safe-area insets protect mobile headers, side controls, drawers, and bottom-pinned elements on iOS. The page fills the dynamic viewport as browser chrome changes.
+- Safe-area insets protect mobile headers, the bottom mode bar, and independent overlays. Phone text-entry controls use 16px text. The shell follows the unzoomed visual viewport when the browser reports a reduced visible area; physical keyboard and notch behavior need device testing.
+- Keep shell navigation usable during route loading while pending task controls remain inert. Trap drawer focus and return account-popup focus inside the drawer. Underlying mode tabs stay inactive only while a visible modal requires it.

@@ -19,9 +19,11 @@ Built with Next.js 16 (App Router), React 19, and TypeScript.
 
 ## Responsive UI
 
-Below 640px, Chat, Tools, Unity, and Settings use flat, edge-to-edge pages that fill the dynamic viewport. Headers and command groups keep 16px side insets; main canvases and controls views use the available width. Drawers, dialogs, and contained content cards retain their material. At wider sizes, the shell keeps its 12px gutters and raised panels.
+Below 640px, Chat, Tools, Unity, and Settings use flat, edge-to-edge pages above persistent AI/Tools/Unity bottom tabs. Mode links restore each area's last routed screen. Route headers contain a flat menu button; the current mode's destinations open in an edge-attached drawer with touch-sized rows. Headers and command groups keep 16px side insets, and phone text fields use 16px text. At wider sizes, the shell keeps its 12px gutters, raised panels, and sidebar mode controls.
 
-Shared layout lives in `src/components/ui/workspace.tsx`, `src/components/chat/chat-frame.tsx`, and `app/globals.css`. Use the same frames for loading states. The 55rem workspace container threshold controls rail/canvas switching independently of the mobile page treatment. Preserve native scrolling, menu clearance, and safe-area insets when adding a workspace.
+Shared layout lives in `src/components/ui/workspace.tsx`, `src/components/chat/chat-frame.tsx`, and `app/globals.css`. `WorkspaceHostProvider` supplies header navigation to loaded, pending, and recovery frames. Keep navigation outside pending-only inert regions. `src/components/shell/mode-toggle.tsx` owns both mode presentations, and `use-mobile-viewport.ts` sizes the phone shell and overlays to the reported visible area without constraining pinch zoom. The bottom bar owns the page's bottom safe area. The 55rem workspace container threshold still controls rail/canvas switching.
+
+Development indicators stay disabled so framework chrome does not cover the mobile tabs; Next.js still surfaces compile and runtime errors.
 
 See `DESIGN.md`, `PRODUCT.md`, and `.impeccable/surfaces/` for design contracts. Run `npm test` for shared UI and layout regressions, then check rendered phone and desktop views for overflow and focus placement.
 

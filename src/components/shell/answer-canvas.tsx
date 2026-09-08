@@ -4,7 +4,7 @@ import { useChatShell } from "@/src/components/chat/chat-shell-context";
 import { Icon } from "@/src/components/icons";
 import { MapArea } from "@/src/components/map/map-panel";
 import { PANE_BY_ID, type CanvasView, type PaneState } from "@/src/components/shell/pane-registry";
-import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
+import { useWorkspaceHost, WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
 import { Button } from "@/src/components/ui/button";
 import { Heading } from "@/src/components/ui/heading";
 import { useCallback, useRef, useState, type ComponentType } from "react";
@@ -21,6 +21,7 @@ import { useCallback, useRef, useState, type ComponentType } from "react";
  */
 export function AnswerCanvas({ view, titlebar = true }: { view: CanvasView | null; titlebar?: boolean }) {
   const { setRightPaneCollapsed, setAnswerSheetOpen, setUserDismissedPane } = useChatShell();
+  const { navigation } = useWorkspaceHost();
   const [titlebarOutlet, setTitlebarOutlet] = useState<HTMLElement | null>(null);
   const onClose = () => {
     setRightPaneCollapsed(true);
@@ -34,7 +35,7 @@ export function AnswerCanvas({ view, titlebar = true }: { view: CanvasView | nul
   return (
     <WorkspaceHostProvider
       host={titlebar ? "answer-canvas" : "tools"}
-      menuClearance={!titlebar}
+      navigation={titlebar ? null : navigation}
       titlebarOutlet={titlebarOutlet}
     >
       <section

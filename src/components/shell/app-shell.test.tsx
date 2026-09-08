@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
-import { ChatShellProvider } from "@/src/components/chat/chat-shell-context";
+import { ChatFrame } from "@/src/components/chat/chat-frame";
+import { ChatShellProvider, useChatShell, type ChatShellState } from "@/src/components/chat/chat-shell-context";
 import { AppShell } from "@/src/components/shell/app-shell";
 import { ShellNavigationProvider } from "@/src/components/shell/shell-navigation";
+import { WorkspacePage } from "@/src/components/ui/workspace";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -11,18 +13,41 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 vi.mock("@/src/components/auth/app-auth", () => ({ useAppAuth: () => ({ status: "signedIn" }) }));
 vi.mock("@/src/components/providers", () => ({ useApi: () => ({ listSessions: async () => [] }) }));
 vi.mock("@/src/components/map/map-panel", () => ({
-  MapArea: () => <div data-testid="map-area" />,
+  MapArea: () => (
+    <WorkspacePage composition="canvas" title="Campus map">
+      <div data-testid="map-area">
+        <button type="button">Map task action</button>
+      </div>
+    </WorkspacePage>
+  ),
 }));
 vi.mock("@/src/components/prereq-tree/prereq-tree-pane", () => ({ PrereqTreePane: () => null }));
 vi.mock("@/src/components/calendar/calendar-pane", () => ({
-  CalendarPane: () => <div data-testid="calendar-pane" />,
+  CalendarPane: () => (
+    <WorkspacePage composition="canvas" title="Calendar">
+      <div data-testid="calendar-pane" />
+    </WorkspacePage>
+  ),
 }));
 vi.mock("@/src/components/course-lookup/course-lookup-pane", () => ({ CourseLookupPane: () => null }));
 vi.mock("@/src/components/shell/session-sidebar", () => ({
   useSidebarCollapsed: () => [false, () => {}],
   BrandHeader: ({ trailing }: { trailing?: ReactNode }) => trailing,
-  SessionSidebar: ({ footer, onCollapse }: { footer?: ReactNode; onCollapse?: () => void }) => (
+  SessionSidebar: ({
+    footer,
+    onCollapse,
+    onClose,
+  }: {
+    footer?: ReactNode;
+    onCollapse?: () => void;
+    onClose?: () => void;
+  }) => (
     <div data-testid="session-list">
+      {onClose && (
+        <button type="button" onClick={onClose}>
+          Close sessions
+        </button>
+      )}
       {onCollapse && (
         <button id="desktop-session-collapse" type="button" onClick={onCollapse}>
           Collapse sessions
@@ -45,13 +70,17 @@ vi.mock("next/navigation", () => ({
 let viewportWidth = 390;
 const mediaQueries = new Map<string, { media: MediaQueryList; listeners: Set<EventListener> }>();
 
+function matchesWidth(query: string, width: number) {
+  const match = query.match(/(min|max)-width: (\d+)px/);
+  return match ? (match[1] === "min" ? width >= Number(match[2]) : width <= Number(match[2])) : false;
+}
+
 function resizeViewport(width: number) {
   act(() => {
     const previousWidth = viewportWidth;
     viewportWidth = width;
     for (const [query, { media, listeners }] of mediaQueries) {
-      const minWidth = Number(query.match(/min-width: (\d+)px/)?.[1]);
-      if (previousWidth >= minWidth === media.matches) continue;
+      if (matchesWidth(query, previousWidth) === media.matches) continue;
       const event = new Event("change");
       Object.assign(event, { matches: media.matches, media: query });
       for (const listener of listeners) listener(event);
@@ -82,8 +111,7 @@ beforeAll(() => {
         const media = {
           media: query,
           get matches() {
-            const minWidth = query.match(/min-width: (\d+)px/);
-            return minWidth ? viewportWidth >= Number(minWidth[1]) : false;
+            return matchesWidth(query, viewportWidth);
           },
           addEventListener: (_type: string, listener: EventListener) => listeners.add(listener),
           removeEventListener: (_type: string, listener: EventListener) => listeners.delete(listener),
@@ -108,6 +136,7 @@ afterEach(() => {
   mediaQueries.clear();
   viewportWidth = 390;
   document.body.style.overflow = "";
+  Object.defineProperty(window, "visualViewport", { value: undefined, configurable: true });
 });
 afterAll(() => {
   vi.restoreAllMocks();
@@ -115,11 +144,20 @@ afterAll(() => {
   localStorage.clear();
 });
 
+const capturedShell: { current: ChatShellState | null } = { current: null };
+function CaptureShell() {
+  capturedShell.current = useChatShell();
+  return null;
+}
+
 function ShellFixture() {
   return (
     <ChatShellProvider>
+      <CaptureShell />
       <AppShell>
-        <div data-testid="chat-children" />
+        <ChatFrame header={<span>Conversation</span>} footer={null}>
+          <div data-testid="chat-children" />
+        </ChatFrame>
       </AppShell>
     </ChatShellProvider>
   );
@@ -128,11 +166,7 @@ function ShellFixture() {
 function NavigatingShellFixture() {
   return (
     <ShellNavigationProvider>
-      <ChatShellProvider>
-        <AppShell>
-          <div data-testid="chat-children" />
-        </AppShell>
-      </ChatShellProvider>
+      <ShellFixture />
     </ShellNavigationProvider>
   );
 }
@@ -235,6 +269,85 @@ describe("10.4 — AppShell layouts (REQ-2.1, REQ-4.1, REQ-7.1)", () => {
     expect(getByRole("button", { name: "Open sidebar" }).className).toContain("shell-menu-trigger");
   });
 
+  it("follows the phone visual viewport without constraining wider or zoomed layouts", () => {
+    const viewport = Object.assign(new EventTarget(), { height: 500, scale: 1, offsetTop: 0 });
+    Object.defineProperty(window, "visualViewport", { value: viewport, configurable: true });
+    const view = renderShell(false);
+    const frame = view.container.querySelector<HTMLElement>(".app-shell-frame");
+    expect(frame?.style.height).toBe("500px");
+    viewport.height = 300;
+    viewport.dispatchEvent(new Event("resize"));
+    expect(frame?.style.height).toBe("300px");
+    expect(frame?.style.getPropertyValue("--app-viewport-height")).toBe("300px");
+    viewport.offsetTop = 80;
+    viewport.dispatchEvent(new Event("scroll"));
+    expect(frame?.style.getPropertyValue("--app-viewport-top")).toBe("80px");
+    expect(frame?.style.getPropertyValue("--app-viewport-bottom")).toBe(`${Math.max(0, window.innerHeight - 380)}px`);
+    viewport.scale = 2;
+    viewport.dispatchEvent(new Event("resize"));
+    expect(frame?.style.height).toBe("");
+    expect(frame?.style.getPropertyValue("--app-viewport-height")).toBe("");
+    expect(frame?.style.getPropertyValue("--app-viewport-top")).toBe("");
+    expect(frame?.style.getPropertyValue("--app-viewport-bottom")).toBe("");
+    viewport.scale = 1;
+    resizeViewport(640);
+    expect(frame?.style.height).toBe("");
+    resizeViewport(390);
+    expect(frame?.style.height).toBe("300px");
+    view.unmount();
+    viewport.height = 250;
+    viewport.dispatchEvent(new Event("resize"));
+    expect(frame?.style.height).toBe("");
+  });
+
+  it("places the menu in the header and gates bottom navigation behind overlays", () => {
+    const { container, getByRole, rerender } = renderShell(false);
+    const menu = getByRole("button", { name: "Open sidebar" });
+    expect(menu.closest("[data-chat-frame] > header")).not.toBeNull();
+    expect(menu.className).not.toContain("neu-panel");
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+    expect(getByRole("link", { name: "Skip to main content" }).closest("nav")).not.toBeNull();
+    const bottom = container.querySelector("[data-mobile-navigation]");
+    expect(bottom?.querySelectorAll("[data-mode-toggle]")).toHaveLength(3);
+    fireEvent.click(menu);
+    expect(bottom?.hasAttribute("inert")).toBe(true);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(bottom?.hasAttribute("inert")).toBe(false);
+    act(() => capturedShell.current?.setAnswerSheetOpen(true));
+    expect(bottom?.hasAttribute("inert")).toBe(true);
+    pathname.value = "/settings";
+    rerender(<ShellFixture />);
+    expect(container.querySelector("[data-answer-sheet]")).toBeNull();
+    expect(bottom?.hasAttribute("inert")).toBe(false);
+  });
+
+  it("keeps navigation available when returning from Settings with a retained answer sheet", () => {
+    pathname.value = "/chat";
+    const view = render(<NavigatingShellFixture />);
+    act(() => capturedShell.current?.setAnswerSheetOpen(true));
+    pathname.value = "/settings";
+    view.rerender(<NavigatingShellFixture />);
+    fireEvent.click(modeLink(view.container, "AI"));
+    expect(view.container.querySelector("[data-navigation-pending]")).not.toBeNull();
+    expect(view.container.querySelector("[data-answer-sheet]")?.getAttribute("data-answer-sheet")).toBe("closed");
+    expect(view.getByRole("button", { name: "Open sidebar" }).closest("[inert]")).toBeNull();
+    expect(view.container.querySelector("[data-mobile-navigation]")?.hasAttribute("inert")).toBe(false);
+  });
+
+  it("keeps pending destination navigation available outside inert task controls", () => {
+    pathname.value = "/chat";
+    const { container, getByRole } = render(<NavigatingShellFixture />);
+    fireEvent.click(modeLink(container, "Tools"));
+    const menu = getByRole("button", { name: "Open sidebar" });
+    expect(menu.closest("[data-workspace-heading]")).not.toBeNull();
+    expect(menu.closest("[inert]")).toBeNull();
+    expect(getByRole("button", { name: "Map task action" }).closest("[inert]")).not.toBeNull();
+    fireEvent.click(menu);
+    expect(container.querySelector('[role="dialog"][aria-label="Tools"]')?.parentElement?.hasAttribute("inert")).toBe(
+      false,
+    );
+  });
+
   it("mobile AI has no way to manually open the answer sheet — only show_widget can", () => {
     const { container } = renderShell(false);
     expect(container.querySelector('[data-answer-sheet="open"]')).toBeNull();
@@ -284,7 +397,7 @@ describe("10.4 — AppShell layouts (REQ-2.1, REQ-4.1, REQ-7.1)", () => {
     const { container } = renderShell(false);
     fireEvent.click(modeLink(container, "Tools"));
     const opener = container.querySelector('[aria-label="Open sidebar"]') as HTMLElement;
-    expect(opener.className).toContain("z-40");
+    expect(opener.closest("header")).not.toBeNull();
     fireEvent.click(opener);
     const drawer = container.querySelector('[role="dialog"][aria-label="Tools"]');
     expect(drawer).not.toBeNull();
@@ -305,6 +418,28 @@ describe("13.2 — ARIA landmarks (REQ-8.2)", () => {
 });
 
 describe("13.3 — focus move/return + inert (REQ-2.5, REQ-8.1, REQ-8.3)", () => {
+  it("loops drawer focus without reaching the underlying navigation", () => {
+    const rects = vi
+      .spyOn(HTMLElement.prototype, "getClientRects")
+      .mockReturnValue([new DOMRect(0, 0, 44, 44)] as unknown as DOMRectList);
+    try {
+      const { container, getByRole } = renderShell(false);
+      fireEvent.click(getByRole("button", { name: "Open sidebar" }));
+      const drawer = container.querySelector('[role="dialog"][aria-label="Chat sessions"]');
+      const first = drawer?.querySelector<HTMLButtonElement>("button");
+      const last = drawer?.querySelector<HTMLAnchorElement>('a[aria-label="Unity"]');
+      expect(first).not.toBeNull();
+      expect(last).not.toBeNull();
+      last?.focus();
+      fireEvent.keyDown(document, { key: "Tab" });
+      expect(document.activeElement).toBe(first);
+      fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+      expect(document.activeElement).toBe(last);
+    } finally {
+      rects.mockRestore();
+    }
+  });
+
   it("closing the left drawer returns focus to the Open-sidebar button", () => {
     const { container } = renderShell(false);
     const opener = container.querySelector('[aria-label="Open sidebar"]') as HTMLButtonElement;
@@ -329,6 +464,10 @@ describe("sidebar responsive cleanup", () => {
     fireEvent.click(opener);
     expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
     expect(document.body.style.overflow).toBe("hidden");
+    expect(container.querySelector(".shell-sidebar-drawer")?.className).toContain("transition-transform");
+    expect(container.querySelector(".shell-sidebar-drawer")?.className).not.toContain(
+      "transition-[transform,visibility]",
+    );
 
     resizeViewport(Number(breakpoint) - 1);
     expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
@@ -391,6 +530,27 @@ describe("sidebar responsive cleanup", () => {
     fireEvent(document, event);
     expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
     expect(document.body.style.overflow).toBe("hidden");
+  });
+
+  it("leaves Escape to an open popup when its trigger retains focus", () => {
+    const { container, getByRole } = renderShell(false);
+    fireEvent.click(getByRole("button", { name: "Open sidebar" }));
+    const trigger = document.createElement("button");
+    trigger.setAttribute("aria-controls", "owned-account-popup");
+    container.querySelector(".shell-sidebar-drawer")?.append(trigger);
+    const popup = document.createElement("div");
+    popup.id = "owned-account-popup";
+    popup.setAttribute("data-floating-panel", "");
+    document.body.append(popup);
+    try {
+      trigger.focus();
+      fireEvent.keyDown(trigger, { key: "Escape" });
+      expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(true);
+    } finally {
+      popup.remove();
+    }
+    fireEvent.keyDown(trigger, { key: "Escape" });
+    expect(container.querySelector(".shell-body")?.hasAttribute("inert")).toBe(false);
   });
 
   it.each(["data-floating-panel", "data-dialog-root"])("leaves Escape to a portaled %s child", (attribute) => {

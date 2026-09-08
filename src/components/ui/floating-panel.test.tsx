@@ -372,6 +372,17 @@ describe("FloatingPanel interaction", () => {
     expect(onDismiss).toHaveBeenCalledOnce();
   });
 
+  it("returns from a final popup item to the first control in its modal", () => {
+    const { anchor, onDismiss } = setup();
+    const modal = anchor.parentElement;
+    modal?.setAttribute("aria-modal", "true");
+    screen.getByText("After trigger").hidden = true;
+    screen.getByText("Last option").focus();
+    fireEvent.keyDown(document.activeElement!, { key: "Tab" });
+    expect(document.activeElement).toBe(screen.getByText("Before trigger"));
+    expect(onDismiss).toHaveBeenCalledOnce();
+  });
+
   it.each(["panel", "First option"])("Shift-Tabs from %s to the trigger", (from) => {
     const { panel, anchor, onDismiss } = setup();
     (from === "panel" ? panel : screen.getByText(from)).focus();

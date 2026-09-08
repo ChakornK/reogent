@@ -285,8 +285,8 @@ export function AnswerSheet({
       : "sm:basis-0 sm:grow-0 sm:overflow-hidden sm:invisible sm:min-w-0 sm:pointer-events-none sm:opacity-0"
   } ${
     open
-      ? "max-sm:neu-panel max-sm:bg-surface max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:z-50 max-sm:h-[80dvh] max-sm:overflow-hidden max-sm:rounded-t-2xl max-sm:pb-[env(safe-area-inset-bottom)] max-sm:visible max-sm:translate-y-0 max-sm:opacity-100"
-      : "max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:z-50 max-sm:invisible max-sm:pointer-events-none max-sm:translate-y-full max-sm:opacity-0"
+      ? "max-sm:neu-panel max-sm:bg-surface max-sm:fixed max-sm:inset-x-0 max-sm:bottom-[var(--app-viewport-bottom,0px)] max-sm:z-50 max-sm:h-[calc(var(--app-viewport-height,100dvh)*0.8)] max-sm:overflow-hidden max-sm:rounded-t-2xl max-sm:pb-[env(safe-area-inset-bottom)] max-sm:visible max-sm:translate-y-0 max-sm:opacity-100"
+      : "max-sm:fixed max-sm:inset-x-0 max-sm:bottom-[var(--app-viewport-bottom,0px)] max-sm:z-50 max-sm:invisible max-sm:pointer-events-none max-sm:translate-y-full max-sm:opacity-0"
   }`;
 
   return (

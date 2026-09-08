@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { ChatPanelLoading, NewChatLoading } from "@/src/components/shell/shell-loading";
+import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
 import { render } from "@testing-library/react";
 import { createRef } from "react";
 import { describe, expect, it } from "vitest";
@@ -22,7 +23,7 @@ describe("shared conversation geometry", () => {
     );
     const frame = getByRole("region", { name: "Conversation" });
     expect(frame.querySelector("header")?.className).toContain("h-15");
-    expect(frame.querySelector("header")?.className).toContain("pl-16 lg:pl-4");
+    expect(frame.querySelector("header")?.className).toContain("px-4");
     expect(scrollRef.current).toBe(container.querySelector(".chat-message-well"));
     expect(scrollRef.current?.getAttribute("aria-busy")).toBe("true");
     expect(scrollRef.current?.className).toContain("overflow-y-auto");
@@ -30,6 +31,20 @@ describe("shared conversation geometry", () => {
     expect(scrollRef.current?.getAttribute("aria-label")).toBe("Conversation messages");
     expect(scrollRef.current?.tabIndex).toBe(0);
     expect(frame.lastElementChild?.textContent).toBe("Footer");
+  });
+
+  it("places shell navigation inside the conversation header", () => {
+    const { container } = render(
+      <WorkspaceHostProvider host="chat" navigation={<button type="button">Open sidebar</button>}>
+        <ChatFrame header={<span>Conversation</span>} footer={null}>
+          Messages
+        </ChatFrame>
+      </WorkspaceHostProvider>,
+    );
+    const header = container.querySelector("[data-chat-frame] > header");
+    expect(header?.querySelector("button")?.textContent).toBe("Open sidebar");
+    expect(header?.className).not.toContain("pl-16");
+    expect(header?.textContent).toContain("Conversation");
   });
 
   it("shares live and loading footer padding, safe areas, and reserved caption space", () => {

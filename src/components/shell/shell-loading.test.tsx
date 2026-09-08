@@ -56,21 +56,21 @@ describe("shell loading surfaces", () => {
     expect(answerCanvas?.querySelector("header")?.firstElementChild?.className).toContain("size-7");
   });
 
-  it("shares host clearance, padding, and inert compact placeholders with workspaces", () => {
+  it("shares header navigation, padding, and inert compact placeholders with workspaces", () => {
     const { container, queryByRole, rerender } = render(
-      <WorkspaceHostProvider host="tools" menuClearance>
+      <WorkspaceHostProvider host="tools" navigation={<span data-navigation-placeholder />}>
         <WorkspaceRouteLoading composition="split" controls />
       </WorkspaceHostProvider>,
     );
     const workspace = container.querySelector("[data-workspace-page]");
     expect(workspace?.getAttribute("data-workspace-host")).toBe("tools");
-    expect(workspace?.getAttribute("data-menu-clearance")).toBe("true");
+    expect(workspace?.querySelector("[data-workspace-heading] [data-navigation-placeholder]")).not.toBeNull();
     expect(workspace?.querySelector(".workspace-page-layout")?.className).toContain("p-6");
     expect(workspace?.querySelector("[data-workspace-canvas]")?.className).toContain("p-4");
     expect(workspace?.querySelector("[data-workspace-header]")).not.toBeNull();
     expect(queryByRole("button")).toBeNull();
     rerender(
-      <WorkspaceHostProvider host="answer-canvas" menuClearance={false}>
+      <WorkspaceHostProvider host="answer-canvas">
         <WorkspaceRouteLoading composition="split" controls />
       </WorkspaceHostProvider>,
     );
@@ -92,6 +92,8 @@ describe("shell loading surfaces", () => {
     expect(container.querySelector(".shell-boot-sidebar")).not.toBeNull();
     expect(container.querySelector("[data-shell-boot-brand]")?.className).toContain("h-15");
     expect(container.querySelector("[data-shell-boot-footer]")).not.toBeNull();
+    expect(boot?.querySelector("[data-chat-frame] > header .shell-boot-menu")).not.toBeNull();
+    expect(boot?.querySelector("[data-mobile-navigation]")?.getAttribute("aria-hidden")).toBe("true");
   });
 
   it("selects boot geometry from the requested destination", () => {

@@ -2,6 +2,7 @@
 
 import { ChatComposerFrame, ChatFrame } from "@/src/components/chat/chat-frame";
 import { Icon } from "@/src/components/icons";
+import { useMobileViewport } from "@/src/components/shell/use-mobile-viewport";
 import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
 import { Skeleton, SkeletonText } from "@/src/components/ui/skeleton";
 import { WorkspaceCanvas, WorkspacePage, WorkspacePanel, WorkspaceRail } from "@/src/components/ui/workspace";
@@ -144,6 +145,7 @@ export function AnswerCanvasLoading() {
 
 /** Matches shell geometry during local-auth hydration instead of painting a blank page. */
 export function ShellBootLoading({ pathname = "/chat" }: { pathname?: string }) {
+  const viewportRef = useMobileViewport();
   const mode = pathname.startsWith("/tools")
     ? "tools"
     : pathname.startsWith("/pulse")
@@ -165,16 +167,23 @@ export function ShellBootLoading({ pathname = "/chat" }: { pathname?: string }) 
     pathname.startsWith("/tools/schedule") ||
     pathname.startsWith("/pulse/schedule");
 
+  const sidebarToggle = (
+    <span
+      aria-hidden="true"
+      className="shell-boot-menu shell-menu-trigger text-on-surface-variant inline-flex size-11 shrink-0 items-center justify-center"
+    >
+      <Icon name="menu" size={22} />
+    </span>
+  );
+
   return (
     <div
+      ref={viewportRef}
       data-shell-boot-loading
       data-shell-boot-mode={mode}
       aria-busy="true"
       className="app-shell-canvas app-shell-frame flex h-dvh flex-col overflow-hidden"
     >
-      <span className="shell-boot-menu shell-menu-trigger neu-panel bg-surface text-primary fixed z-40 flex size-11 items-center justify-center rounded-xl">
-        <Icon name="school" size={18} />
-      </span>
       <div className="shell-body min-h-0 flex-1">
         <div className="chat-workspace shell-boot-layout relative min-h-0 min-w-0 flex-1">
           <aside className="sessions-aside shell-boot-sidebar absolute top-3 bottom-3 left-3 z-10 hidden min-h-0 w-68 overflow-hidden">
@@ -200,23 +209,33 @@ export function ShellBootLoading({ pathname = "/chat" }: { pathname?: string }) 
             </div>
           </aside>
           <main className="shell-boot-main flex min-h-0 min-w-0 flex-1">
-            <div className="workspace-surface flex min-h-0 min-w-0 flex-1 overflow-hidden">
-              <div className="shell-boot-chat h-full min-h-0 w-full">
-                {pathname === "/chat" ? <NewChatLoading /> : <ChatPanelLoading />}
-              </div>
-              <div className="shell-boot-workspace hidden h-full min-h-0 w-full">
-                <WorkspaceHostProvider
-                  host={mode === "unity" ? "unity" : mode === "settings" ? "settings" : "tools"}
-                  menuClearance
-                >
+            <WorkspaceHostProvider
+              host={mode === "ai" ? "chat" : mode === "unity" ? "unity" : mode === "settings" ? "settings" : "tools"}
+              navigation={sidebarToggle}
+            >
+              <div className="workspace-surface flex min-h-0 min-w-0 flex-1 overflow-hidden">
+                <div className="shell-boot-chat h-full min-h-0 w-full">
+                  {pathname === "/chat" ? <NewChatLoading /> : <ChatPanelLoading />}
+                </div>
+                <div className="shell-boot-workspace hidden h-full min-h-0 w-full">
                   <WorkspaceRouteLoading
                     composition={splitWorkspace ? "split" : "single"}
                     controls={workspaceControls}
                   />
-                </WorkspaceHostProvider>
+                </div>
               </div>
-            </div>
+            </WorkspaceHostProvider>
           </main>
+        </div>
+      </div>
+      <div aria-hidden="true" data-mobile-navigation className="mobile-mode-bar shrink-0 sm:hidden">
+        <div className="grid h-15 grid-cols-3 gap-1 px-2">
+          {[0, 1, 2].map((key) => (
+            <div key={key} className="flex flex-col items-center justify-center gap-1">
+              <Skeleton className="size-5 rounded" />
+              <Skeleton className="h-3 w-8 rounded" />
+            </div>
+          ))}
         </div>
       </div>
     </div>

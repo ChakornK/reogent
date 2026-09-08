@@ -17,6 +17,7 @@ export function SidebarListNav({
   return (
     <nav
       aria-label={label}
+      data-sidebar-list
       data-tool-list={toolList || undefined}
       className={`bg-surface-container-low/60 min-h-0 flex-1 overflow-x-hidden overflow-y-auto [overscroll-behavior-y:contain] rounded-xl ${
         collapsed ? "p-1" : "p-2"
@@ -54,6 +55,7 @@ export function SidebarItemButton({
   return (
     <button
       type={type}
+      data-sidebar-item
       aria-current={active ? "page" : undefined}
       className={`focus-visible:ring-primary/40 flex h-11 min-w-0 items-center overflow-hidden rounded-lg text-left transition-[color,background-color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-45 sm:h-9 ${
         collapsed ? "w-11 justify-center sm:w-9" : `w-full gap-2 py-2 pl-3 ${accessories ? "pr-24 sm:pr-3" : "pr-3"}`

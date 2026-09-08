@@ -206,7 +206,7 @@ describe("ScheduleApp group loading", () => {
     );
 
     const view = render(
-      <WorkspaceHostProvider host="unity" menuClearance>
+      <WorkspaceHostProvider host="unity">
         <main data-pane="unity">
           <ScheduleApp />
         </main>

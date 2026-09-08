@@ -14,7 +14,8 @@ export type FloatingPanelProps = ComponentPropsWithRef<"div"> & {
   focusOnOpen?: boolean;
 };
 
-function tabStops(root: ParentNode): HTMLElement[] {
+/** Returns visible, enabled tab stops in keyboard order. */
+export function tabStops(root: ParentNode): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(FOCUSABLE)]
     .filter((element) => {
       const style = getComputedStyle(element);
@@ -226,9 +227,10 @@ export function FloatingPanel({
       const atEnd = stops.length === 0 || active === stops[stops.length - 1];
       if (!(event.shiftKey ? atStart : atEnd)) return;
       restoreFocus = false;
-      const documentStops = tabStops(document).filter((element) => !panel.contains(element));
+      const modal = anchor.closest<HTMLElement>('[aria-modal="true"]');
+      const documentStops = tabStops(modal ?? document).filter((element) => !panel.contains(element));
       const anchorIndex = documentStops.indexOf(anchor);
-      const next = event.shiftKey ? anchor : documentStops[anchorIndex + 1];
+      const next = event.shiftKey ? anchor : (documentStops[anchorIndex + 1] ?? (modal ? documentStops[0] : undefined));
       if (next) {
         event.preventDefault();
         next.focus();

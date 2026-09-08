@@ -2,10 +2,16 @@
 import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceCanvas, WorkspacePage, WorkspacePanel, WorkspaceRail, type WorkspaceView } from "./workspace";
 
-afterEach(cleanup);
+const navigationState = vi.hoisted(() => ({ pending: false }));
+vi.mock("@/src/components/shell/shell-navigation", () => ({ useShellNavigation: () => navigationState }));
+
+afterEach(() => {
+  cleanup();
+  navigationState.pending = false;
+});
 
 function SplitWorkspace() {
   const [view, setView] = useState<WorkspaceView>("main");
@@ -58,7 +64,7 @@ function ProgrammaticWorkspace() {
 describe("WorkspacePage", () => {
   it("owns one restrictive split structure without nesting a main landmark", () => {
     const { container } = render(
-      <WorkspaceHostProvider host="tools" menuClearance>
+      <WorkspaceHostProvider host="tools">
         <SplitWorkspace />
       </WorkspaceHostProvider>,
     );
@@ -81,6 +87,20 @@ describe("WorkspacePage", () => {
     expect(canvas?.className).not.toContain("border-border");
     expect(page?.querySelector("[data-workspace-actions]")?.className).toContain("w-full");
     expect(page?.querySelector("[data-workspace-actions]")?.className).toContain("@min-[55rem]:w-auto");
+  });
+
+  it("keeps header navigation available while pending task controls stay inert", () => {
+    navigationState.pending = true;
+    const { container } = render(
+      <WorkspaceHostProvider host="tools" navigation={<button type="button">Open sidebar</button>}>
+        <SplitWorkspace />
+      </WorkspaceHostProvider>,
+    );
+    const menu = screen.getByRole("button", { name: "Open sidebar" });
+    expect(menu.closest("[data-workspace-heading]")).not.toBeNull();
+    expect(menu.closest("[inert]")).toBeNull();
+    expect(screen.getByRole("button", { name: "Autofill" }).closest("[inert]")).not.toBeNull();
+    expect(container.querySelector(".workspace-page-body")?.hasAttribute("inert")).toBe(true);
   });
 
   it("keeps both compact regions mounted while callers own the active view", () => {
@@ -106,7 +126,7 @@ describe("WorkspacePage", () => {
     const outlet = document.createElement("div");
     document.body.append(outlet);
     const { container } = render(
-      <WorkspaceHostProvider host="answer-canvas" menuClearance={false} titlebarOutlet={outlet}>
+      <WorkspaceHostProvider host="answer-canvas" titlebarOutlet={outlet}>
         <WorkspacePage
           composition="canvas"
           title="Calendar"

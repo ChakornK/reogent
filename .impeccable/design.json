@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-08T08:42:26Z",
+  "generatedAt": "2026-09-08T10:29:50Z",
   "title": "Design System: Reodite",
   "extensions": {
     "colorMeta": {
@@ -221,6 +221,14 @@
       "css": ".ds-composer { position: relative; display: flex; align-items: flex-end; background: #f3f3f5; border-radius: 16px; padding: 6px; box-shadow: inset 1px 1px 3px rgba(105,112,116,0.045), inset -1px -1px 3px rgba(255,255,255,0.2); transition: box-shadow 150ms ease-out; } .ds-composer:focus-within { box-shadow: inset 1px 1px 3px rgba(105,112,116,0.045), inset -1px -1px 3px rgba(255,255,255,0.2); outline: 2px solid rgba(74,78,122,0.28); outline-offset: -2px; } .ds-composer textarea { background: transparent; border: none; outline: none; flex: 1; padding: 8px 12px; font-family: Aspekta, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: #18191b; resize: none; min-height: 36px; max-height: 96px; } .ds-composer textarea::placeholder { color: #5a6066; } .ds-send { width: 36px; height: 36px; border-radius: 16px; background: #4a4e7a; color: #fff; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; box-shadow: 0 3px 8px rgba(74,78,122,0.1), -2px -2px 6px rgba(255,255,255,0.2); transition: transform 150ms ease-out; } .ds-send:hover { transform: translateY(-1px); } .ds-send:active { transform: translateY(1px) scale(0.985); }"
     },
     {
+      "name": "Mobile Mode Navigation",
+      "kind": "nav",
+      "refersTo": "mobile-mode-tab",
+      "description": "Flat phone navigation with three persistent 60px mode links, visible labels, and bottom safe-area padding.",
+      "html": "<nav class=\"ds-mode-nav\" aria-label=\"Reodite areas\"><a class=\"ds-mode-tab\" href=\"/chat\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9.949 5.365L11 3l1.051 2.365a12 12 0 0 0 5.083 5.585L19 12l-1.866 1.05a12 12 0 0 0-5.083 5.585L11 21l-1.051-2.365a12 12 0 0 0-5.083-5.585L3 12l1.866-1.05A12 12 0 0 0 9.95 5.365Z\"/><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" d=\"M19 3.745c.335.467.73.889 1.175 1.255c-.444.366-.84.787-1.175 1.254A6.7 6.7 0 0 0 17.824 5c.445-.366.84-.787 1.176-1.255Z\"/></svg><span>AI</span></a><a class=\"ds-mode-tab\" href=\"/tools/map\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"none\" stroke=\"currentColor\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 8.667L5 6v10.465a1 1 0 0 0 .445.832L11 21v-4.667M9 8.667l1.555 1.036a1 1 0 0 1 .445.832v5.798M9 8.667V4l4 2.667m-2 9.666L15 19v-4.667m-2-7.666l1.555 1.036a1 1 0 0 1 .445.832v5.798m-2-7.666V2l5.555 3.703a1 1 0 0 1 .445.832V17l-4-2.667\"/></svg><span>Tools</span></a><a class=\"ds-mode-tab\" href=\"/pulse\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M20 18a1 1 0 1 0 2 0zm-5 1a1 1 0 1 0 2 0zM2 19a1 1 0 1 0 2 0zm15-5v1h2v-2h-2zm4 2h-1v2h2v-2zm-1-7h-1a1 1 0 0 1-1 1v2a3 3 0 0 0 3-3zm-2 2v-1a1 1 0 0 1-1-1h-2a3 3 0 0 0 3 3zm-2-2h1a1 1 0 0 1 1-1V6a3 3 0 0 0-3 3zm2-2v1a1 1 0 0 1 1 1h2a3 3 0 0 0-3-3zM6 14v1h7v-2H6zm10 3h-1v2h2v-2zM3 19h1v-2H2v2zM13 7.5h-1A2.5 2.5 0 0 1 9.5 10v2A4.5 4.5 0 0 0 14 7.5zM9.5 11v-1A2.5 2.5 0 0 1 7 7.5H5A4.5 4.5 0 0 0 9.5 12zM6 7.5h1A2.5 2.5 0 0 1 9.5 5V3A4.5 4.5 0 0 0 5 7.5zM9.5 4v1A2.5 2.5 0 0 1 12 7.5h2A4.5 4.5 0 0 0 9.5 3zM13 14v1a2 2 0 0 1 2 2h2a4 4 0 0 0-4-4zm-7 0v-1a4 4 0 0 0-4 4h2a2 2 0 0 1 2-2zm13 0v1a1 1 0 0 1 1 1h2a3 3 0 0 0-3-3z\"/></svg><span>Unity</span></a></nav>",
+      "css": ".ds-mode-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 0 8px env(safe-area-inset-bottom); background: var(--surface, #fafafa); border-top: 1px solid var(--border-subtle, #e8e8ea); } .ds-mode-tab { display: flex; height: 60px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 8px; color: var(--muted, #5a6066); font: 500 12px/16px Aspekta, ui-sans-serif, system-ui, sans-serif; text-decoration: none; transition: color 150ms ease-out, background-color 150ms ease-out; } .ds-mode-tab[aria-current] { color: var(--primary, #4a4e7a); } .ds-mode-tab:active { background: var(--surface-container-high, #e6e6e8); } .ds-mode-tab:focus-visible { outline: 2px solid var(--primary, #4a4e7a); outline-offset: -2px; } @media (prefers-reduced-motion: reduce) { .ds-mode-tab { transition: none; } }"
+    },
+    {
       "name": "Nav Item",
       "kind": "nav",
       "refersTo": "nav-item-active",
@@ -342,7 +350,8 @@
       "Do keep mobile pages and their primary workspace regions flat and edge-to-edge. Use resting depth on controls, contained cards, desktop panels, and overlays.",
       "Do use asymmetric bubble radii to indicate message direction.",
       "Do use opacity modifiers on color tokens for tinted backgrounds.",
-      "Do enforce 44px minimum touch targets on mobile.",
+      "Do enforce 44px action targets, 48px drawer rows, and 60px bottom mode targets on phones.",
+      "Do render phone menu controls inside route headers and keep shell navigation available during loading.",
       "Do use env(safe-area-inset-bottom) for bottom-pinned elements."
     ],
     "donts": [
@@ -356,6 +365,7 @@
       "Don't use primary indigo for backgrounds, decoration, or large surfaces. It means interactive only.",
       "Don't use spring physics or blur reveals in the app shell. Those belong to the landing page only.",
       "Don't wrap a phone's main view in a rounded card or restore shell gutters below 640px. Keep content and control padding inside the full-width page.",
+      "Don't add duplicate mode controls or bottom safe-area padding above the phone mode bar.",
       "Don't create new shadow recipes. Use --neu-surface-shadow or --neu-inset-shadow, or the five Tier 1 utilities."
     ]
   }

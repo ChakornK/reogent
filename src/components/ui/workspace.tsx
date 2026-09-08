@@ -1,5 +1,6 @@
 "use client";
 
+import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { useWorkspaceHost } from "@/src/components/shell/workspace-host";
 import { Heading } from "@/src/components/ui/heading";
 import { Skeleton } from "@/src/components/ui/skeleton";
@@ -42,8 +43,10 @@ export type WorkspacePageProps = SplitWorkspaceProps | UnsplitWorkspaceProps;
 
 /** Renders shared workspace geometry with a scrollable page when vertical space runs short. */
 export function WorkspacePage(props: WorkspacePageProps) {
-  const { host, menuClearance, titlebarOutlet } = useWorkspaceHost();
+  const { host, navigation, titlebarOutlet } = useWorkspaceHost();
+  const shellNavigation = useShellNavigation();
   const embedded = host === "answer-canvas";
+  const pending = !embedded && shellNavigation.pending;
   const mainId = useId();
   const railId = useId();
   const split = props.composition === "split";
@@ -85,7 +88,6 @@ export function WorkspacePage(props: WorkspacePageProps) {
       data-workspace-page
       data-workspace-composition={props.composition}
       data-workspace-host={host}
-      data-menu-clearance={menuClearance || undefined}
       data-workspace-view={activeView ?? undefined}
       className="workspace-page h-full min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto"
     >
@@ -101,14 +103,15 @@ export function WorkspacePage(props: WorkspacePageProps) {
       <div className="workspace-page-layout flex h-full min-h-min flex-col gap-4 p-6">
         {!embedded ? (
           <header data-workspace-header className="relative z-30 flex shrink-0 flex-col gap-3">
-            <div data-workspace-heading className="flex min-w-0 items-start gap-1.5">
+            <div data-workspace-heading className="flex min-w-0 items-start gap-2 sm:gap-1.5">
+              {navigation}
               {props.leading ? (
                 <div data-workspace-leading className="shrink-0">
                   {props.leading}
                 </div>
               ) : null}
               <div className="min-w-0">
-                <Heading as="h1" size="title">
+                <Heading as="h1" size="title" className="flex min-h-7 items-center sm:min-h-0">
                   {props.loading ? (
                     <>
                       <span className="sr-only">{props.title}</span>
@@ -123,13 +126,15 @@ export function WorkspacePage(props: WorkspacePageProps) {
                 ) : null}
               </div>
             </div>
-            {controls ? <WorkspaceHeaderControls toolbar={props.toolbar} actions={internalActions} /> : null}
+            {controls ? (
+              <WorkspaceHeaderControls toolbar={props.toolbar} actions={internalActions} pending={pending} />
+            ) : null}
           </header>
         ) : props.toolbar || internalActions ? (
           <WorkspaceHeaderControls toolbar={props.toolbar} actions={internalActions} embedded />
         ) : null}
 
-        {props.notice}
+        {props.notice ? <div inert={pending || undefined}>{props.notice}</div> : null}
 
         {split && props.loading ? (
           <div
@@ -143,6 +148,7 @@ export function WorkspacePage(props: WorkspacePageProps) {
         ) : split ? (
           <fieldset
             ref={toggleRef}
+            inert={pending || undefined}
             data-workspace-view-toggle
             className="workspace-page-toggle neu-inset bg-surface-container-low shrink-0 gap-1 rounded-lg p-1"
           >
@@ -174,7 +180,7 @@ export function WorkspacePage(props: WorkspacePageProps) {
           </fieldset>
         ) : null}
 
-        <div className="workspace-page-body grid min-h-80 min-w-0 flex-1 gap-4">
+        <div inert={pending || undefined} className="workspace-page-body grid min-h-80 min-w-0 flex-1 gap-4">
           {split ? (
             <aside
               ref={railRegionRef}
@@ -210,14 +216,17 @@ function WorkspaceHeaderControls({
   toolbar,
   actions,
   embedded = false,
+  pending = false,
 }: {
   toolbar?: ReactNode;
   actions?: ReactNode;
   embedded?: boolean;
+  pending?: boolean;
 }) {
   return (
     <div
       data-workspace-header-controls
+      inert={pending || undefined}
       className={`flex min-w-0 shrink-0 flex-wrap items-center justify-between gap-3 ${embedded ? "" : "w-full"}`}
     >
       {toolbar ? (
@@ -260,7 +269,7 @@ interface WorkspacePanelProps {
   children: ReactNode;
 }
 
-/** Renders one raised contextual panel with a fixed header and bounded body. */
+/** Renders a contextual region with a fixed header and bounded body. */
 export function WorkspacePanel({
   title,
   description,
@@ -313,7 +322,7 @@ export type WorkspaceCanvasProps = Omit<ComponentPropsWithoutRef<"div">, "classN
   padding?: keyof typeof CANVAS_PADDING_CLASSES;
 };
 
-/** Renders the shared inset data canvas with fixed material and scroll variants. */
+/** Renders a data canvas with shared responsive material and scroll variants. */
 export function WorkspaceCanvas({ overflow = "auto", padding = "none", children, ...props }: WorkspaceCanvasProps) {
   return (
     <div

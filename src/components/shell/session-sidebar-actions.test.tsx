@@ -90,6 +90,21 @@ describe("SessionSidebar actions", () => {
     expect(screen.getByRole("alert").textContent).toContain("Couldn’t refresh conversations");
     expect(screen.getByRole("button", { name: "A conversation with a long title" })).not.toBeNull();
   });
+  it("scopes session group labels to each desktop and drawer instance", async () => {
+    const { container } = render(
+      <ChatShellProvider>
+        <SessionSidebar />
+        <SessionSidebar />
+      </ChatShellProvider>,
+    );
+    expect(await screen.findAllByRole("button", { name: "A conversation with a long title" })).toHaveLength(2);
+    const groups = [...container.querySelectorAll("ul[aria-labelledby]")];
+    const ids = groups.map((group) => group.getAttribute("aria-labelledby"));
+    expect(groups).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    for (const id of ids) expect(document.getElementById(id ?? "")?.textContent).toBe("Today");
+  });
+
   it("keeps routine row actions visible and touchable on mobile", async () => {
     const { container } = render(
       <ChatShellProvider>

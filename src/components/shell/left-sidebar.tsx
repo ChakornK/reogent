@@ -97,7 +97,10 @@ export function LeftSidebar({
   if (mode === "ai") {
     if (collapsed) {
       return (
-        <div className="neu-panel flex h-full w-full flex-col items-center overflow-hidden rounded-2xl pt-0 pb-2">
+        <div
+          data-sidebar-frame
+          className="neu-panel flex h-full w-full flex-col items-center overflow-hidden rounded-2xl pt-0 pb-2"
+        >
           <BrandHeader collapsed />
           <div className="flex min-h-0 flex-1 flex-col items-center justify-between">
             <CollapseExpandButton collapsed onExpand={onExpand} label="Sessions" />
@@ -113,6 +116,7 @@ export function LeftSidebar({
 
   return (
     <div
+      data-sidebar-frame
       className={`neu-panel flex h-full w-full flex-col overflow-hidden rounded-2xl pt-0 pb-2 ${collapsed ? "items-center px-0" : "px-2"}`}
     >
       <BrandHeader

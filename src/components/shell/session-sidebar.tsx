@@ -14,7 +14,7 @@ import { SESSION_GROUP_ORDER, sessionGroup, type SessionGroup } from "@/src/lib/
 import { SIDEBAR_COLLAPSED_STORAGE_KEY } from "@/src/lib/sidebar";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 
 const EXPANDED = "0";
 const COLLAPSED = "1";
@@ -220,7 +220,7 @@ function SessionItem({
         title={session.title}
       />
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-24 rounded-r-lg opacity-100 transition-opacity sm:w-20 sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
+        className="pointer-events-none absolute inset-y-0 right-0 hidden w-20 rounded-r-lg opacity-0 transition-opacity sm:block sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
         style={{
           background: active
             ? "linear-gradient(to right, transparent, var(--surface-container) 40%)"
@@ -228,7 +228,10 @@ function SessionItem({
         }}
         aria-hidden="true"
       />
-      <div className="absolute right-1 flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+      <div
+        data-session-actions
+        className="absolute right-1 flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
+      >
         <button
           type="button"
           onClick={startRename}
@@ -262,7 +265,10 @@ interface SessionSidebarProps {
  *  carries row actions (collapse chevron on desktop, close in the mobile drawer). */
 export function BrandHeader({ collapsed = false, trailing }: { collapsed?: boolean; trailing?: ReactNode }) {
   return (
-    <div className={`flex h-15 items-center gap-2 ${collapsed ? "justify-center" : "justify-between px-2"}`}>
+    <div
+      data-sidebar-brand
+      className={`flex h-15 shrink-0 items-center gap-2 ${collapsed ? "justify-center" : "justify-between px-2"}`}
+    >
       <Link
         href="/"
         aria-label="Go to Reodite homepage"
@@ -301,6 +307,7 @@ export function SessionSidebar({ onCollapse, onClose, footer }: SessionSidebarPr
   // Pathname, not params: a locally-minted session exists only in the URL
   // (the router stays on /chat), so params would miss the highlight.
   const activeId = /^\/chat\/([^/]+)/.exec(pathname)?.[1];
+  const groupPrefix = useId();
   const [renderLimit, setRenderLimit] = useState(100);
   const grouped = useMemo(() => groupSessions(sessions.slice(0, renderLimit)), [sessions, renderLimit]);
 
@@ -323,7 +330,7 @@ export function SessionSidebar({ onCollapse, onClose, footer }: SessionSidebarPr
   }
 
   return (
-    <div className="neu-panel flex h-full w-full flex-col overflow-hidden rounded-2xl p-2 pt-0">
+    <div data-sidebar-frame className="neu-panel flex h-full w-full flex-col overflow-hidden rounded-2xl p-2 pt-0">
       <BrandHeader
         trailing={
           <>
@@ -357,6 +364,7 @@ export function SessionSidebar({ onCollapse, onClose, footer }: SessionSidebarPr
 
       <nav
         aria-label="Chat sessions"
+        data-sidebar-list
         aria-busy={sessionsLoading}
         className="bg-surface-container-low/60 min-h-0 flex-1 overflow-y-auto [overscroll-behavior-y:contain] rounded-xl p-2"
       >
@@ -394,7 +402,7 @@ export function SessionSidebar({ onCollapse, onClose, footer }: SessionSidebarPr
         )}
 
         {grouped.map(([group, items]) => {
-          const groupId = `session-group-${group.replace(/\s+/g, "-").toLowerCase()}`;
+          const groupId = `${groupPrefix}-${group.replace(/\s+/g, "-").toLowerCase()}`;
           return (
             <div key={group} className="pt-2 first:pt-0">
               <Heading

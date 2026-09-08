@@ -98,7 +98,7 @@ describe("PrereqTreePane", () => {
     const outlet = document.createElement("div");
     document.body.append(outlet);
     const { container } = render(
-      <WorkspaceHostProvider host="answer-canvas" menuClearance={false} titlebarOutlet={outlet}>
+      <WorkspaceHostProvider host="answer-canvas" titlebarOutlet={outlet}>
         <PrereqTreePane />
       </WorkspaceHostProvider>,
     );

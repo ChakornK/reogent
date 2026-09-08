@@ -9,6 +9,7 @@ import { AnswerCanvas } from "@/src/components/shell/answer-canvas";
 import { AnswerSheet } from "@/src/components/shell/answer-sheet";
 import { FullBleedTool } from "@/src/components/shell/full-bleed-tool";
 import { LeftSidebar } from "@/src/components/shell/left-sidebar";
+import { ModeToggle } from "@/src/components/shell/mode-toggle";
 import { useSidebarCollapsed } from "@/src/components/shell/session-sidebar";
 import {
   AnswerCanvasLoading,
@@ -17,12 +18,15 @@ import {
   WorkspaceRouteLoading,
 } from "@/src/components/shell/shell-loading";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
+import { useMobileViewport } from "@/src/components/shell/use-mobile-viewport";
 import { shellModeForPath } from "@/src/components/shell/use-shell-mode";
 import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
+import { Button } from "@/src/components/ui/button";
+import { tabStops } from "@/src/components/ui/floating-panel";
 import { LiveRegion } from "@/src/components/ui/live-region";
 import { useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 /** Gate: initializing → null (brief); signed out → redirect to login. */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -84,7 +88,6 @@ function ShellRouteContent({
       data-shell-route-content={identity}
       data-route-transition={animate || undefined}
       data-navigation-pending={pending || undefined}
-      inert={pending || undefined}
       className="shell-route-content flex min-h-0 min-w-0 flex-1"
     >
       {children}
@@ -92,7 +95,7 @@ function ShellRouteContent({
   );
 }
 
-function SidebarDrawer() {
+function SidebarDrawer({ id }: { id: string }) {
   const { sidebarOpen, setSidebarOpen, mode } = useChatShell();
   const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -102,9 +105,33 @@ function SidebarDrawer() {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.defaultPrevented) return;
+      const dialog = dialogRef.current;
+      if (!dialog || event.defaultPrevented || dialog.closest("[inert]")) return;
       if (event.target instanceof Element && event.target.closest("[data-floating-panel], [data-dialog-root]")) return;
-      setSidebarOpen(false);
+      if (event.key === "Escape") {
+        const trigger =
+          event.target instanceof Element ? event.target.closest("[aria-controls], [aria-describedby]") : null;
+        const popupIds =
+          `${trigger?.getAttribute("aria-controls") ?? ""} ${trigger?.getAttribute("aria-describedby") ?? ""}`.split(
+            /\s+/,
+          );
+        if (popupIds.some((popupId) => document.getElementById(popupId)?.hasAttribute("data-floating-panel"))) return;
+        event.preventDefault();
+        setSidebarOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const stops = tabStops(dialog);
+      const first = stops[0] ?? dialog;
+      const last = stops.at(-1) ?? dialog;
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !dialog.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
@@ -124,10 +151,12 @@ function SidebarDrawer() {
       />
       <div
         ref={dialogRef}
+        id={id}
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-label={mode === "ai" ? "Chat sessions" : mode === "tools" ? "Tools" : "Unity"}
-        className={`shell-sidebar-drawer fixed inset-y-0 left-0 z-50 w-[min(18.5rem,calc(100vw-3rem))] p-3 transition-transform duration-250 [transition-timing-function:var(--neu-ease)] ${desktopHidden}`}
+        className={`shell-sidebar-drawer fixed inset-y-0 left-0 z-50 w-[min(18.5rem,calc(100vw-3rem))] p-3 duration-250 [transition-timing-function:var(--neu-ease)] ${desktopHidden} ${sidebarOpen ? "visible transition-transform" : "invisible transition-[transform,visibility]"}`}
         style={{ transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" }}
       >
         <div className="h-full">
@@ -160,6 +189,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const animateRoute = hasNavigated || routeIdentity !== initialRouteIdentityRef.current;
   const [sessionsCollapsed, setSessionsCollapsed] = useSidebarCollapsed();
   const sidebarOpenRef = useRef<HTMLButtonElement>(null);
+  const sidebarId = useId();
+  const viewportRef = useMobileViewport();
   const desktopSidebarQuery = mode === "tools" ? "(min-width: 1280px)" : "(min-width: 1024px)";
   const reduce = useReducedMotion();
 
@@ -171,7 +202,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (canvasInline && answerSheetOpen) setAnswerSheetOpen(false);
   }, [canvasInline, answerSheetOpen, setAnswerSheetOpen]);
 
-  const sheetInert = mode === "ai" && answerSheetOpen && !canvasInline;
+  const enteringAi = navigation.pending && mode === "ai" && shellModeForPath(navigation.committedPathname) !== "ai";
+  const sheetOpen = mode === "ai" && !settingsRoute && !canvasInline && !enteringAi && answerSheetOpen;
 
   useEffect(() => {
     if (!sidebarOpen) return;
@@ -208,7 +240,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     setRightPaneCollapsed(true);
   }
 
-  const enteringAi = navigation.pending && mode === "ai" && shellModeForPath(navigation.committedPathname) !== "ai";
+  const sidebarToggle = (
+    <Button
+      ref={sidebarOpenRef}
+      onClick={() => setSidebarOpen(true)}
+      aria-label="Open sidebar"
+      aria-expanded={sidebarOpen}
+      aria-controls={sidebarId}
+      aria-haspopup="dialog"
+      variant="ghost"
+      size="fieldIcon"
+      className={`shell-menu-trigger ${mode === "tools" ? "xl:hidden" : "lg:hidden"}`}
+    >
+      <Icon name="menu" size={22} />
+    </Button>
+  );
   const routeContent = settingsRoute ? (
     <ShellRouteContent
       identity={routeIdentity}
@@ -224,7 +270,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           mode === "tools" ? "tool-sidebar-content-offset" : "sidebar-content-offset"
         }`}
       >
-        <WorkspaceHostProvider host="settings" menuClearance>
+        <WorkspaceHostProvider host="settings" navigation={sidebarToggle}>
           <div data-workspace-surface className="workspace-surface flex min-h-0 min-w-0 flex-1 overflow-hidden">
             {navigation.pending ? <WorkspaceRouteLoading label="Loading Settings" composition="split" /> : children}
           </div>
@@ -243,13 +289,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           id="main-content"
           data-pane="chat"
           className="sidebar-content-offset flex min-h-0 min-w-0 flex-1 lg:min-w-88"
-          inert={sheetInert || undefined}
+          inert={sheetOpen || undefined}
         >
-          {navigation.pending ? pathname === "/chat" ? <NewChatLoading /> : <ChatPanelLoading /> : children}
+          <WorkspaceHostProvider host="chat" navigation={sidebarToggle}>
+            {navigation.pending ? pathname === "/chat" ? <NewChatLoading /> : <ChatPanelLoading /> : children}
+          </WorkspaceHostProvider>
         </main>
       </ShellRouteContent>
       <AnswerSheet
-        open={enteringAi ? false : answerSheetOpen}
+        open={sheetOpen}
         onClose={() => {
           collapseRightPane();
           setAnswerSheetOpen(false);
@@ -275,7 +323,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           mode === "tools" ? "tool-sidebar-content-offset" : "sidebar-content-offset"
         }`}
       >
-        <WorkspaceHostProvider host={mode === "tools" ? "tools" : "unity"} menuClearance>
+        <WorkspaceHostProvider host={mode === "tools" ? "tools" : "unity"} navigation={sidebarToggle}>
           <div data-workspace-surface className="workspace-surface flex min-h-0 min-w-0 flex-1 overflow-hidden">
             {mode === "tools" && workspaceView ? (
               <FullBleedTool view={workspaceView} />
@@ -296,25 +344,16 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <RequireAuth>
-      <div className="app-shell-canvas app-shell-frame flex h-dvh flex-col overflow-hidden">
-        <a
-          href="#main-content"
-          className="focus-visible:bg-primary focus-visible:text-on-primary sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:z-[100] focus-visible:rounded-xl focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium"
-        >
-          Skip to main content
-        </a>
-        <button
-          ref={sidebarOpenRef}
-          type="button"
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Open sidebar"
-          inert={sidebarOpen || undefined}
-          className={`shell-menu-trigger neu-panel bg-surface text-on-surface-variant hover:text-primary fixed z-40 flex size-11 items-center justify-center rounded-xl transition-colors duration-150 ${mode === "tools" ? "xl:hidden" : "lg:hidden"}`}
-        >
-          <Icon name="menu" size={21} />
-        </button>
-
-        <SidebarDrawer />
+      <div ref={viewportRef} className="app-shell-canvas app-shell-frame flex h-dvh flex-col overflow-hidden">
+        <nav aria-label="Skip links" inert={sidebarOpen || sheetOpen || undefined} className="shrink-0">
+          <a
+            href="#main-content"
+            className="focus-visible:bg-primary focus-visible:text-on-primary sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:z-[100] focus-visible:rounded-xl focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium"
+          >
+            Skip to main content
+          </a>
+        </nav>
+        <SidebarDrawer id={sidebarId} />
 
         <div inert={sidebarOpen || undefined} className="shell-body min-h-0 flex-1">
           <div
@@ -349,6 +388,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
+        <div data-mobile-navigation inert={sidebarOpen || sheetOpen || undefined} className="shrink-0 sm:hidden">
+          <ModeToggle presentation="bottom" />
+        </div>
         <LiveRegion />
       </div>
     </RequireAuth>

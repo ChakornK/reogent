@@ -4,6 +4,7 @@ import pkg from "./package.json" with { type: "json" };
 const nextConfig: NextConfig = {
   output: "standalone",
   allowedDevOrigins: ["*"],
+  devIndicators: false,
   env: { NEXT_PUBLIC_REOGENT_VERSION: pkg.version },
 };
 

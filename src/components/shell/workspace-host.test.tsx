@@ -9,7 +9,7 @@ function CaptureHost() {
     <output
       data-testid="host"
       data-host={value.host}
-      data-menu-clearance={String(value.menuClearance)}
+      data-has-navigation={String(value.navigation !== null)}
       data-has-outlet={String(value.titlebarOutlet !== null)}
     />
   );
@@ -20,20 +20,20 @@ describe("WorkspaceHostProvider", () => {
     render(<CaptureHost />);
     const host = screen.getByTestId("host");
     expect(host.dataset.host).toBe("tools");
-    expect(host.dataset.menuClearance).toBe("true");
+    expect(host.dataset.hasNavigation).toBe("false");
     expect(host.dataset.hasOutlet).toBe("false");
   });
 
   it("supplies an Answer Canvas outlet without DOM discovery", () => {
     const outlet = document.createElement("div");
     render(
-      <WorkspaceHostProvider host="answer-canvas" menuClearance={false} titlebarOutlet={outlet}>
+      <WorkspaceHostProvider host="answer-canvas" titlebarOutlet={outlet}>
         <CaptureHost />
       </WorkspaceHostProvider>,
     );
     const host = screen.getByTestId("host");
     expect(host.dataset.host).toBe("answer-canvas");
-    expect(host.dataset.menuClearance).toBe("false");
+    expect(host.dataset.hasNavigation).toBe("false");
     expect(host.dataset.hasOutlet).toBe("true");
   });
 });

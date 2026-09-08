@@ -1,3 +1,6 @@
+"use client";
+
+import { useWorkspaceHost } from "@/src/components/shell/workspace-host";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 
 type ChatFrameProps = Omit<ComponentPropsWithoutRef<"section">, "className" | "style"> & {
@@ -9,13 +12,17 @@ type ChatFrameProps = Omit<ComponentPropsWithoutRef<"section">, "className" | "s
 
 /** Shares the conversation header, scroll well, and footer geometry across loaded and pending routes. */
 export function ChatFrame({ header, footer, children, scrollRef, messagesBusy, ...props }: ChatFrameProps) {
+  const { navigation } = useWorkspaceHost();
   return (
     <section
       data-chat-frame
       className="workspace-surface flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden"
       {...props}
     >
-      <header className="flex h-15 min-w-0 shrink-0 items-center justify-between pr-4 pl-16 lg:pl-4">{header}</header>
+      <header className="flex h-15 min-w-0 shrink-0 items-center gap-2 px-4">
+        {navigation}
+        <div className="flex min-w-0 flex-1 items-center justify-between">{header}</div>
+      </header>
       <section
         ref={scrollRef}
         aria-label="Conversation messages"
