@@ -179,6 +179,7 @@ export function ChatPanel({ sessionId: initialSessionId }: { sessionId: string |
     askAiRequest,
     consumeAskAi,
   } = useChatShell();
+  const lastNewChatNonce = useRef(newChatNonce);
 
   const [historyState, setHistoryState] = useState<HistoryState>("loading");
   const [historyNonce, setHistoryNonce] = useState(0);
@@ -257,11 +258,10 @@ export function ChatPanel({ sessionId: initialSessionId }: { sessionId: string |
     return firstUser ? splitUserContent(firstUser.content).text : "New conversation";
   }, [sessions, sessionId, messages]);
 
-  // "New conversation" from the sidebar: the minted session only exists in the
-  // URL (the router is still parked on /chat), so router.push("/chat") is a
-  // no-op. Reset this panel in place and drop the minted URL.
+  // Apply reset requests made after this panel mounts.
   useEffect(() => {
-    if (newChatNonce === 0) return;
+    if (newChatNonce === lastNewChatNonce.current) return;
+    lastNewChatNonce.current = newChatNonce;
     mintedLocally.current = true;
     pendingRetry.current = null;
     setSendError(null);
@@ -624,7 +624,7 @@ export function ChatPanel({ sessionId: initialSessionId }: { sessionId: string |
           <output className="sr-only" aria-live="polite">
             {announcement}
           </output>
-          <ErrorBoundary key={sessionId} fallback={<ComposerFallback />}>
+          <ErrorBoundary key={newChatNonce} fallback={<ComposerFallback />}>
             <ChatInput
               ref={inputRef}
               disabled={sending || historyState !== "ready"}

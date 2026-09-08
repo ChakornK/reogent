@@ -39,10 +39,9 @@ const navigation = vi.hoisted(() => ({
   displayPathname: "/chat",
   pending: false,
   push: vi.fn(),
-  params: {} as { session_id?: string },
 }));
 vi.mock("@/src/components/shell/shell-navigation", () => ({ useShellNavigation: () => navigation }));
-vi.mock("next/navigation", () => ({ useParams: () => navigation.params, usePathname: () => "/chat" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/chat" }));
 
 beforeEach(() => {
   api.listSessions
@@ -55,7 +54,6 @@ beforeEach(() => {
   navigation.committedPathname = "/chat";
   navigation.displayPathname = "/chat";
   navigation.push.mockReset();
-  navigation.params = {};
 });
 
 afterEach(() => {
@@ -113,7 +111,6 @@ function deferred() {
 
 describe("SessionSidebar actions", () => {
   it("releases the new-conversation trigger for route autofocus", async () => {
-    navigation.params = { session_id: "session-1" };
     navigation.displayPathname = "/chat/session-1";
     render(sidebar());
     await screen.findByRole("button", { name: "A conversation with a long title" });
@@ -122,6 +119,14 @@ describe("SessionSidebar actions", () => {
     fireEvent.click(trigger);
     expect(navigation.push).toHaveBeenCalledWith("/chat");
     expect(document.activeElement).toBe(document.body);
+  });
+
+  it.each(["/chat", "/settings"])("navigates to a new conversation from %s", async (pathname) => {
+    navigation.displayPathname = pathname;
+    render(sidebar());
+    await screen.findByRole("button", { name: "A conversation with a long title" });
+    fireEvent.click(screen.getByRole("button", { name: "New conversation" }));
+    expect(navigation.push).toHaveBeenCalledWith("/chat");
   });
 
   it("keeps loaded session rows during refresh and refresh failure", async () => {

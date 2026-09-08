@@ -75,6 +75,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
     const text = value.trim();
     if (!text || disabled) return;
     setValue("");
+    textareaRef.current?.focus({ preventScroll: true });
     requestAnimationFrame(autosize);
     onSend(text);
   }

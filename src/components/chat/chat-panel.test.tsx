@@ -334,6 +334,49 @@ describe("ChatPanel focus ownership", () => {
   });
 });
 
+describe("ChatPanel reset lifecycle", () => {
+  it("loads saved history after a previous new-conversation request", async () => {
+    const view = renderPanel();
+    act(() => shellRef.current?.startNewChat());
+    api.getSession.mockResolvedValue([
+      { role: "user", content: "Saved question" },
+      { role: "assistant", content: "Saved response" },
+    ]);
+    view.rerender(
+      <ChatShellProvider>
+        <ChatPanel key="restored" sessionId="saved-after-new" />
+        <Capture />
+      </ChatShellProvider>,
+    );
+    await waitFor(() => expect(api.getSession).toHaveBeenCalledWith("saved-after-new"));
+    expect((await view.findByRole("log", { name: "Conversation" })).textContent).toContain("Saved question");
+  });
+
+  it("keeps the composer mounted and clears its submitted draft on first send", async () => {
+    streamResponse([]);
+    const view = renderPanel();
+    const composer = view.getByRole("textbox", { name: "Message the assistant" });
+    await send("Submitted draft");
+    const current = view.getByRole("textbox", { name: "Message the assistant" }) as HTMLTextAreaElement;
+    expect.soft(current).toBe(composer);
+    expect.soft(current.value).toBe("");
+    expect.soft(localStorage.getItem("reodite.chat-draft")).toBeNull();
+  });
+
+  it("handles repeated new-conversation requests in the mounted panel", async () => {
+    streamResponse([]);
+    const view = renderPanel();
+    await send("First conversation");
+    act(() => shellRef.current?.startNewChat());
+    expect(view.queryByRole("log", { name: "Conversation" })).toBeNull();
+    await send("Second conversation");
+    act(() => shellRef.current?.startNewChat());
+    expect(view.queryByRole("log", { name: "Conversation" })).toBeNull();
+    expect(api.chat).toHaveBeenCalledTimes(2);
+    expect(api.chat.mock.calls[0][0]).not.toBe(api.chat.mock.calls[1][0]);
+  });
+});
+
 describe("ChatPanel reduced motion", () => {
   it("removes empty and typing presence without duration or vertical travel", async () => {
     api.chat.mockImplementation(() => new Promise(() => {}));

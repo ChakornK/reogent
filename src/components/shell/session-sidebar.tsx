@@ -16,7 +16,6 @@ import { SESSION_GROUP_ORDER, sessionGroup, type SessionGroup } from "@/src/lib/
 import { SIDEBAR_COLLAPSED_STORAGE_KEY } from "@/src/lib/sidebar";
 import { AnimatePresence } from "motion/react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import {
   useEffect,
   useId,
@@ -388,7 +387,6 @@ export function BrandHeader({ collapsed = false, trailing }: { collapsed?: boole
 export function SessionSidebar({ onCollapse, onClose, footer }: SessionSidebarProps = {}) {
   const api = useApi();
   const navigation = useShellNavigation();
-  const params = useParams<{ session_id?: string }>();
   const pathname = navigation.displayPathname;
   const {
     sessions,
@@ -454,15 +452,8 @@ export function SessionSidebar({ onCollapse, onClose, footer }: SessionSidebarPr
     // Let the new chat claim focus unless the user focuses another control while it loads.
     newConversationRef.current?.blur();
     setSidebarOpen(false);
-    // On a real session URL the router navigates (fresh mounted panel). On a
-    // locally-minted URL the router still thinks it's on /chat, so push is a
-    // no-op — reset the panel via context instead.
-    if (params.session_id) {
-      navigation.push("/chat");
-    } else {
-      window.history.replaceState(null, "", "/chat");
-      startNewChat();
-    }
+    startNewChat();
+    navigation.push("/chat");
   }
 
   return (
