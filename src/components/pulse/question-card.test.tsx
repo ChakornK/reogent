@@ -120,3 +120,18 @@ describe("PulseQuestionCard — voted shadow", () => {
     expect(getByText("Recording your vote…")).toBeTruthy();
   });
 });
+
+it("restores vote controls and removes tallies when an optimistic vote rolls back", () => {
+  reduceMotion = true;
+  const onVote = vi.fn();
+  const { rerender, getByRole, queryByRole } = render(
+    <PulseQuestionCard card={{ id: 1, text: "Q", myAgree: true, pending: true }} onVote={onVote} />,
+  );
+  expect(getByRole("img").getAttribute("aria-label")).toBe("Recording your vote");
+  rerender(<PulseQuestionCard card={{ id: 1, text: "Q", error: "Vote failed. Try again." }} onVote={onVote} />);
+  expect(queryByRole("img")).toBeNull();
+  expect(getByRole("alert").className).toContain("ui-notice-enter");
+  fireEvent.click(getByRole("button", { name: "Agree: Q" }));
+  expect(onVote).toHaveBeenCalledWith(true);
+  reduceMotion = false;
+});

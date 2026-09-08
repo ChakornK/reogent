@@ -4,6 +4,7 @@ import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { useWorkspaceHost } from "@/src/components/shell/workspace-host";
 import { Heading } from "@/src/components/ui/heading";
 import { Skeleton } from "@/src/components/ui/skeleton";
+import { useReducedMotion } from "motion/react";
 import { useEffect, useId, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -47,6 +48,7 @@ export function WorkspacePage(props: WorkspacePageProps) {
   const shellNavigation = useShellNavigation();
   const embedded = host === "answer-canvas";
   const pending = !embedded && shellNavigation.pending;
+  const reduce = useReducedMotion();
   const mainId = useId();
   const railId = useId();
   const split = props.composition === "split";
@@ -68,17 +70,22 @@ export function WorkspacePage(props: WorkspacePageProps) {
     const toggle = toggleRef.current;
     if (!toggle || window.getComputedStyle(toggle).display === "none") return;
 
+    const incomingRegion = activeView === "main" ? mainRegionRef.current : railRegionRef.current;
+    const animation = reduce
+      ? undefined
+      : incomingRegion?.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: "ease-out" });
     const hiddenRegion = previousView === "main" ? mainRegionRef.current : railRegionRef.current;
     const activeElement = document.activeElement;
     const focusWasHidden = !!hiddenRegion && activeElement instanceof Node && hiddenRegion.contains(activeElement);
     const focusWasDropped =
       (activeElement === document.body || activeElement === document.documentElement) &&
       lastFocusedRegionRef.current === previousView;
-    if (!focusWasHidden && !focusWasDropped) return;
-
-    lastFocusedRegionRef.current = null;
-    (activeView === "main" ? mainToggleRef.current : railToggleRef.current)?.focus();
-  }, [activeView, split]);
+    if (focusWasHidden || focusWasDropped) {
+      lastFocusedRegionRef.current = null;
+      (activeView === "main" ? mainToggleRef.current : railToggleRef.current)?.focus();
+    }
+    return () => animation?.cancel();
+  }, [activeView, split, reduce]);
 
   return (
     <section

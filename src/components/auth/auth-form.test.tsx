@@ -18,7 +18,18 @@ vi.mock("next/navigation", () => ({
 vi.mock("motion/react", () => ({
   AnimatePresence: ({ children }: { children: ReactNode }) => <>{children}</>,
   motion: {
-    p: ({ children, ...props }: React.ComponentProps<"p">) => <p {...props}>{children}</p>,
+    p: ({
+      children,
+      initial,
+      animate,
+      exit,
+      transition,
+      ...props
+    }: React.ComponentProps<"p"> & { initial?: unknown; animate?: unknown; exit?: unknown; transition?: unknown }) => (
+      <p {...props} data-motion={JSON.stringify({ initial, animate, exit, transition })}>
+        {children}
+      </p>
+    ),
   },
   useReducedMotion: () => true,
 }));
@@ -42,7 +53,11 @@ describe("AuthForm", () => {
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "secret" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
-    await screen.findByRole("alert");
+    const alert = await screen.findByRole("alert");
+    const animation = JSON.parse(alert.getAttribute("data-motion")!);
+    expect(animation.initial).toBe(false);
+    expect(animation.exit).toEqual({ opacity: 0, y: 0 });
+    expect(animation.transition.duration).toBe(0);
     expect(container.querySelector("[data-auth-error-slot]")).toBe(slot);
   });
 

@@ -140,6 +140,36 @@
     ],
     "motion": [
       {
+        "name": "overlay-presence",
+        "value": "220ms entry / 140ms exit, cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Shared popover/dialog opacity and small anchored movement. Closing controls become inactive immediately; interrupted motion continues from its current style. Reduced-motion removal follows parent layout registration."
+      },
+      {
+        "name": "inline-disclosure",
+        "value": "240ms grid expansion / 160ms collapse",
+        "purpose": "Conditional filters, course destinations, show-more lists, and common free time without losing caller-owned values."
+      },
+      {
+        "name": "mode-indicator",
+        "value": "280ms transform, cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Connects a phone mode selection to its destination without delaying navigation."
+      },
+      {
+        "name": "content-arrival",
+        "value": "180ms ease-out opacity",
+        "purpose": "New results and visible views. Never replay on streaming updates or retain invalidated data."
+      },
+      {
+        "name": "notice-arrival",
+        "value": "200ms opacity and 4px translation",
+        "purpose": "Bounded feedback and notification arrivals; notifications remain above phone navigation."
+      },
+      {
+        "name": "chart-arrival",
+        "value": "320ms scaleY from the bottom edge",
+        "purpose": "Grade bars reveal while numeric data and axes update immediately."
+      },
+      {
         "name": "neu-ease",
         "value": "cubic-bezier(0.16, 1, 0.3, 1)",
         "purpose": "Panel animations, collapse/expand, menu entrance. Settling-into-place feel."
@@ -166,8 +196,8 @@
       },
       {
         "name": "details-open",
-        "value": "200ms var(--neu-ease), opacity 0→1 + translateY(-4px→0)",
-        "purpose": "Collapsible details content entrance."
+        "value": "240ms native block-size / 160ms opacity; 200ms intro fallback",
+        "purpose": "Native details expansion and collapse where supported. The pseudo-element transition is disabled under reduced motion."
       },
       {
         "name": "topo-drift",
@@ -345,7 +375,7 @@
       "Do apply .neu-panel / .neu-raised / .neu-inset for composed surfaces — they carry the unified shadow recipe.",
       "Do use --muted (#5a6066) for all subdued text. Never --outline or --outline-variant for text.",
       "Do use --neu-ease (cubic-bezier 0.16, 1, 0.3, 1) for all in-app layout animations at 150-350ms.",
-      "Do respect prefers-reduced-motion — all animations collapse to 0.01ms, reveals show immediately.",
+      "Do respect reduced motion for both entry and exit, including native details and synchronous modal removal. Keep state changes immediate and legible.",
       "Do use [data-theme=\"dark\"] for theme switching — never prefers-color-scheme media query.",
       "Do keep mobile pages and their primary workspace regions flat and edge-to-edge. Use resting depth on controls, contained cards, desktop panels, and overlays.",
       "Do use asymmetric bubble radii to indicate message direction.",
@@ -363,7 +393,8 @@
       "Don't apply neumorphic depth to text content — depth frames containers, content stays flat.",
       "Don't use font-weight 700+ anywhere. Maximum is 600.",
       "Don't use primary indigo for backgrounds, decoration, or large surfaces. It means interactive only.",
-      "Don't use spring physics or blur reveals in the app shell. Those belong to the landing page only.",
+      "Don't add decorative page-load choreography or animate browser-driven viewport sizing. Preserve existing task-driven springs and camera behavior.",
+      "Don't retain obsolete routes, groups, search results, or drop targets for an exit animation.",
       "Don't wrap a phone's main view in a rounded card or restore shell gutters below 640px. Keep content and control padding inside the full-width page.",
       "Don't add duplicate mode controls or bottom safe-area padding above the phone mode bar.",
       "Don't create new shadow recipes. Use --neu-surface-shadow or --neu-inset-shadow, or the five Tier 1 utilities."

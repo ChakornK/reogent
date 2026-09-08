@@ -105,7 +105,11 @@ describe("Settings", () => {
     const fieldset = program.closest("fieldset");
     await waitFor(() => expect(fieldset?.disabled).toBe(true));
     expect((program as HTMLInputElement).value).toBe("Statistics");
+    expect(screen.getByLabelText("Program")).toBe(program);
+    expect(program.closest("form")?.className).toContain("ui-content-enter");
     finish?.();
     await waitFor(() => expect(screen.getByText("Saved")).not.toBeNull());
+    expect(screen.getByLabelText("Program")).toBe(program);
+    expect(screen.getByText("Saved").className).toContain("ui-notice-enter");
   });
 });

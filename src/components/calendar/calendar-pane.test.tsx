@@ -339,9 +339,44 @@ describe("Compact calendar agenda", () => {
     const eventButton = within(dialog).getByRole("button", { name: /Family Day/ });
     expect(eventButton.className).toContain("min-h-11");
     fireEvent.click(eventButton);
+    expect(screen.queryByRole("dialog", { name: /Events on/ })).toBeNull();
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
     await waitFor(() => expect(dialog.isConnected).toBe(false));
     expect(await screen.findByRole("dialog", { name: "Family Day" })).not.toBeNull();
     restore();
+  });
+
+  it("replaces the month and Upcoming immediately while the next cursor loads", async () => {
+    const first: CalendarEvent = {
+      kind: "academic",
+      date: "2025-02-17",
+      label: "February deadline",
+      source_url: null,
+      tags: [],
+    };
+    let finish!: (response: Response) => void;
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify([first])))
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            finish = resolve;
+          }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    const setState = vi.fn();
+    const { container, rerender } = render(<CalendarPane state={{ cursor: "2025-02" }} setState={setState} />);
+    await waitFor(() =>
+      expect(container.querySelector("[data-upcoming-event]")?.textContent).toContain("February deadline"),
+    );
+    rerender(<CalendarPane state={{ cursor: "2025-03" }} setState={setState} />);
+    expect(container.textContent).not.toContain("February deadline");
+    expect(screen.getByText("Loading upcoming events…")).not.toBeNull();
+    expect(container.querySelector('[data-calendar-day="2025-03-17"]')).not.toBeNull();
+    await act(async () => finish(new Response("[]")));
+    expect(screen.getByText("No events upcoming.").className).toContain("ui-content-enter");
+    expect(container.querySelector("[data-calendar-grid]")?.parentElement?.className).toContain("ui-content-enter");
   });
 
   it("distinguishes failed loading from a successful empty calendar and retries", async () => {

@@ -76,6 +76,8 @@ describe("DropdownDisjunctionNode (REQ-9.1)", () => {
     fireEvent.click(screen.getByRole("button"));
     const menu = screen.getByRole("listbox");
     expect(menu.className).toContain("nowheel");
+    expect(menu.className).not.toContain("ui-popover-enter");
+    expect(menu.querySelector(".ui-popover-enter")).not.toBeNull();
     viewState.transform = [0, 0, 2];
     rerender(<DropdownDisjunctionNode id="z" data={data} />);
     await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());

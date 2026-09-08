@@ -28,7 +28,7 @@ export function PeoplePanel({ people, meId, onToggle, onEnableAll }: Props) {
           People <span className="text-muted ml-1 text-xs">{people.length}</span>
         </Heading>
         {!allOn && (
-          <InlineAction onClick={onEnableAll} className="text-xs font-medium">
+          <InlineAction onClick={onEnableAll} className="ui-content-enter text-xs font-medium">
             Show all
           </InlineAction>
         )}
@@ -41,8 +41,8 @@ export function PeoplePanel({ people, meId, onToggle, onEnableAll }: Props) {
             <li key={p.id}>
               <label
                 htmlFor={`schedule-person-${p.id}`}
-                className={`hover:bg-surface-container focus-within:ring-primary/40 flex min-h-11 items-center gap-2.5 rounded-lg px-2 py-1.5 focus-within:ring-2 ${
-                  p.enabled ? "" : "opacity-60"
+                className={`hover:bg-surface-container focus-within:ring-primary/40 flex min-h-11 items-center gap-2.5 rounded-lg px-2 py-1.5 transition-[opacity,background-color] duration-150 focus-within:ring-2 ${
+                  p.enabled ? "opacity-100" : "opacity-60"
                 }`}
               >
                 <AvatarChip avatar={p.avatar} size={30} title={displayName} />

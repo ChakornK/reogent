@@ -1,5 +1,6 @@
 "use client";
 
+import { useOverlayPresence } from "@/src/components/ui/use-overlay-presence";
 import { useCallback, useLayoutEffect, useRef, useState, type ComponentPropsWithRef, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
@@ -139,10 +140,13 @@ export function FloatingPanel({
       panel.style.setProperty("--floating-available-width", `${width}px`);
       panel.style.setProperty("--floating-available-height", `${height}px`);
       if (matchAnchorWidth) panel.style.width = `${Math.min(rect.width, width)}px`;
-      const size = panel.getBoundingClientRect();
+      const bounds = panel.getBoundingClientRect();
+      const size = { width: panel.offsetWidth || bounds.width, height: panel.offsetHeight || bounds.height };
       const below = Math.max(0, viewportBottom - EDGE - rect.bottom - EDGE);
       const above = Math.max(0, rect.top - EDGE - viewportTop - EDGE);
       const flip = size.height > below && above > below;
+      panel.dataset.overlaySide = flip ? "top" : "bottom";
+      panel.style.transformOrigin = `${align === "end" ? "right" : "left"} ${flip ? "bottom" : "top"}`;
       const available = Math.min(height, flip ? above : below);
       panel.style.setProperty("--floating-available-height", `${available}px`);
       const panelHeight = Math.min(size.height, available);
@@ -189,8 +193,14 @@ export function FloatingPanel({
     };
   }, [mounted, anchorRef, align, matchAnchorWidth, dismiss]);
 
+  const present = useOverlayPresence(panelRef, "popover", mounted);
+
   useLayoutEffect(() => {
-    if (!mounted) return;
+    if (present) dismissedRef.current = false;
+  }, [present]);
+
+  useLayoutEffect(() => {
+    if (!mounted || !present) return;
     const panel = panelRef.current;
     const anchor = anchorRef.current;
     if (!panel || !anchor || dismissedRef.current) return;
@@ -252,7 +262,7 @@ export function FloatingPanel({
         anchor.focus({ preventScroll: true });
       }
     };
-  }, [mounted, anchorRef, focusOnOpen, dismiss]);
+  }, [mounted, present, anchorRef, focusOnOpen, dismiss]);
 
   if (!mounted) return null;
   return createPortal(
@@ -260,6 +270,9 @@ export function FloatingPanel({
       role="dialog"
       {...props}
       data-floating-panel=""
+      data-exiting={!present || undefined}
+      inert={!present || props.inert || undefined}
+      aria-hidden={!present || props["aria-hidden"] || undefined}
       onKeyDown={(event) => {
         onKeyDown?.(event);
         if (event.key !== "Escape" || event.defaultPrevented) return;
@@ -274,6 +287,7 @@ export function FloatingPanel({
       style={{
         ...style,
         position: "fixed",
+        pointerEvents: present ? style?.pointerEvents : "none",
         top: 0,
         left: 0,
         right: "auto",

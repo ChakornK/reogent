@@ -171,6 +171,21 @@ describe("FloatingPanel placement", () => {
     expect(panel.style.left).toBe("504px");
   });
 
+  it("places scaled entrances using layout dimensions rather than animated bounds", () => {
+    anchorBounds = new DOMRect(720, 500, 70, 40);
+    vi.mocked(HTMLElement.prototype.getBoundingClientRect).mockImplementation(function (this: HTMLElement) {
+      if (this.dataset.testid === "anchor") return anchorBounds;
+      if (this.dataset.testid === "panel") return new DOMRect(0, 0, 144, 90);
+      return new DOMRect(0, 0, 800, 600);
+    });
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(288);
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(180);
+    const { panel } = setup();
+    expect(panel.style.left).toBe("504px");
+    expect(panel.style.top).toBe("312px");
+    expect(panel.dataset.overlaySide).toBe("top");
+  });
+
   it("flips above only when below is too small and above has more room", () => {
     anchorBounds = new DOMRect(200, 500, 100, 40);
     const { panel } = setup();

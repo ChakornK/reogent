@@ -25,6 +25,10 @@ Use the shared `WorkspacePage` geometry: 24px wide and 16px compact spacing, a 2
 
 Type uses the documented 20/14/13/12 hierarchy with mono only for identifiers and measurements. Radius is fixed by level: square mobile page and timetable edges, 16px protected modal/sheet, 12px actions and floating overlay, 10px wider-screen timetable frame, 8px modules/fields/rows/blocks, 6px compact subcontrols, full only for pills/avatars/dots. Course colors keep the documented 1px edge and low-opacity surface mix.
 
+## Motion direction
+
+Animate common-free-time expansion through shared `Disclosure`, keep selected day columns mounted, and reveal new course modules and free-time bands without changing timetable geometry. Toasts use brief entry/exit above the phone mode bar. Wrap conditional dialogs in keyed presence, treating the profile Suspense fallback and loaded form as one unit. Invalidate old group details immediately rather than retaining them for exit. Reduced-motion users keep immediate state and focus changes.
+
 ## Boundaries
 
 Preserve planner persistence, hydration journals, Workday reconciliation, section drag physics, sharer groups, imports, people toggles, free-time computation, and read-only details. The shared course combobox keeps explicit inline/overlay presentation and primary/rail density choices. No new palette, font, or animation vocabulary.

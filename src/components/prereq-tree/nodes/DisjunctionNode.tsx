@@ -171,31 +171,34 @@ export function DropdownDisjunctionNode({ id, data }: NodeProps<DisjunctionData>
             onPointerDown={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            {options.map((opt, i) => (
-              <button
-                // biome-ignore lint/suspicious/noArrayIndexKey: options are positional — selection is by index and the list never reorders.
-                key={i}
-                type="button"
-                role="option"
-                aria-selected={i === selectedIdx}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange(i);
-                  setOpen(false);
-                }}
-                className={`focus-visible:ring-primary/40 block w-full rounded px-2 py-1 text-left text-sm focus-visible:ring-2 focus-visible:ring-offset-1 ${
-                  i === selectedIdx ? "bg-accent-subtle text-primary" : "hover:bg-surface-container-high"
-                }`}
-              >
-                {opt.display}
-              </button>
-            ))}
+            <div className="ui-popover-enter">
+              {options.map((opt, i) => (
+                <button
+                  // biome-ignore lint/suspicious/noArrayIndexKey: options are positional — selection is by index and the list never reorders.
+                  key={i}
+                  type="button"
+                  role="option"
+                  aria-selected={i === selectedIdx}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange(i);
+                    setOpen(false);
+                  }}
+                  className={`focus-visible:ring-primary/40 block w-full rounded px-2 py-1 text-left text-sm transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 ${
+                    i === selectedIdx ? "bg-accent-subtle text-primary" : "hover:bg-surface-container-high"
+                  }`}
+                >
+                  {opt.display}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
       {detail && (
         <div
-          className={`border-border mt-1.5 border-t pt-1.5 text-xs leading-snug ${
+          key={selectedIdx}
+          className={`ui-content-enter border-border mt-1.5 border-t pt-1.5 text-xs leading-snug ${
             detail.kind === "literal" || detail.title === null ? "text-muted italic" : "text-on-surface-variant"
           }`}
         >
@@ -226,7 +229,7 @@ export function StackedDisjunctionNode({ id, data }: NodeProps<EitherOrData>) {
               onMouseDown={(e) => e.stopPropagation()}
               onClick={() => onChange(i)}
               aria-pressed={isSelected}
-              className={`flex items-start gap-2 rounded-md border px-2 py-1 text-left ${
+              className={`flex items-start gap-2 rounded-md border px-2 py-1 text-left transition-colors duration-150 ${
                 isSelected
                   ? "neu-raised border-border-subtle bg-surface text-on-surface"
                   : "text-on-surface-variant hover:bg-surface-container-low border-transparent"

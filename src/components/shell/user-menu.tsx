@@ -6,6 +6,7 @@ import { VersionBadge } from "@/src/components/shell/session-sidebar";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { FloatingPanel } from "@/src/components/ui/floating-panel";
+import { AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useId, useRef, useState } from "react";
 
@@ -58,66 +59,68 @@ export function UserMenu({ collapsed = false, onNavigate }: { collapsed?: boolea
         )}
       </button>
 
-      {open && (
-        <FloatingPanel
-          id={menuId}
-          anchorRef={triggerRef}
-          onDismiss={() => setOpen(false)}
-          matchAnchorWidth={!collapsed}
-          role="dialog"
-          aria-label="Account"
-          className="profile-menu-surface glass-neu w-64 origin-bottom [animation:menu-in_180ms_ease-out] rounded-2xl p-2 motion-reduce:[animation:none]"
-        >
-          <div className="px-3 py-2">
-            <p className="text-muted text-xs font-medium">Signed in as</p>
-            <p className="text-body-sm text-on-surface mt-0.5 truncate" title={auth.user?.username ?? undefined}>
-              {username}
-            </p>
-          </div>
-
-          <div className="bg-border-subtle my-1 h-px" />
-
-          <div className="flex items-center justify-between gap-3 px-3 py-2">
-            <span className="text-on-surface-variant text-xs font-medium">Appearance</span>
-            <ThemeToggle />
-          </div>
-
-          <div className="bg-border-subtle my-1 h-px" />
-
-          <Link
-            href="/settings"
-            onClick={() => {
-              setOpen(false);
-              onNavigate?.();
-            }}
-            onNavigate={(event) => {
-              event.preventDefault();
-              navigation.push("/settings");
-            }}
-            className="text-on-surface hover:bg-surface-container-high hover:text-primary flex h-11 w-full items-center gap-2 rounded-lg px-3 text-sm transition-colors duration-150 sm:h-9"
+      <AnimatePresence initial={false}>
+        {open && (
+          <FloatingPanel
+            id={menuId}
+            anchorRef={triggerRef}
+            onDismiss={() => setOpen(false)}
+            matchAnchorWidth={!collapsed}
+            role="dialog"
+            aria-label="Account"
+            className="glass-neu w-64 rounded-2xl p-2"
           >
-            <Icon name="settings" size={16} className="text-on-surface-variant" />
-            Settings
-          </Link>
+            <div className="px-3 py-2">
+              <p className="text-muted text-xs font-medium">Signed in as</p>
+              <p className="text-body-sm text-on-surface mt-0.5 truncate" title={auth.user?.username ?? undefined}>
+                {username}
+              </p>
+            </div>
 
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="text-on-surface hover:bg-error/10 hover:text-error flex h-11 w-full items-center gap-2 rounded-lg px-3 text-sm transition-colors duration-150 sm:h-9"
-          >
-            <Icon name="exit" size={16} className="text-on-surface-variant" />
-            Sign out
-          </button>
-          {signOutError && <p className="text-error mt-1 px-3 text-xs">Sign out failed. Try again.</p>}
+            <div className="bg-border-subtle my-1 h-px" />
 
-          <div className="bg-border-subtle my-1 h-px" />
+            <div className="flex items-center justify-between gap-3 px-3 py-2">
+              <span className="text-on-surface-variant text-xs font-medium">Appearance</span>
+              <ThemeToggle />
+            </div>
 
-          <div className="flex items-center justify-between px-3 py-2">
-            <span className="text-muted text-xs font-medium">Version</span>
-            <VersionBadge />
-          </div>
-        </FloatingPanel>
-      )}
+            <div className="bg-border-subtle my-1 h-px" />
+
+            <Link
+              href="/settings"
+              onClick={() => {
+                setOpen(false);
+                onNavigate?.();
+              }}
+              onNavigate={(event) => {
+                event.preventDefault();
+                navigation.push("/settings");
+              }}
+              className="text-on-surface hover:bg-surface-container-high hover:text-primary flex h-11 w-full items-center gap-2 rounded-lg px-3 text-sm transition-colors duration-150 sm:h-9"
+            >
+              <Icon name="settings" size={16} className="text-on-surface-variant" />
+              Settings
+            </Link>
+
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="text-on-surface hover:bg-error/10 hover:text-error flex h-11 w-full items-center gap-2 rounded-lg px-3 text-sm transition-colors duration-150 sm:h-9"
+            >
+              <Icon name="exit" size={16} className="text-on-surface-variant" />
+              Sign out
+            </button>
+            {signOutError && <p className="text-error mt-1 px-3 text-xs">Sign out failed. Try again.</p>}
+
+            <div className="bg-border-subtle my-1 h-px" />
+
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="text-muted text-xs font-medium">Version</span>
+              <VersionBadge />
+            </div>
+          </FloatingPanel>
+        )}
+      </AnimatePresence>
     </>
   );
 }

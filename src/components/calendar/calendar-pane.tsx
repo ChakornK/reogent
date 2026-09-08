@@ -30,6 +30,7 @@ import {
   toISODate,
 } from "@/src/shared/calendar/date-math";
 import type { CalendarEvent } from "@/src/shared/calendar/event";
+import { AnimatePresence } from "motion/react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useCalendarEvents } from "./use-calendar-events";
 
@@ -240,16 +241,16 @@ export function CalendarPane({ state, setState }: { state: Partial<State>; setSt
                 ) : undefined
               }
             >
-              <div data-calendar-upcoming className="flex min-h-0 flex-col gap-3">
+              <div key={cursor} data-calendar-upcoming className="flex min-h-0 flex-col gap-3">
                 {eventsState.status === "loading" ? (
                   <SkeletonList label="Loading upcoming events…" rows={4} padding="none" />
                 ) : eventsState.status === "failed" ? (
-                  <p className="text-muted text-xs">Upcoming events are unavailable.</p>
+                  <p className="ui-content-enter text-muted text-xs">Upcoming events are unavailable.</p>
                 ) : upcoming.length === 0 ? (
-                  <p className="text-muted text-xs">No events upcoming.</p>
+                  <p className="ui-content-enter text-muted text-xs">No events upcoming.</p>
                 ) : (
                   Object.entries(upcomingByDate).map(([date, dayEvents]) => (
-                    <div key={date}>
+                    <div key={date} className="ui-content-enter">
                       <div className="mb-1.5 flex items-center gap-2">
                         <span className="text-on-surface text-xs font-medium">
                           {isSameDay(parseISODate(date), today) ? "Today" : formatDayLabel(parseISODate(date))}
@@ -299,6 +300,7 @@ export function CalendarPane({ state, setState }: { state: Partial<State>; setSt
             </span>
           ) : null}
           <MonthGrid
+            key={cursor}
             loading={eventsState.status === "loading"}
             cells={cells}
             eventsByDate={eventsByDate}
@@ -310,10 +312,22 @@ export function CalendarPane({ state, setState }: { state: Partial<State>; setSt
         </WorkspaceCanvas>
       </WorkspacePage>
 
-      {selectedDayEvents ? (
-        <DayAgendaDialog events={selectedDayEvents} onSelect={openEvent} onClose={() => setSelectedDayEvents(null)} />
-      ) : null}
-      {selectedEvent ? <EventModal event={selectedEvent} onClose={closeEvent} /> : null}
+      <AnimatePresence initial={false}>
+        {selectedDayEvents ? (
+          <DayAgendaDialog
+            key={`agenda:${selectedDayEvents[0]?.date}`}
+            events={selectedDayEvents}
+            onSelect={openEvent}
+            onClose={() => setSelectedDayEvents(null)}
+          />
+        ) : selectedEvent ? (
+          <EventModal
+            key={`event:${selectedEvent.date}:${selectedEvent.kind}:${selectedEvent.label}:${selectedEvent.source_url ?? "local"}`}
+            event={selectedEvent}
+            onClose={closeEvent}
+          />
+        ) : null}
+      </AnimatePresence>
     </>
   );
 }
@@ -363,57 +377,59 @@ function MonthYearPicker({
         <Icon name="down" size={14} />
       </Button>
 
-      {open && (
-        <FloatingPanel
-          id={menuId}
-          anchorRef={triggerRef}
-          onDismiss={() => setOpen(false)}
-          role="dialog"
-          aria-label="Pick month and year"
-          data-calendar-month-menu
-          className="neu-raised bg-surface w-60 rounded-xl p-2"
-        >
-          <div className="mb-1 flex items-center justify-between">
-            <Button variant="ghost" size="fieldIcon" aria-label="Previous year" onClick={() => setYear((y) => y - 1)}>
-              <Icon name="left" size={16} />
-            </Button>
-            <span className="text-on-surface font-mono text-sm font-medium">{year}</span>
-            <Button
-              variant="ghost"
-              size="fieldIcon"
-              aria-label="Next year"
-              disabled={nextYearBlocked}
-              onClick={() => setYear((y) => y + 1)}
-            >
-              <Icon name="right" size={16} />
-            </Button>
-          </div>
-          <div className="grid grid-cols-3 gap-1">
-            {MONTH_LABELS.map((label, m) => {
-              const d = new Date(Date.UTC(year, m, 1));
-              const selected = year === cursorYear && m === cursorDate.getUTCMonth();
-              return (
-                <button
-                  key={label}
-                  type="button"
-                  data-calendar-month={formatMonthBadge(d)}
-                  aria-current={selected ? "true" : undefined}
-                  disabled={d > horizon}
-                  onClick={() => {
-                    onPick(d);
-                    setOpen(false);
-                  }}
-                  className={`focus-visible:ring-primary/40 min-h-11 rounded-lg py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-30 @min-[55rem]:min-h-8 ${
-                    selected ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </FloatingPanel>
-      )}
+      <AnimatePresence initial={false}>
+        {open && (
+          <FloatingPanel
+            id={menuId}
+            anchorRef={triggerRef}
+            onDismiss={() => setOpen(false)}
+            role="dialog"
+            aria-label="Pick month and year"
+            data-calendar-month-menu
+            className="neu-raised bg-surface w-60 rounded-xl p-2"
+          >
+            <div className="mb-1 flex items-center justify-between">
+              <Button variant="ghost" size="fieldIcon" aria-label="Previous year" onClick={() => setYear((y) => y - 1)}>
+                <Icon name="left" size={16} />
+              </Button>
+              <span className="text-on-surface font-mono text-sm font-medium">{year}</span>
+              <Button
+                variant="ghost"
+                size="fieldIcon"
+                aria-label="Next year"
+                disabled={nextYearBlocked}
+                onClick={() => setYear((y) => y + 1)}
+              >
+                <Icon name="right" size={16} />
+              </Button>
+            </div>
+            <div key={year} className="ui-content-enter grid grid-cols-3 gap-1">
+              {MONTH_LABELS.map((label, m) => {
+                const d = new Date(Date.UTC(year, m, 1));
+                const selected = year === cursorYear && m === cursorDate.getUTCMonth();
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    data-calendar-month={formatMonthBadge(d)}
+                    aria-current={selected ? "true" : undefined}
+                    disabled={d > horizon}
+                    onClick={() => {
+                      onPick(d);
+                      setOpen(false);
+                    }}
+                    className={`focus-visible:ring-primary/40 min-h-11 rounded-lg py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-30 @min-[55rem]:min-h-8 ${
+                      selected ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </FloatingPanel>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -436,7 +452,7 @@ function MonthGrid({
   onDayAgenda: (events: CalendarEvent[]) => void;
 }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className={`flex min-h-0 flex-1 flex-col ${loading ? "" : "ui-content-enter"}`}>
       <div className="calendar-month-width text-muted mb-1 grid grid-cols-7 text-center font-mono text-xs tracking-wide uppercase">
         {WEEKDAY_HEADERS.map((d) => (
           <div key={d} className="py-1" aria-hidden>

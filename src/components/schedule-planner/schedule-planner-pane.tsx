@@ -21,6 +21,7 @@ import { resolvePlannerImport, type PlannerImportReview } from "@/src/lib/schedu
 import { buildScheduleGrid } from "@/src/lib/schedule/grid";
 import type { DayCode, Schedule } from "@/src/lib/schedule/types";
 import { minutesToFullLabel } from "@/src/lib/schedule/util/time";
+import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PlannerCourseModule, PlannerCoursesSkeleton, type PlannerCourseFocusRequest } from "./planner-course-module";
 import {
@@ -491,7 +492,7 @@ function SchedulePlannerPaneInner() {
 
   const notice =
     stale || catalogError ? (
-      <div className="border-tertiary/20 bg-tertiary-container/40 text-on-tertiary-container flex shrink-0 items-start gap-2 rounded-lg border px-3 py-2 text-xs">
+      <div className="ui-notice-enter border-tertiary/20 bg-tertiary-container/40 text-on-tertiary-container flex shrink-0 items-start gap-2 rounded-lg border px-3 py-2 text-xs">
         <Icon name="alert" className="mt-0.5 size-4 shrink-0" />
         <span className="flex-1">
           {catalogError
@@ -592,31 +593,32 @@ function SchedulePlannerPaneInner() {
             const doc = docs.get(code);
             const selected = visibleEntries.filter((entry) => normalizeScheduleCode(entry.code) === code);
             return (
-              <PlannerCourseModule
-                key={code}
-                code={code}
-                title={doc?.title ?? selected[0]?.snapshot.title ?? code}
-                catalogError={failedCatalogCodes.has(code)}
-                onRetry={() =>
-                  setFailedCatalogCodes((current) => {
-                    const next = new Set(current);
-                    next.delete(code);
-                    return next;
-                  })
-                }
-                doc={doc}
-                term={activeTerm}
-                entries={selected}
-                conflictingIds={conflictingIds}
-                conflictLabels={conflictLabels}
-                focusRequest={focusRequest?.code === code ? focusRequest : undefined}
-                onSelectSection={(current, next) => {
-                  if (next && doc) addEntry(doc, next);
-                  else if (current) removeEntry(current.code, current.section, current.term);
-                }}
-                onRemove={() => removeCourse(code, activeTerm)}
-                onFocusHandled={clearCourseFocus}
-              />
+              <div key={code} className="ui-content-enter">
+                <PlannerCourseModule
+                  code={code}
+                  title={doc?.title ?? selected[0]?.snapshot.title ?? code}
+                  catalogError={failedCatalogCodes.has(code)}
+                  onRetry={() =>
+                    setFailedCatalogCodes((current) => {
+                      const next = new Set(current);
+                      next.delete(code);
+                      return next;
+                    })
+                  }
+                  doc={doc}
+                  term={activeTerm}
+                  entries={selected}
+                  conflictingIds={conflictingIds}
+                  conflictLabels={conflictLabels}
+                  focusRequest={focusRequest?.code === code ? focusRequest : undefined}
+                  onSelectSection={(current, next) => {
+                    if (next && doc) addEntry(doc, next);
+                    else if (current) removeEntry(current.code, current.section, current.term);
+                  }}
+                  onRemove={() => removeCourse(code, activeTerm)}
+                  onFocusHandled={clearCourseFocus}
+                />
+              </div>
             );
           })}
           {initialLoading ? (
@@ -687,9 +689,16 @@ function SchedulePlannerPaneInner() {
         />
       </ScheduleWorkspace>
 
-      {importReview ? (
-        <PlannerImportDialog review={importReview} onApply={applyImport} onClose={() => setImportReview(null)} />
-      ) : null}
+      <AnimatePresence initial={false}>
+        {importReview ? (
+          <PlannerImportDialog
+            key="import-review"
+            review={importReview}
+            onApply={applyImport}
+            onClose={() => setImportReview(null)}
+          />
+        ) : null}
+      </AnimatePresence>
     </>
   );
 }

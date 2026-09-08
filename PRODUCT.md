@@ -229,9 +229,10 @@ The interface has warmth and character. Copy is human, varied, and specific to U
 - WCAG 2.1 AA compliance as baseline (all text meets 4.5:1 contrast on its background; subdued text uses `--muted` #5a6066 which passes AA on all surfaces)
 - Map content has text alternatives: when a route is displayed, distance and time are also stated in chat message text
 - Chat is keyboard-navigable: focus Conversation messages to scroll with the keyboard, use Enter to send, and Escape to dismiss overlays
-- Reduced-motion preference respected: all animations collapse to 0.01ms duration, reveals show at once, spinning elements freeze
+- Reduced-motion preference applies to entrances and exits, including native details, modal removal, graph zoom, and locate scrolling. State changes remain immediate and legible; spinning elements freeze
 - Screen reader support: messages are announced via sr-only live region, tool execution states communicated, icon buttons have aria-labels
 - Focus indicators are visible on keyboard navigation (`ring-primary/40 ring-2` with ring-offset), not hidden behind mouse-only styles
 - Interactive elements target 44x44px on mobile via `min-h-[44px]` on pills; some icon buttons remain at 36-40px where density is prioritized over the WCAG minimum
 - Safe-area insets protect mobile headers, the bottom mode bar, and independent overlays. Phone text-entry controls use 16px text. The shell follows the unzoomed visual viewport when the browser reports a reduced visible area; physical keyboard and notch behavior need device testing.
 - Keep shell navigation usable during route loading while pending task controls remain inert. Trap drawer focus and return account-popup focus inside the drawer. Underlying mode tabs stay inactive only while a visible modal requires it.
+- Motion explains interaction: mode selection, overlay entry/exit, disclosures, newly arrived results, and feedback. It must not delay data changes, replay on streaming updates, reset maps/forms/scroll, or keep obsolete routes and groups visible.

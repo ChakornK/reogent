@@ -47,3 +47,13 @@ describe("GradeDistributionChart — gridlines render beneath the bars", () => {
     expect(container.textContent).toContain("No distribution data available.");
   });
 });
+
+it("animates only bar presentation and updates counts without remounting bars", () => {
+  const { container, rerender, getByRole, getByText } = render(<GradeDistributionChart buckets={{ "<50": 2 }} />);
+  const bar = getByRole("img", { name: "<50: 2 students" }).firstElementChild;
+  expect(bar?.className).toContain("ui-chart-enter");
+  expect(container.querySelectorAll(".ui-chart-enter")).toHaveLength(11);
+  rerender(<GradeDistributionChart buckets={{ "<50": 4 }} />);
+  expect(getByRole("img", { name: "<50: 4 students" }).firstElementChild).toBe(bar);
+  expect(getByText("Grade distribution — 4 students")).not.toBeNull();
+});

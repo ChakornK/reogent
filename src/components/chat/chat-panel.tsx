@@ -663,7 +663,7 @@ export function ChatPanel({ sessionId: initialSessionId }: { sessionId: string |
             initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.15 }}
             className="flex min-h-full flex-col px-3 text-center sm:px-6"
           >
             <div className="m-auto flex w-full max-w-xl flex-col items-center">
@@ -718,8 +718,12 @@ export function ChatPanel({ sessionId: initialSessionId }: { sessionId: string |
                 <motion.div
                   key="typing-indicator"
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0, transition: { duration: 0.15 } }}
-                  exit={{ opacity: 0, y: -4, transition: { duration: 0.12 } }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: prefersReducedMotion ? 0 : 0.15 } }}
+                  exit={{
+                    opacity: 0,
+                    y: prefersReducedMotion ? 0 : -4,
+                    transition: { duration: prefersReducedMotion ? 0 : 0.12 },
+                  }}
                 >
                   <TypingIndicator slow={slowResponse} isFirstMessage={messages.length <= 1} />
                 </motion.div>

@@ -73,12 +73,14 @@ export function PlanStructure() {
           />
           <span className="text-on-surface text-xs">Co-op program</span>
         </label>
-        {faculty == null && <p className="text-muted text-xs">Select a faculty to check co-op availability.</p>}
+        {faculty == null && (
+          <p className="ui-content-enter text-muted text-xs">Select a faculty to check co-op availability.</p>
+        )}
         {faculty != null && coopInfo == null && (
-          <p className="text-muted text-xs">This faculty has no co-op program.</p>
+          <p className="ui-content-enter text-muted text-xs">This faculty has no co-op program.</p>
         )}
         {faculty != null && coopInfo != null && coop && (
-          <>
+          <div key={faculty} className="ui-content-enter flex flex-col gap-1">
             <p className="text-muted text-xs">{coopInfo.blurb}</p>
             <Button
               size="compact"
@@ -96,11 +98,11 @@ export function PlanStructure() {
               Apply typical {coopInfo.shortLabel} sequence
             </Button>
             {sequenceMessage && (
-              <p className="text-on-surface-variant text-xs" role="status">
+              <p key={sequenceMessage} className="ui-notice-enter text-on-surface-variant text-xs" role="status">
                 {sequenceMessage}
               </p>
             )}
-          </>
+          </div>
         )}
       </div>
 

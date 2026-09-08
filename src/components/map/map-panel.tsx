@@ -25,7 +25,6 @@ import {
 } from "@/src/lib/building-catalog";
 import { formatMeters, formatMinutes } from "@/src/lib/format";
 import { drawableRoutePath, type MapHighlight } from "@/src/lib/walking";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -87,7 +86,6 @@ function GlassButton({
 }
 
 function RouteInfoCard({ highlight }: { highlight: MapHighlight | null }) {
-  const reduce = useReducedMotion();
   const key = highlight
     ? highlight.kind === "route"
       ? `${highlight.from}-${highlight.to}`
@@ -97,15 +95,11 @@ function RouteInfoCard({ highlight }: { highlight: MapHighlight | null }) {
     : "";
 
   return (
-    <AnimatePresence mode="wait">
+    <>
       {highlight && (
-        <motion.div
-          key={key}
-          initial={reduce ? false : { opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="neu-panel flex items-center gap-2.5 rounded-2xl px-3 py-2"
+        <div
+          key={`${highlight.kind}:${key}`}
+          className="ui-notice-enter neu-panel flex items-center gap-2.5 rounded-2xl px-3 py-2"
         >
           <span className="bg-secondary-container text-on-secondary-container flex size-8 items-center justify-center rounded-md">
             <Icon name={highlight.kind === "route" ? "walk" : "location"} size={18} />
@@ -116,9 +110,9 @@ function RouteInfoCard({ highlight }: { highlight: MapHighlight | null }) {
             </span>
             <span className="text-on-surface-variant block truncate text-xs">{highlightSubtitle(highlight)}</span>
           </span>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }
 

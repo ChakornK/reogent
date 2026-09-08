@@ -3,8 +3,10 @@
 import type { CourseIndexEntry } from "@/app/api/course-index/route";
 import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
+import { Disclosure } from "@/src/components/ui/disclosure";
 import { parsePrereq } from "@/src/shared/prereq-ast";
 import type { DraggableSyntheticListeners } from "@dnd-kit/core";
+import { AnimatePresence } from "motion/react";
 import { useId, useMemo, useRef, useState, type CSSProperties, type Ref } from "react";
 import { CourseInfoPopup } from "./course-info-popup";
 import { CoursePlacementSelect } from "./course-placement-select";
@@ -123,7 +125,7 @@ export function CourseChip({
           </span>
         </div>
       </div>
-      {placing && !ghost ? (
+      <Disclosure open={placing && !ghost}>
         <CoursePlacementSelect
           mode={blockId ? "move" : "add"}
           code={code}
@@ -134,20 +136,22 @@ export function CourseChip({
             onPlaced?.();
           }}
         />
-      ) : null}
-      {infoOpen && entry && !ghost ? (
-        <CourseInfoPopup
-          course={entry}
-          anchorRef={infoButtonRef}
-          id={popupId}
-          prereqAst={prereqAst}
-          coreqAst={coreqAst}
-          completedBefore={validation?.completedBefore}
-          completedSameOrBefore={validation?.completedSameOrBefore}
-          issues={validation?.missing}
-          onClose={() => setInfoOpen(false)}
-        />
-      ) : null}
+      </Disclosure>
+      <AnimatePresence initial={false}>
+        {infoOpen && entry && !ghost ? (
+          <CourseInfoPopup
+            course={entry}
+            anchorRef={infoButtonRef}
+            id={popupId}
+            prereqAst={prereqAst}
+            coreqAst={coreqAst}
+            completedBefore={validation?.completedBefore}
+            completedSameOrBefore={validation?.completedSameOrBefore}
+            issues={validation?.missing}
+            onClose={() => setInfoOpen(false)}
+          />
+        ) : null}
+      </AnimatePresence>
     </>
   );
 }

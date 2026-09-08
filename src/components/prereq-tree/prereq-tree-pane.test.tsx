@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import type { CourseIndexEntry } from "@/app/api/course-index/route";
 import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const apiState = vi.hoisted(() => ({
@@ -10,6 +10,13 @@ const apiState = vi.hoisted(() => ({
 const routerPush = vi.hoisted(() => vi.fn());
 const flowProps = vi.hoisted(() => ({ current: null as Record<string, unknown> | null }));
 let wideViewport = false;
+const motionState = vi.hoisted(() => ({ reduced: false }));
+const flowActions = vi.hoisted(() => ({ zoomIn: vi.fn(), zoomOut: vi.fn() }));
+
+vi.mock("motion/react", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("motion/react")>()),
+  useReducedMotion: () => motionState.reduced,
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: routerPush }),
@@ -43,7 +50,7 @@ vi.mock("reactflow", () => ({
   },
   Background: () => null,
   ReactFlowProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-  useReactFlow: () => ({ setViewport: vi.fn(), zoomIn: vi.fn(), zoomOut: vi.fn(), fitView: vi.fn() }),
+  useReactFlow: () => ({ setViewport: vi.fn(), ...flowActions, fitView: vi.fn() }),
   useStoreApi: () => ({ getState: () => ({ width: 0, height: 0 }) }),
   useNodesInitialized: () => true,
   getViewportForBounds: () => ({ x: 0, y: 0, zoom: 1 }),
@@ -69,6 +76,9 @@ describe("PrereqTreePane", () => {
     routerPush.mockReset();
     flowProps.current = null;
     wideViewport = false;
+    motionState.reduced = false;
+    flowActions.zoomIn.mockClear();
+    flowActions.zoomOut.mockClear();
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
       value: () => ({
@@ -206,6 +216,43 @@ describe("PrereqTreePane", () => {
     expect(container.querySelector("[data-prereq-compact-view]")?.getAttribute("data-prereq-compact-view")).toBe(
       "outline",
     );
+  });
+
+  it("reveals the selected view without replacing the graph or outline nodes", async () => {
+    apiState.getCourseIndex.mockResolvedValue({ courses: COURSES });
+    const { container } = render(<PrereqTreePane initialRoot="CPSC 210" />);
+    await screen.findByTestId("rf-canvas");
+    const canvas = screen.getByTestId("rf-canvas");
+    const outline = container.querySelector("[data-prereq-outline]");
+    fireEvent.click(screen.getByRole("button", { name: "map" }));
+    expect(screen.getByTestId("rf-canvas")).toBe(canvas);
+    expect(canvas.closest(".ui-content-enter")).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "outline" }));
+    expect(container.querySelector("[data-prereq-outline]")).toBe(outline);
+    expect(screen.getByTestId("rf-canvas")).toBe(canvas);
+    expect(outline?.closest(".ui-content-enter")).not.toBeNull();
+  });
+
+  it.each([false, true])("respects reduced motion (%s) in canvas-menu zoom commands", async (reduced) => {
+    motionState.reduced = reduced;
+    apiState.getCourseIndex.mockResolvedValue({ courses: COURSES });
+    render(<PrereqTreePane initialRoot="CPSC 210" />);
+    await screen.findByTestId("rf-canvas");
+    for (const [label, zoom] of [
+      ["Zoom in", flowActions.zoomIn],
+      ["Zoom out", flowActions.zoomOut],
+    ] as const) {
+      act(() => {
+        const open = flowProps.current?.onPaneContextMenu as (event: unknown) => void;
+        open({ clientX: 20, clientY: 20, preventDefault: vi.fn() });
+      });
+      const menu = screen.getByRole("menu");
+      expect(menu.className).not.toContain("ui-popover-enter");
+      expect(menu.querySelector(".ui-popover-enter")).not.toBeNull();
+      fireEvent.click(screen.getByRole("menuitem", { name: label }));
+      expect(zoom).toHaveBeenCalledWith({ duration: reduced ? 0 : 150 });
+      expect(screen.queryByRole("menu")).toBeNull();
+    }
   });
 
   it("offers a compact outline while keeping graph controls out of nested tab stops", async () => {

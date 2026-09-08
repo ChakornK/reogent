@@ -44,7 +44,7 @@ exports[`DropdownDisjunctionNode (REQ-9.1) > matches the closed dropdown snapsho
     </button>
   </div>
   <div
-    class="border-border mt-1.5 border-t pt-1.5 text-xs leading-snug text-on-surface-variant"
+    class="ui-content-enter border-border mt-1.5 border-t pt-1.5 text-xs leading-snug text-on-surface-variant"
   >
     Differential Calculus with Applications
   </div>
@@ -67,7 +67,7 @@ exports[`StackedDisjunctionNode (REQ-9.2) > matches the stacked snapshot with th
   >
     <button
       aria-pressed="false"
-      class="flex items-start gap-2 rounded-md border px-2 py-1 text-left text-on-surface-variant hover:bg-surface-container-low border-transparent"
+      class="flex items-start gap-2 rounded-md border px-2 py-1 text-left transition-colors duration-150 text-on-surface-variant hover:bg-surface-container-low border-transparent"
       type="button"
     >
       <span
@@ -85,7 +85,7 @@ exports[`StackedDisjunctionNode (REQ-9.2) > matches the stacked snapshot with th
     </button>
     <button
       aria-pressed="true"
-      class="flex items-start gap-2 rounded-md border px-2 py-1 text-left neu-raised border-border-subtle bg-surface text-on-surface"
+      class="flex items-start gap-2 rounded-md border px-2 py-1 text-left transition-colors duration-150 neu-raised border-border-subtle bg-surface text-on-surface"
       type="button"
     >
       <span
@@ -103,7 +103,7 @@ exports[`StackedDisjunctionNode (REQ-9.2) > matches the stacked snapshot with th
     </button>
     <button
       aria-pressed="false"
-      class="flex items-start gap-2 rounded-md border px-2 py-1 text-left text-on-surface-variant hover:bg-surface-container-low border-transparent"
+      class="flex items-start gap-2 rounded-md border px-2 py-1 text-left transition-colors duration-150 text-on-surface-variant hover:bg-surface-container-low border-transparent"
       type="button"
     >
       <span

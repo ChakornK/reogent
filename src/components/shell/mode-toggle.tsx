@@ -7,6 +7,7 @@ import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { FloatingPanel } from "@/src/components/ui/floating-panel";
 import { paneIdToSlug } from "@/src/lib/pane-route";
 import { LAST_CHAT_PATH_KEY, LAST_TOOLS_PATH_KEY, LAST_UNITY_PATH_KEY, type ShellMode } from "@/src/lib/shell-mode";
+import { AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type MouseEvent } from "react";
 
@@ -110,10 +111,21 @@ export function ModeToggle({
       <ul
         className={
           bottom
-            ? "grid h-15 grid-cols-3 gap-1 px-2"
+            ? "relative grid h-15 grid-cols-3 gap-1 px-2"
             : `flex gap-1 rounded-xl p-1 ${collapsed ? "flex-col items-center" : ""}`
         }
       >
+        {bottom ? (
+          <li
+            aria-hidden="true"
+            className="mobile-mode-indicator"
+            style={{
+              transform: `translateX(calc(${DESTINATIONS.findIndex((destination) => destination.mode === mode)} * (100% + 4px)))`,
+            }}
+          >
+            <span />
+          </li>
+        ) : null}
         {DESTINATIONS.map((destination) => {
           const locked = isLocked(destination.mode);
           const active = mode === destination.mode;
@@ -125,23 +137,26 @@ export function ModeToggle({
                 aria-label={destination.label}
                 aria-current={active ? "page" : undefined}
                 aria-disabled={locked || undefined}
-                aria-describedby={tooltip === destination.mode ? tooltipId : undefined}
+                aria-describedby={tooltip === destination.mode ? `${tooltipId}-${destination.mode}` : undefined}
                 onClick={(event) => navigate(event, destination.mode)}
                 onAuxClick={(event) => {
                   if (locked) event.preventDefault();
                 }}
-                onMouseEnter={(event) => {
-                  if (!locked) return;
+                onPointerEnter={(event) => {
+                  if (!locked || event.pointerType === "touch") return;
                   tooltipAnchor.current = event.currentTarget;
                   setTooltip(destination.mode);
                 }}
-                onMouseLeave={() => setTooltip(null)}
+                onPointerLeave={(event) => {
+                  if (event.pointerType !== "touch")
+                    setTooltip((current) => (current === destination.mode ? null : current));
+                }}
                 onFocus={(event) => {
                   if (!locked) return;
                   tooltipAnchor.current = event.currentTarget;
                   setTooltip(destination.mode);
                 }}
-                onBlur={() => setTooltip(null)}
+                onBlur={() => setTooltip((current) => (current === destination.mode ? null : current))}
                 className={
                   bottom
                     ? `focus-visible:ring-primary/40 active:bg-surface-container-high flex h-15 w-full flex-col items-center justify-center gap-1 rounded-lg text-xs font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-inset ${active ? "text-primary" : "text-muted"}`
@@ -159,18 +174,20 @@ export function ModeToggle({
                 <Icon name={destination.icon} size={bottom ? 22 : 16} className="shrink-0" />
                 {(bottom || !collapsed) && destination.label}
               </Link>
-              {tooltip === destination.mode && (
-                <FloatingPanel
-                  id={tooltipId}
-                  anchorRef={tooltipAnchor}
-                  onDismiss={() => setTooltip(null)}
-                  focusOnOpen={false}
-                  role="tooltip"
-                  className="bg-surface-container-high text-on-surface pointer-events-none w-max rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg"
-                >
-                  Sign in to use {destination.label}.
-                </FloatingPanel>
-              )}
+              <AnimatePresence initial={false}>
+                {tooltip === destination.mode && (
+                  <FloatingPanel
+                    id={`${tooltipId}-${destination.mode}`}
+                    anchorRef={tooltipAnchor}
+                    onDismiss={() => setTooltip((current) => (current === destination.mode ? null : current))}
+                    focusOnOpen={false}
+                    role="tooltip"
+                    className="bg-surface-container-high text-on-surface pointer-events-none w-max rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg"
+                  >
+                    Sign in to use {destination.label}.
+                  </FloatingPanel>
+                )}
+              </AnimatePresence>
             </li>
           );
         })}

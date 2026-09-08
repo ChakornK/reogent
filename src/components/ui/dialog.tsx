@@ -1,6 +1,7 @@
 "use client";
 
 import { Heading } from "@/src/components/ui/heading";
+import { useOverlayPresence } from "@/src/components/ui/use-overlay-presence";
 import { createContext, useContext, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -27,12 +28,16 @@ export function DialogRoot({
 }: DialogRootProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
+  const backdropRef = useRef<HTMLButtonElement>(null);
+  const present = useOverlayPresence(panelRef, "dialog");
+  useOverlayPresence(backdropRef, "fade");
   const dismissRef = useRef(onDismiss);
   const disabledRef = useRef(dismissDisabled);
   dismissRef.current = onDismiss;
   disabledRef.current = dismissDisabled;
 
   useEffect(() => {
+    if (!present) return;
     const overlay = overlayRef.current;
     const panel = panelRef.current;
     if (!overlay || !panel) return;
@@ -82,7 +87,7 @@ export function DialogRoot({
       for (const { element, inert } of siblingStates) element.inert = inert;
       if (previousFocus?.isConnected) previousFocus.focus();
     };
-  }, []);
+  }, [present]);
 
   if (typeof document === "undefined") return null;
 
@@ -90,6 +95,9 @@ export function DialogRoot({
     <div
       ref={overlayRef}
       data-dialog-root
+      data-exiting={!present || undefined}
+      inert={!present || undefined}
+      aria-hidden={!present || undefined}
       className={`fixed inset-0 z-50 flex justify-center ${
         placement === "mobile-sheet"
           ? "items-end px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center sm:p-6"
@@ -97,6 +105,7 @@ export function DialogRoot({
       }`}
     >
       <button
+        ref={backdropRef}
         type="button"
         tabIndex={-1}
         aria-label={backdropLabel}

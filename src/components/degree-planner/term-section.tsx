@@ -70,7 +70,10 @@ export function TermSection({ yearId, termIdx, term, courseIndex, validations }:
 
   if (term.kind === "coop") {
     return (
-      <div className="neu-inset bg-surface-container-low flex min-w-0 flex-1 flex-col rounded-xl px-4 py-3 text-center">
+      <div
+        key="coop"
+        className="ui-content-enter neu-inset bg-surface-container-low flex min-w-0 flex-1 flex-col rounded-xl px-4 py-3 text-center"
+      >
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1">
           <Icon name="briefcase" size={18} className="text-on-surface-variant" />
           <p className="text-on-surface text-sm font-medium">Co-op work term</p>
@@ -98,8 +101,9 @@ export function TermSection({ yearId, termIdx, term, courseIndex, validations }:
 
   return (
     <div
+      key="study"
       ref={setNodeRef}
-      className={`neu-inset flex min-h-28 min-w-0 flex-1 flex-col gap-2 rounded-xl border p-3 ${
+      className={`ui-content-enter neu-inset flex min-h-28 min-w-0 flex-1 flex-col gap-2 rounded-xl border p-3 ${
         highlighted
           ? "border-muted/70 bg-surface-container border-dashed"
           : "bg-surface-container-low border-transparent"

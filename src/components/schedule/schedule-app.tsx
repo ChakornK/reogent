@@ -5,6 +5,7 @@ import { Icon } from "@/src/components/icons";
 import { useShellNavigation } from "@/src/components/shell/shell-navigation";
 import { Button } from "@/src/components/ui/button";
 import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "@/src/components/ui/dialog";
+import { Disclosure } from "@/src/components/ui/disclosure";
 import { RetryState } from "@/src/components/ui/feedback";
 import { Checkbox, Field, SelectInput, TextInput } from "@/src/components/ui/form-controls";
 import { Heading } from "@/src/components/ui/heading";
@@ -21,6 +22,7 @@ import { commonFreeIntervals } from "@/src/lib/schedule/features/freeTime";
 import { defaultTermKey, deriveTerms, type Term } from "@/src/lib/schedule/features/terms";
 import type { Avatar, DayCode, Person, Schedule, Section } from "@/src/lib/schedule/types";
 import { dayCodeOf, minutesNow, minutesToFullLabel, toISODate } from "@/src/lib/schedule/util/time";
+import { AnimatePresence } from "motion/react";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AvatarChip } from "./avatar-chip";
 import { BlockDetail } from "./block-detail";
@@ -117,6 +119,7 @@ function ScheduleAppInner({ groupCode }: Props) {
     setGroupView(code ? { status: "loading", code, generation } : { status: "empty", code: null, generation });
     setTermKey(null);
     setEnabled({});
+    setDetail(null);
   }, []);
 
   const fetchGroup = useCallback(
@@ -479,7 +482,7 @@ function ScheduleAppInner({ groupCode }: Props) {
                 onChange={(event) => setShowFree(event.target.checked)}
               />
             </label>
-            {showFree ? (
+            <Disclosure open={showFree}>
               <section
                 aria-label="Common free-time results"
                 // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users need a focus target to scroll these results.
@@ -510,7 +513,7 @@ function ScheduleAppInner({ groupCode }: Props) {
                   </ul>
                 )}
               </section>
-            ) : null}
+            </Disclosure>
           </section>
           {termIsLive ? (
             <div data-control-section="now" className="border-border-subtle border-t py-4">
@@ -591,29 +594,36 @@ function ScheduleAppInner({ groupCode }: Props) {
           ariaLabel={group ? `${group.name} weekly schedule` : `${groupLabel} weekly schedule preview`}
         />
       </ScheduleWorkspace>
-      {draftSchedule && (
-        <Suspense
-          fallback={
-            <ScheduleProfileSkeleton
+      <AnimatePresence initial={false}>
+        {draftSchedule && (
+          <Suspense
+            key="profile"
+            fallback={
+              <ScheduleProfileSkeleton
+                title={me ? "Replace your schedule" : "Who is this schedule for?"}
+                avatarKind={me ? normalizePerson(me).avatar.kind : undefined}
+                onCancel={() => setDraftSchedule(null)}
+              />
+            }
+          >
+            <ProfileModal
+              schedule={draftSchedule}
+              currentHandle={me?.handle}
+              currentAvatar={me ? normalizePerson(me).avatar : undefined}
               title={me ? "Replace your schedule" : "Who is this schedule for?"}
-              avatarKind={me ? normalizePerson(me).avatar.kind : undefined}
+              saveLabel={me ? "Replace schedule" : "Save my schedule"}
+              onSave={saveSchedule}
               onCancel={() => setDraftSchedule(null)}
             />
-          }
-        >
-          <ProfileModal
-            schedule={draftSchedule}
-            currentHandle={me?.handle}
-            currentAvatar={me ? normalizePerson(me).avatar : undefined}
-            title={me ? "Replace your schedule" : "Who is this schedule for?"}
-            saveLabel={me ? "Replace schedule" : "Save my schedule"}
-            onSave={saveSchedule}
-            onCancel={() => setDraftSchedule(null)}
-          />
-        </Suspense>
-      )}
-      {showCreate && <CreateGroupModal onCreate={createGroup} onClose={() => setShowCreate(false)} />}
-      {detail && <BlockDetail block={detail} onClose={() => setDetail(null)} />}
+          </Suspense>
+        )}
+        {showCreate && (
+          <CreateGroupModal key="create-group" onCreate={createGroup} onClose={() => setShowCreate(false)} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence key={groupView.generation} initial={false}>
+        {detail && <BlockDetail key="block-detail" block={detail} onClose={() => setDetail(null)} />}
+      </AnimatePresence>
     </>
   );
 }

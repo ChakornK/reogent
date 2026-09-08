@@ -273,6 +273,24 @@ describe("ScheduleApp group loading", () => {
     expect(screen.queryAllByText("Person A")).toHaveLength(0);
   });
 
+  it("drops an open block detail immediately when the selected group changes", async () => {
+    const pendingB = deferredResponse();
+    stubSharerFetch({
+      loadGroup: (code) =>
+        code === "AAAAAA" ? Promise.resolve(json({ group: group(code, "Group A") })) : pendingB.promise,
+    });
+    const view = render(<ScheduleApp groupCode="AAAAAA" />);
+    fireEvent.click(await screen.findByRole("button", { name: /CPSC 110.*Lecture/ }));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+
+    view.rerender(<ScheduleApp groupCode="BBBBBB" />);
+    expect(screen.queryByRole("dialog", { hidden: true })).toBeNull();
+    expect(screen.queryAllByText("Person A")).toHaveLength(0);
+    expect(document.body.style.overflow).not.toBe("hidden");
+    await act(async () => pendingB.resolve(json({ group: group("BBBBBB", "Group B") })));
+    expect(screen.queryByRole("dialog", { hidden: true })).toBeNull();
+  });
+
   it("accepts only Group C during a rapid A to B to C switch", async () => {
     const pendingB = deferredResponse();
     stubSharerFetch({
@@ -376,6 +394,24 @@ describe("ScheduleApp controls", () => {
     fireEvent.click(personToggle);
     expect(screen.getByText("Show at least one person with a schedule to compare free time.")).toBeTruthy();
     expect(nowSection?.textContent).not.toContain("Person A");
+  });
+
+  it("makes collapsing free-time results inactive and supports reopening immediately", async () => {
+    stubSharerFetch({ loadGroup: (code) => Promise.resolve(json({ group: group(code, "Group A") })) });
+    render(<ScheduleApp groupCode="AAAAAA" />);
+    const toggle = await screen.findByRole("checkbox", { name: "Common free time" });
+    const results = screen.getByRole("region", { name: "Common free-time results" });
+    const intervals = results.textContent;
+
+    fireEvent.click(toggle);
+    expect(screen.queryByRole("region", { name: "Common free-time results" })).toBeNull();
+    if (results.isConnected) {
+      expect(results.closest("[inert][aria-hidden='true']")).toBeTruthy();
+      expect(results.textContent).toBe(intervals);
+    }
+    fireEvent.click(toggle);
+    expect(screen.getByRole("region", { name: "Common free-time results" }).textContent).toBe(intervals);
+    expect(screen.getByRole("region", { name: "Common free-time results" }).closest("[inert]")).toBeNull();
   });
 
   it("distinguishes enabled schedules with no common interval", async () => {

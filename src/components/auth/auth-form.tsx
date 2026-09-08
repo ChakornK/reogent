@@ -132,8 +132,8 @@ export function AuthForm({ mode }: AuthFormProps) {
               className="text-error text-center text-xs leading-4"
               initial={prefersReducedMotion ? false : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -4 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
             >
               {error}
             </motion.p>

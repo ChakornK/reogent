@@ -82,6 +82,8 @@ export function PulseQuestionCard({ card, onVote }: { card: PulseCardData; onVot
         {!voted && (
           <motion.article
             key="front"
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: reduce ? 0 : 0.18 } }}
             drag={reduce ? false : "x"}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.9}
@@ -146,7 +148,7 @@ export function PulseQuestionCard({ card, onVote }: { card: PulseCardData; onVot
               </MotionButton>
             </div>
             {card.error && (
-              <p role="alert" className="text-error mt-2 text-xs">
+              <p role="alert" className="ui-notice-enter text-error mt-2 text-xs">
                 {card.error}
               </p>
             )}
@@ -191,11 +193,11 @@ export function ShadowCard({ card, reduce }: { card: PulseCardData; reduce: bool
           {known && total > 0 && (
             <>
               <span
-                className={`h-full ${disagreePct >= agreePct ? "bg-primary" : "bg-primary/25"}`}
+                className={`ui-content-enter h-full ${disagreePct >= agreePct ? "bg-primary" : "bg-primary/25"}`}
                 style={{ width: `${disagreePct}%` }}
               />
               <span
-                className={`h-full ${agreePct > disagreePct ? "bg-primary" : "bg-primary/25"}`}
+                className={`ui-content-enter h-full ${agreePct > disagreePct ? "bg-primary" : "bg-primary/25"}`}
                 style={{ width: `${agreePct}%` }}
               />
             </>

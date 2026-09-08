@@ -43,7 +43,7 @@ export function AvatarPicker({ handle, avatar, onChange }: Props) {
       </div>
 
       {tab === "emoji" && (
-        <div className="neu-inset bg-surface-container-low grid max-h-40 grid-cols-[repeat(auto-fit,minmax(2.75rem,1fr))] gap-1 overflow-y-auto rounded-lg p-2">
+        <div className="ui-content-enter neu-inset bg-surface-container-low grid max-h-40 grid-cols-[repeat(auto-fit,minmax(2.75rem,1fr))] gap-1 overflow-y-auto rounded-lg p-2">
           {AVATAR_EMOJI.map((e) => (
             <button
               key={e}
@@ -60,7 +60,7 @@ export function AvatarPicker({ handle, avatar, onChange }: Props) {
 
       {tab === "photo" && (
         <>
-          <Button size="prominent" onClick={() => fileRef.current?.click()}>
+          <Button size="prominent" className="ui-content-enter" onClick={() => fileRef.current?.click()}>
             {avatar.imageDataUrl ? "Replace photo" : "Upload photo"}
           </Button>
           <input

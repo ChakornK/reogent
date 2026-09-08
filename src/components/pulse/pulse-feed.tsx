@@ -95,10 +95,17 @@ export function PulseFeed() {
         <div className="mx-auto flex w-full max-w-xl flex-col gap-3">
           {loading ? <PulseCardsLoading label="Loading questions…" /> : null}
           {error ? (
-            <RetryState title="Pulse unavailable" message={error} onRetry={() => void fetchFeed()} className="py-8" />
+            <RetryState
+              title="Pulse unavailable"
+              message={error}
+              onRetry={() => void fetchFeed()}
+              className="ui-notice-enter py-8"
+            />
           ) : null}
           {empty ? (
-            <p className="text-muted py-8 text-center text-sm">No active round right now. Check back soon.</p>
+            <p className="ui-content-enter text-muted py-8 text-center text-sm">
+              No active round right now. Check back soon.
+            </p>
           ) : null}
           {feed && !empty ? (
             <>

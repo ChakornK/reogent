@@ -116,7 +116,7 @@ function DetailCard({
 
 function Section({ title, note, children }: { title: string; note?: string | null; children: React.ReactNode }) {
   return (
-    <section className="border-border-subtle border-t pt-2.5">
+    <section className="ui-content-enter border-border-subtle border-t pt-2.5">
       <Heading as="h3" size="subsection" className="mb-2">
         {title}
         {note && <span className="text-muted ml-1.5 text-xs font-normal">{note}</span>}
@@ -174,7 +174,7 @@ export function BuildingPopup({ building, onClose }: { building: SelectedBuildin
       role="dialog"
       aria-modal="false"
       aria-label={`${building.name} details`}
-      className="neu-panel absolute top-3 bottom-6 left-3 z-20 flex w-80 max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-2xl"
+      className="ui-popover-enter neu-panel absolute top-3 bottom-6 left-3 z-20 flex w-80 max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-2xl"
     >
       <div className="border-border-subtle flex items-start gap-2.5 border-b px-3.5 py-3">
         <span className="bg-secondary-container text-on-secondary-container mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md">
@@ -216,6 +216,7 @@ export function BuildingPopup({ building, onClose }: { building: SelectedBuildin
         )}
         {failed ? (
           <RetryState
+            className="ui-notice-enter"
             message="Couldn't load details for this building."
             onRetry={() => setFetchNonce((nonce) => nonce + 1)}
             retryLabel="Retry"
@@ -286,7 +287,9 @@ export function BuildingPopup({ building, onClose }: { building: SelectedBuildin
               </Section>
             )}
             {details.rooms.length === 0 && !availability?.rooms.length && details.pois.length === 0 && (
-              <p className="text-on-surface-variant text-sm">No room or service listings for this building.</p>
+              <p className="ui-content-enter text-on-surface-variant text-sm">
+                No room or service listings for this building.
+              </p>
             )}
           </>
         )}

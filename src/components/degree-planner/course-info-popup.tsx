@@ -120,7 +120,9 @@ export function CourseInfoPopup({
           Credits: <span className="text-on-surface">{course.credits}</span>
         </p>
       )}
-      {description && <p className="text-on-surface text-xs leading-relaxed whitespace-pre-wrap">{description}</p>}
+      {description && (
+        <p className="ui-content-enter text-on-surface text-xs leading-relaxed whitespace-pre-wrap">{description}</p>
+      )}
       {course.prerequisite && (
         <p className="text-on-surface-variant text-xs">
           <span className="text-muted">Prerequisites: </span>

@@ -78,7 +78,7 @@ export function GradeDistributionChart({
                     aria-label={`${k}: ${count} students`}
                   >
                     <div
-                      className={`w-full rounded-t-sm transition-colors ${
+                      className={`ui-chart-enter w-full rounded-t-sm transition-colors ${
                         isHi ? "bg-primary" : "bg-primary/25 group-hover:bg-primary/40"
                       }`}
                       style={{ height: `${h}%`, minHeight: count > 0 ? 4 : 0 }}

@@ -23,7 +23,7 @@ type ProfileStatus = "loading" | "load-error" | "idle" | "saving" | "saved" | "e
 
 function ProfileFormLoading() {
   return (
-    <SkeletonGroup label="Loading student profile" className="flex flex-col gap-3">
+    <SkeletonGroup label="Loading student profile" className="ui-content-enter flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
         <Skeleton className="h-4 w-16" />
         <Skeleton className="h-11 w-full rounded-lg" />
@@ -88,6 +88,7 @@ export function ProfileForm() {
         message="Your saved student defaults could not be loaded. Editing stays locked to protect them."
         onRetry={() => void loadProfile()}
         align="start"
+        className="ui-content-enter"
         compact
       />
     );
@@ -95,7 +96,7 @@ export function ProfileForm() {
 
   const saving = status === "saving";
   return (
-    <form onSubmit={handleSubmit} aria-busy={saving} className="flex flex-col gap-3">
+    <form onSubmit={handleSubmit} aria-busy={saving} className="ui-content-enter flex flex-col gap-3">
       <fieldset disabled={saving} className="flex flex-col gap-3 disabled:opacity-70">
         <Field label="Program" htmlFor="settings-program">
           <TextInput
@@ -147,7 +148,11 @@ export function ProfileForm() {
             {saving ? "Saving…" : "Save profile"}
           </Button>
           <p role="status" className={`text-xs ${status === "error" ? "text-error" : "text-muted"}`}>
-            {status === "saved" ? "Saved" : status === "error" ? "Couldn't save. Try again." : ""}
+            {status === "saved" || status === "error" ? (
+              <span key={status} className="ui-notice-enter inline-block">
+                {status === "saved" ? "Saved" : "Couldn't save. Try again."}
+              </span>
+            ) : null}
           </p>
         </div>
       </fieldset>

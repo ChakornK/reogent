@@ -434,11 +434,15 @@ export function CourseSearchField({
               )
             ) : null}
             {rejected ? (
-              <div id="code-error" role="alert" className="text-error flex min-h-11 items-center px-3 text-sm">
+              <div
+                id="code-error"
+                role="alert"
+                className="ui-notice-enter text-error flex min-h-11 items-center px-3 text-sm"
+              >
                 Okanagan campus codes aren't in this catalog. Try a Vancouver course.
               </div>
             ) : error ? (
-              <div role="alert" className="text-error flex min-h-11 items-center px-3 text-sm">
+              <div role="alert" className="ui-notice-enter text-error flex min-h-11 items-center px-3 text-sm">
                 <span className="min-w-0 flex-1">{value} could not be reached.</span>
                 {onRetry && (
                   <InlineAction onPointerDown={(event) => event.preventDefault()} onClick={onRetry}>
@@ -497,7 +501,9 @@ export function CourseSearchField({
                 ) : null}
               </>
             ) : status === "idle" && !error && !rejected ? (
-              <div className="text-muted flex min-h-11 items-center px-3 text-sm">No courses matching {trimmed}.</div>
+              <div className="ui-content-enter text-muted flex min-h-11 items-center px-3 text-sm">
+                No courses matching {trimmed}.
+              </div>
             ) : null}
           </FloatingPanel>
         )}
@@ -513,7 +519,7 @@ export function CourseSearchField({
         <p
           id="code-error"
           role="alert"
-          className="border-error/30 bg-error-container/30 text-error rounded-lg border px-3 py-2 text-xs"
+          className="ui-notice-enter border-error/30 bg-error-container/30 text-error rounded-lg border px-3 py-2 text-xs"
         >
           Okanagan campus codes aren't in this catalog. Try a Vancouver course.
         </p>
@@ -541,7 +547,11 @@ export function CourseSearchField({
               </p>
             )}
           </div>
-          <div data-course-list aria-busy={status === "loading"} className="flex flex-col gap-1.5 overflow-auto">
+          <div
+            data-course-list
+            aria-busy={status === "loading"}
+            className="ui-content-enter flex flex-col gap-1.5 overflow-auto"
+          >
             {list.candidates.map((c) => (
               <button
                 key={c.code}
@@ -565,7 +575,7 @@ export function CourseSearchField({
       )}
 
       {list && status === "idle" && list.candidates.length === 0 && !error && !rejected && (
-        <p className="text-muted px-1 text-sm">No courses matching {trimmed}.</p>
+        <p className="ui-content-enter text-muted px-1 text-sm">No courses matching {trimmed}.</p>
       )}
 
       {!trimmed && status === "idle" && !error && !rejected && (

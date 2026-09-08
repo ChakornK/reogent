@@ -168,6 +168,13 @@ describe("Course chip layout", () => {
     const select = screen.getByRole("combobox", { name: "Move CPSC 221 to term" });
     expect(select.closest("[data-block-id]")).toBeNull();
     expect(select.classList.contains("shrink-0")).toBe(true);
+    const disclosure = select.closest("[data-disclosure]");
+    expect(disclosure?.contains(select)).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Move" }));
+    expect(disclosure?.getAttribute("aria-hidden")).toBe("true");
+    expect(disclosure?.hasAttribute("inert")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Move" }));
+    expect(select.closest("[inert]")).toBeNull();
     expect(chipLayout(container.firstElementChild as HTMLElement)).toEqual(layout);
 
     rerender(<CourseBlock blockId="block-1" code={course.code} entry={course} validation={validation} ghost />);

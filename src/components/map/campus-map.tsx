@@ -1227,7 +1227,7 @@ export function CampusMap({
       {entranceStatus === "error" ? (
         <div
           role="alert"
-          className="neu-panel bg-surface absolute right-3 bottom-28 z-20 flex max-w-64 items-center gap-2 rounded-xl p-2"
+          className="ui-notice-enter neu-panel bg-surface absolute right-3 bottom-28 z-20 flex max-w-64 items-center gap-2 rounded-xl p-2"
         >
           <span className="text-on-surface-variant text-xs">Entrance markers unavailable.</span>
           <Button variant="ghost" size="compact" onClick={() => setEntranceNonce((nonce) => nonce + 1)}>
@@ -1237,7 +1237,8 @@ export function CampusMap({
       ) : null}
       {picked && (picked.name || picked.code) && (
         <div
-          className="bg-surface-bright pointer-events-none absolute z-10 max-w-60 rounded-lg px-3 py-2 shadow-md"
+          key={picked.code || picked.name}
+          className="ui-content-enter bg-surface-bright pointer-events-none absolute z-10 max-w-60 rounded-lg px-3 py-2 shadow-md"
           style={tooltipPosition(picked, containerRef.current)}
           role="status"
         >

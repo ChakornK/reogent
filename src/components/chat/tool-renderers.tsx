@@ -6,6 +6,7 @@ import { useChatShell } from "@/src/components/chat/chat-shell-context";
 import { GradeDistributionChart } from "@/src/components/course-lookup/grade-distribution-chart";
 import { Icon } from "@/src/components/icons";
 import { Button } from "@/src/components/ui/button";
+import { Disclosure } from "@/src/components/ui/disclosure";
 import { ErrorBoundary } from "@/src/components/ui/error-boundary";
 import { Heading } from "@/src/components/ui/heading";
 import { InfoChip } from "@/src/components/ui/info-chip";
@@ -26,7 +27,7 @@ import {
 import { describeToolCall, formatCad, formatMeters, formatMinutes } from "@/src/lib/format";
 import { toolCallToCanvasView } from "@/src/lib/walking";
 import { motion, useReducedMotion } from "motion/react";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 interface ToolCallRendererProps {
   call: ToolCall;
@@ -244,6 +245,7 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
   const { setWorkspaceView, setActiveChannel, setUserDismissedPane, setAnswerSheetOpen, setRightPaneCollapsed } =
     useChatShell();
   const [coursesExpanded, setCoursesExpanded] = useState(false);
+  const coursesId = useId();
   const outer = call.result as { type?: string; result?: unknown } | undefined;
   const data = outer?.result;
 
@@ -253,7 +255,31 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
         ? (data as SearchCoursesResult).courses.filter(isCourseDoc)
         : [];
       if (courses.length === 0) return null;
-      const shown = coursesExpanded ? courses : courses.slice(0, 4);
+      const rows = courses.map((course) => (
+        <button
+          key={`${course.code}-${course.title}`}
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            setUserDismissedPane(false);
+            setAnswerSheetOpen(true);
+            setRightPaneCollapsed(false);
+            setWorkspaceView({ paneId: "course-lookup", state: { code: course.code } });
+          }}
+          className={toolResultRowClasses(true)}
+        >
+          <ToolResultRowContent
+            title={
+              <span className="flex items-center gap-2">
+                <span className="text-primary font-mono text-xs">{course.code.replace("_V", "")}</span>
+                {course.credits !== null ? <InfoChip>{course.credits} cr</InfoChip> : null}
+              </span>
+            }
+            description={course.title}
+            trailing={<Icon name="right" size={16} className="text-muted shrink-0" />}
+          />
+        </button>
+      ));
       return (
         <ToolResultList
           footer={
@@ -262,6 +288,8 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
                 variant="ghost"
                 size="field"
                 onClick={() => setCoursesExpanded((expanded) => !expanded)}
+                aria-expanded={coursesExpanded}
+                aria-controls={coursesId}
                 className="w-full"
               >
                 <Icon name={coursesExpanded ? "down" : "add"} size={14} />
@@ -270,31 +298,10 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
             ) : null
           }
         >
-          {shown.map((course) => (
-            <button
-              key={`${course.code}-${course.title}`}
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                setUserDismissedPane(false);
-                setAnswerSheetOpen(true);
-                setRightPaneCollapsed(false);
-                setWorkspaceView({ paneId: "course-lookup", state: { code: course.code } });
-              }}
-              className={toolResultRowClasses(true)}
-            >
-              <ToolResultRowContent
-                title={
-                  <span className="flex items-center gap-2">
-                    <span className="text-primary font-mono text-xs">{course.code.replace("_V", "")}</span>
-                    {course.credits !== null ? <InfoChip>{course.credits} cr</InfoChip> : null}
-                  </span>
-                }
-                description={course.title}
-                trailing={<Icon name="right" size={16} className="text-muted shrink-0" />}
-              />
-            </button>
-          ))}
+          {rows.slice(0, 4)}
+          <Disclosure open={coursesExpanded} id={coursesId}>
+            {rows.slice(4)}
+          </Disclosure>
         </ToolResultList>
       );
     }
@@ -784,9 +791,11 @@ export function ResponseWidget({ call, callKey }: { call: ToolCall; callKey?: st
       }
     >
       {loaded ? (
-        <ErrorBoundary fallback={<ToolResultFailure name={call.name} result={call.result} />}>
-          <Renderer call={call} />
-        </ErrorBoundary>
+        <div className="ui-content-enter">
+          <ErrorBoundary fallback={<ToolResultFailure name={call.name} result={call.result} />}>
+            <Renderer call={call} />
+          </ErrorBoundary>
+        </div>
       ) : null}
     </motion.div>
   );

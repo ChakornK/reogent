@@ -46,6 +46,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import { AnimatePresence, motion, useIsPresent, useReducedMotion } from "motion/react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CourseBlock } from "./course-block";
 import { LookupBlock } from "./lookup-block";
@@ -553,6 +554,7 @@ function ActionsSection({
   onClearAll: () => void;
 }) {
   const shell = useChatShellOptional();
+  const reducedMotion = useReducedMotion();
   const major = usePlanner((s) => s.major);
   const addBlocks = usePlanner((s) => s.addBlocks);
   const toggleIgnoreBlock = usePlanner((s) => s.toggleIgnoreBlock);
@@ -602,7 +604,9 @@ function ActionsSection({
   function locateBlock(blockId: string) {
     setIgnoreOpen(false);
     setFlashBlockId(blockId);
-    document.querySelector(`[data-block-id="${blockId}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    document
+      .querySelector(`[data-block-id="${blockId}"]`)
+      ?.scrollIntoView({ behavior: reducedMotion ? "instant" : "smooth", block: "center" });
     if (flashTimer.current !== null) window.clearTimeout(flashTimer.current);
     flashTimer.current = window.setTimeout(() => setFlashBlockId(null), 1500);
   }
@@ -725,22 +729,24 @@ function ActionsSection({
           <span>Structure</span>
           <Icon name="down" size={12} className={`transition-transform ${structureOpen ? "rotate-180" : ""}`} />
         </Button>
-        {structureOpen && (
-          <FloatingPanel
-            id={structureId}
-            anchorRef={structureRef}
-            onDismiss={() => setStructureOpen(false)}
-            align="end"
-            role="dialog"
-            aria-label="Plan structure"
-            className="neu-panel bg-surface w-72 rounded-2xl p-4"
-          >
-            <Heading as="h3" size="subsection" className="mb-3">
-              Plan structure
-            </Heading>
-            <PlanStructure />
-          </FloatingPanel>
-        )}
+        <AnimatePresence initial={false}>
+          {structureOpen && (
+            <FloatingPanel
+              id={structureId}
+              anchorRef={structureRef}
+              onDismiss={() => setStructureOpen(false)}
+              align="end"
+              role="dialog"
+              aria-label="Plan structure"
+              className="neu-panel bg-surface w-72 rounded-2xl p-4"
+            >
+              <Heading as="h3" size="subsection" className="mb-3">
+                Plan structure
+              </Heading>
+              <PlanStructure />
+            </FloatingPanel>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="relative">
@@ -761,56 +767,58 @@ function ActionsSection({
             </span>
           )}
         </Button>
-        {ignoreOpen && (
-          <FloatingPanel
-            id={issuesId}
-            anchorRef={issuesRef}
-            onDismiss={() => setIgnoreOpen(false)}
-            align="end"
-            role="dialog"
-            aria-label="Placement issues"
-            style={{ maxHeight: 320 }}
-            className="neu-panel bg-surface flex w-80 flex-col gap-1 rounded-2xl p-2"
-          >
-            <p className="text-on-surface px-2 pt-1 text-xs font-medium">
-              {erroredBlocks.length === 0 ? "No placement issues" : `${erroredBlocks.length} placement issue(s)`}
-            </p>
-            {erroredBlocks.length > 0 && (
-              <p className="text-muted px-2 pb-1 text-xs">Select an issue to highlight the course on the board.</p>
-            )}
-            {erroredBlocks.map((block) => (
-              <div
-                key={block.id}
-                className="hover:bg-surface-container-low flex items-start gap-1 rounded-lg px-2 py-1.5"
-              >
-                <button
-                  type="button"
-                  onClick={() => locateBlock(block.id)}
-                  className="min-w-0 flex-1 text-left"
-                  title="Locate on the board"
+        <AnimatePresence initial={false}>
+          {ignoreOpen && (
+            <FloatingPanel
+              id={issuesId}
+              anchorRef={issuesRef}
+              onDismiss={() => setIgnoreOpen(false)}
+              align="end"
+              role="dialog"
+              aria-label="Placement issues"
+              style={{ maxHeight: 320 }}
+              className="neu-panel bg-surface flex w-80 flex-col gap-1 rounded-2xl p-2"
+            >
+              <p className="text-on-surface px-2 pt-1 text-xs font-medium">
+                {erroredBlocks.length === 0 ? "No placement issues" : `${erroredBlocks.length} placement issue(s)`}
+              </p>
+              {erroredBlocks.length > 0 && (
+                <p className="text-muted px-2 pb-1 text-xs">Select an issue to highlight the course on the board.</p>
+              )}
+              {erroredBlocks.map((block) => (
+                <div
+                  key={block.id}
+                  className="hover:bg-surface-container-low flex items-start gap-1 rounded-lg px-2 py-1.5"
                 >
-                  <p className="text-xs">
-                    <span className="text-on-surface font-medium">{block.code}</span>
-                    <span className="text-muted"> · {block.place}</span>
-                  </p>
-                  <p className="text-on-surface-variant mt-0.5 text-xs leading-snug">
-                    {block.issues.map(describeIssue).join(" ")}
-                  </p>
-                </button>
-                <Button
-                  variant="ghost"
-                  size="denseIcon"
-                  onClick={() => toggleIgnoreBlock(block.id)}
-                  title="Mute this issue"
-                  aria-label={`Mute issue for ${block.code}`}
-                  className="mt-0.5"
-                >
-                  <Icon name="eyeOff" size={13} />
-                </Button>
-              </div>
-            ))}
-          </FloatingPanel>
-        )}
+                  <button
+                    type="button"
+                    onClick={() => locateBlock(block.id)}
+                    className="min-w-0 flex-1 text-left"
+                    title="Locate on the board"
+                  >
+                    <p className="text-xs">
+                      <span className="text-on-surface font-medium">{block.code}</span>
+                      <span className="text-muted"> · {block.place}</span>
+                    </p>
+                    <p className="text-on-surface-variant mt-0.5 text-xs leading-snug">
+                      {block.issues.map(describeIssue).join(" ")}
+                    </p>
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="denseIcon"
+                    onClick={() => toggleIgnoreBlock(block.id)}
+                    title="Mute this issue"
+                    aria-label={`Mute issue for ${block.code}`}
+                    className="mt-0.5"
+                  >
+                    <Icon name="eyeOff" size={13} />
+                  </Button>
+                </div>
+              ))}
+            </FloatingPanel>
+          )}
+        </AnimatePresence>
       </div>
 
       <Button
@@ -828,19 +836,29 @@ function ActionsSection({
         <Icon name="chat1" size={14} />
         <span>Ask AI</span>
       </Button>
-      {autofillResult && <AutofillSummary result={autofillResult} onClose={() => setAutofillResult(null)} />}
+      <AnimatePresence initial={false}>
+        {autofillResult && <AutofillSummary result={autofillResult} onClose={() => setAutofillResult(null)} />}
+      </AnimatePresence>
     </div>
   );
 }
 
 function AutofillSummary({ result, onClose }: { result: AutofillResult; onClose: () => void }) {
+  const present = useIsPresent();
+  const reducedMotion = useReducedMotion();
   const placed = result.placedCodes.slice(0, 10);
   const remaining = result.remaining.slice(0, 3);
   return (
-    <div
+    <motion.div
+      inert={!present || undefined}
+      aria-hidden={!present || undefined}
+      initial={reducedMotion ? false : { opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: reducedMotion ? 0 : present ? 0.2 : 0.14, ease: [0.16, 1, 0.3, 1] }}
       role="status"
       aria-live="polite"
-      className="neu-panel bg-surface fixed right-5 bottom-5 z-50 w-80 rounded-xl p-3"
+      className="app-notification-stack neu-panel bg-surface fixed right-4 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl p-3"
     >
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
@@ -880,7 +898,7 @@ function AutofillSummary({ result, onClose }: { result: AutofillResult; onClose:
           <Icon name="close" size={14} />
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

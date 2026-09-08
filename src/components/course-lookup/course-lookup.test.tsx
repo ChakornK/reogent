@@ -367,6 +367,26 @@ describe("course-lookup-pane — tools-mode list/detail split", () => {
     expect(screen.queryByRole("button", { name: "Show courses" })).toBeNull();
   });
 
+  it("keeps filter values and margins through an interrupted disclosure collapse", async () => {
+    shellState.mode = "tools";
+    apiState.searchCourses.mockResolvedValue({ courses: [fullRecord], subject_total: 1 });
+    render(<CourseLookupPane state={{ code: "" }} setState={vi.fn()} />);
+    await screen.findByRole("button", { name: "CPSC 110" });
+    fireEvent.click(screen.getByRole("button", { name: "Filters" }));
+    const year = screen.getByLabelText("Year") as HTMLSelectElement;
+    const disclosure = year.closest("[data-disclosure]");
+    expect(disclosure?.className).toContain("mx-4");
+    expect(disclosure?.className).toContain("sm:mx-0");
+    fireEvent.change(year, { target: { value: "300" } });
+    fireEvent.click(screen.getByRole("button", { name: "Filters (1)" }));
+    expect(disclosure?.hasAttribute("inert")).toBe(true);
+    expect(disclosure?.getAttribute("aria-hidden")).toBe("true");
+    expect(screen.queryByRole("region", { name: "Advanced course filters" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Filters (1)" }));
+    expect((screen.getByLabelText("Year") as HTMLSelectElement).value).toBe("300");
+    expect(screen.getByLabelText("Year").closest("[inert]")).toBeNull();
+  });
+
   it("reserves a result viewport when advanced filters expand", async () => {
     shellState.mode = "tools";
     apiState.searchCourses.mockResolvedValue({ courses: [fullRecord], subject_total: 1 });

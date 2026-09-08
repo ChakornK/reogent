@@ -178,7 +178,7 @@ export function BuildingDetailContent({ details }: { details: BuildingDetails })
   const unavailable = unavailableBuildingDetailSources(details);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="ui-content-enter flex flex-col gap-4">
       {details.photos.length > 0 ? (
         <section aria-label="Building photos" className="flex snap-x [scrollbar-gutter:stable] gap-2 overflow-x-auto">
           {details.photos.map((photo) => (
@@ -352,7 +352,7 @@ function BuildingList({
 }) {
   if (buildings.length === 0) return null;
   return (
-    <section aria-label={label}>
+    <section aria-label={label} className="ui-content-enter">
       <Heading as="h3" size="label" tone="muted" className="px-2 pb-1.5">
         {label}
       </Heading>
@@ -503,7 +503,7 @@ export function BuildingRail(props: BuildingRailProps) {
     >
       {props.mode === "details" && props.selected ? (
         <div className="flex h-full min-h-0 flex-col">
-          <div className="border-border-subtle shrink-0 border-b px-3 py-3">
+          <div className="ui-content-enter border-border-subtle shrink-0 border-b px-3 py-3">
             <div>
               <Heading as="h2" size="section">
                 {props.selected.name}
@@ -543,13 +543,17 @@ export function BuildingRail(props: BuildingRailProps) {
               </Button>
             </div>
             {props.favoriteStatus === "error" && props.authenticated ? (
-              <p className="text-error mt-2 text-xs" role="alert">
+              <p className="ui-notice-enter text-error mt-2 text-xs" role="alert">
                 Couldn't update saved buildings. Try the Save action again.
               </p>
             ) : null}
             {props.shareStatus !== "idle" ? (
               <p
-                className={props.shareStatus === "error" ? "text-error mt-2 text-xs" : "text-muted mt-2 text-xs"}
+                className={
+                  props.shareStatus === "error"
+                    ? "ui-notice-enter text-error mt-2 text-xs"
+                    : "ui-notice-enter text-muted mt-2 text-xs"
+                }
                 role="status"
               >
                 {props.shareStatus === "shared"
@@ -601,7 +605,9 @@ export function BuildingRail(props: BuildingRailProps) {
               </SkeletonGroup>
             ) : null}
             {props.details.status === "error" ? (
-              <RetryAlert onRetry={props.onRetryDetails}>Couldn't load building details.</RetryAlert>
+              <RetryAlert className="ui-notice-enter" onRetry={props.onRetryDetails}>
+                Couldn't load building details.
+              </RetryAlert>
             ) : null}
             {props.details.status === "ready" ? (
               <>
@@ -649,7 +655,7 @@ export function BuildingRail(props: BuildingRailProps) {
             }`}
           >
             {props.mode === "directions" && props.selected ? (
-              <div data-route-editor className="bg-surface sticky top-0 z-20 px-3 pt-3 pb-2">
+              <div data-route-editor className="ui-content-enter bg-surface sticky top-0 z-20 px-3 pt-3 pb-2">
                 <div className="neu-raised bg-surface rounded-xl p-2">
                   <div
                     data-route-endpoints
@@ -713,7 +719,7 @@ export function BuildingRail(props: BuildingRailProps) {
                     })}
                   </div>
                   {props.endpointError ? (
-                    <p id={endpointErrorId} role="alert" className="text-error mt-2 ml-7 text-xs">
+                    <p id={endpointErrorId} role="alert" className="ui-notice-enter text-error mt-2 ml-7 text-xs">
                       {props.endpointError}
                     </p>
                   ) : null}
@@ -723,19 +729,23 @@ export function BuildingRail(props: BuildingRailProps) {
             {props.selectionError ? (
               <p
                 role="alert"
-                className="bg-error-container text-on-error-container mx-1 mb-3 rounded-lg px-3 py-2 text-xs"
+                className="ui-notice-enter bg-error-container text-on-error-container mx-1 mb-3 rounded-lg px-3 py-2 text-xs"
               >
                 {props.selectionError}
               </p>
             ) : null}
             {props.mode === "directions" && !routeSearching && props.route.status !== "idle" ? (
               <div className="px-3 py-3">
-                {props.route.status === "loading" ? <LoadingStatus>Finding a walking route…</LoadingStatus> : null}
+                {props.route.status === "loading" ? (
+                  <LoadingStatus className="ui-notice-enter">Finding a walking route…</LoadingStatus>
+                ) : null}
                 {props.route.status === "error" ? (
-                  <RetryAlert onRetry={props.onRetryRoute}>Couldn't calculate this route.</RetryAlert>
+                  <RetryAlert className="ui-notice-enter" onRetry={props.onRetryRoute}>
+                    Couldn't calculate this route.
+                  </RetryAlert>
                 ) : null}
                 {props.route.status === "network" || props.route.status === "estimate" ? (
-                  <div className="bg-surface-container-low rounded-lg p-3">
+                  <div className="ui-content-enter bg-surface-container-low rounded-lg p-3">
                     <p className="text-on-surface text-sm font-medium">
                       {formatMinutes(props.route.route.minutes)} · {formatMeters(props.route.route.meters)}
                     </p>
@@ -763,8 +773,8 @@ export function BuildingRail(props: BuildingRailProps) {
                     results.length === 0
                       ? "hidden"
                       : props.mode === "directions"
-                        ? "mx-2 flex flex-col gap-2"
-                        : "flex flex-col gap-1"
+                        ? "ui-content-enter mx-2 flex flex-col gap-2"
+                        : "ui-content-enter flex flex-col gap-1"
                   }
                 >
                   {results.map((building, index) => (
@@ -781,7 +791,7 @@ export function BuildingRail(props: BuildingRailProps) {
                   ))}
                 </div>
                 {results.length === 0 ? (
-                  <div className="px-3 py-8 text-center">
+                  <div className="ui-content-enter px-3 py-8 text-center">
                     <p className="text-on-surface text-sm font-medium">No buildings found</p>
                     <p className="text-muted mt-1 text-xs">Try a building code, name, or address.</p>
                     <Button
@@ -800,7 +810,7 @@ export function BuildingRail(props: BuildingRailProps) {
               </>
             ) : props.mode === "directions" ? (
               routeSearching ? (
-                <div className="px-3 py-8 text-center">
+                <div className="ui-content-enter px-3 py-8 text-center">
                   <p className="text-on-surface text-sm font-medium">
                     Search for the {props.routeField === "origin" ? "starting building" : "destination"}
                   </p>
@@ -808,7 +818,9 @@ export function BuildingRail(props: BuildingRailProps) {
                   <div id={listboxId} role="listbox" aria-label={resultListLabel} className="hidden" />
                 </div>
               ) : props.route.status === "idle" ? (
-                <p className="text-muted px-3 py-8 text-center text-xs">Choose From or To above to plan a route.</p>
+                <p className="ui-content-enter text-muted px-3 py-8 text-center text-xs">
+                  Choose From or To above to plan a route.
+                </p>
               ) : null
             ) : (
               <div className="flex flex-col gap-4">
@@ -822,7 +834,7 @@ export function BuildingRail(props: BuildingRailProps) {
                   </section>
                 ) : null}
                 {props.favoriteStatus === "error" && props.authenticated ? (
-                  <p role="alert" className="text-error px-2 text-xs">
+                  <p role="alert" className="ui-notice-enter text-error px-2 text-xs">
                     Saved buildings are unavailable. Search and curated places still work.
                   </p>
                 ) : null}

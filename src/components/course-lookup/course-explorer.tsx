@@ -3,6 +3,7 @@
 import { averageColorClass } from "@/src/components/course-lookup/grade-distribution-chart";
 import { useApi } from "@/src/components/providers";
 import { Button } from "@/src/components/ui/button";
+import { Disclosure } from "@/src/components/ui/disclosure";
 import { LoadingStatus, RetryAlert, RetryState } from "@/src/components/ui/feedback";
 import { Field, SearchInput, SelectInput, TextInput, type SelectInputProps } from "@/src/components/ui/form-controls";
 import { Skeleton, SkeletonGroup } from "@/src/components/ui/skeleton";
@@ -316,11 +317,10 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
           </Button>
         </div>
 
-        {filtersOpen ? (
+        <Disclosure open={filtersOpen} id="course-explorer-advanced-filters" className="mx-4 sm:mx-0">
           <section
-            id="course-explorer-advanced-filters"
             aria-label="Advanced course filters"
-            className="border-border-subtle bg-surface-container-low mx-4 grid shrink-0 grid-cols-2 items-end gap-3 rounded-xl border p-3 sm:mx-0 @min-[55rem]:grid-cols-6"
+            className="border-border-subtle bg-surface-container-low grid shrink-0 grid-cols-2 items-end gap-3 rounded-xl border p-3 @min-[55rem]:grid-cols-6"
           >
             <FilterSelect
               id="course-explorer-level"
@@ -368,7 +368,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
               Reset filters
             </Button>
           </section>
-        ) : null}
+        </Disclosure>
 
         <div className="min-h-64 flex-1">
           <WorkspaceCanvas overflow="hidden">

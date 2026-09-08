@@ -355,7 +355,7 @@ export function ScheduleGrid({
             tabIndex={day === selectedDay ? 0 : -1}
             onClick={() => onActiveDayChange(day)}
             onKeyDown={(event) => moveDayTab(event, index)}
-            className={`focus-visible:ring-primary/40 min-h-11 flex-1 rounded-md px-2 text-xs font-medium focus-visible:ring-2 ${
+            className={`focus-visible:ring-primary/40 min-h-11 flex-1 rounded-md px-2 text-xs font-medium transition-colors duration-150 focus-visible:ring-2 ${
               day === selectedDay ? "neu-inset bg-surface-container text-on-surface" : "text-on-surface-variant"
             }`}
           >
@@ -407,7 +407,7 @@ export function ScheduleGrid({
               key={day}
               data-schedule-day
               data-active={day === selectedDay}
-              className="border-border-subtle relative border-l"
+              className={`border-border-subtle relative border-l ${day === selectedDay ? "ui-content-enter" : ""}`}
             >
               {hours.map((minute) => (
                 <div
@@ -430,7 +430,7 @@ export function ScheduleGrid({
                   <div
                     key={band.id}
                     title={band.label}
-                    className="bg-accent-subtle/70 pointer-events-none absolute inset-x-1 rounded-md"
+                    className="ui-content-enter bg-accent-subtle/70 pointer-events-none absolute inset-x-1 rounded-md"
                     style={{
                       top: (band.startMin - model.dayStartMin) * PX_PER_MINUTE,
                       height: Math.max(2, (band.endMin - band.startMin) * PX_PER_MINUTE),

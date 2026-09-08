@@ -287,3 +287,53 @@ describe("5.3 — ResponseWidget (REQ-3, REQ-4)", () => {
     error.mockRestore();
   });
 });
+
+it("reveals the loaded widget once without remounting on payload updates", () => {
+  const view = (call: ToolCall) => (
+    <ChatShellProvider>
+      <ResponseWidget call={call} />
+    </ChatShellProvider>
+  );
+  const { container, rerender } = render(view({ ...keyDatesCall, result: undefined }));
+  const widget = container.querySelector('[data-widget="show_widget"]');
+  expect(widget?.querySelector(".ui-content-enter")).toBeNull();
+  rerender(view(keyDatesCall));
+  const payload = widget?.querySelector(".ui-content-enter");
+  expect(payload).not.toBeNull();
+  rerender(
+    view({
+      ...keyDatesCall,
+      result: { type: "key_dates", result: { dates: [{ name: "Updated date", start: "2026-10-02" }] } },
+    }),
+  );
+  expect(container.querySelector('[data-widget="show_widget"]')).toBe(widget);
+  expect(widget?.querySelector(".ui-content-enter")).toBe(payload);
+  expect(payload?.textContent).toContain("Updated date");
+});
+
+it("expands extra courses without remounting the preview and deactivates closing rows", () => {
+  const courses = Array.from({ length: 6 }, (_, index) => ({
+    code: `CPSC ${110 + index}`,
+    title: `Course ${index}`,
+    credits: 3,
+    sections: [],
+  }));
+  const { getByRole, container } = renderWidget({
+    name: "show_widget",
+    input: { type: "courses" },
+    result: { type: "courses", result: { courses } },
+  });
+  const preview = getByRole("button", { name: /CPSC 110/ });
+  const toggle = getByRole("button", { name: "Show all (6)" });
+  expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  expect(container.querySelector("[data-disclosure]")).toBeNull();
+  fireEvent.click(toggle);
+  expect(getByRole("button", { name: /CPSC 115/ })).not.toBeNull();
+  expect(getByRole("button", { name: /CPSC 110/ })).toBe(preview);
+  const disclosure = container.querySelector("[data-disclosure]")!;
+  expect(disclosure.id).toBe(toggle.getAttribute("aria-controls"));
+  fireEvent.click(getByRole("button", { name: "Show fewer" }));
+  expect(disclosure.getAttribute("inert")).not.toBeNull();
+  expect(disclosure.getAttribute("aria-hidden")).toBe("true");
+  expect(getByRole("button", { name: /CPSC 110/ })).toBe(preview);
+});

@@ -17,6 +17,7 @@ import { SkeletonList } from "@/src/components/ui/skeleton";
 import { WorkspaceCanvas, WorkspacePage } from "@/src/components/ui/workspace";
 import { courseCodeToSlug } from "@/src/lib/pane-route";
 import { isOkanagan } from "@/src/shared/course-code";
+import { useReducedMotion } from "motion/react";
 import {
   Component,
   useCallback,
@@ -141,6 +142,7 @@ function TreeContextMenu({
   aiLocked: boolean;
 }) {
   const { zoomIn, zoomOut } = useReactFlow();
+  const reducedMotion = useReducedMotion();
   const fitGraph = useFitGraph();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -169,100 +171,102 @@ function TreeContextMenu({
       style={{ left: menu.x, top: menu.y }}
       className="neu-raised bg-surface text-on-surface absolute z-30 min-w-[200px] rounded-lg p-1"
     >
-      {menu.code ? (
-        <>
-          <button
-            type="button"
-            role="menuitem"
-            className={itemClass}
-            onClick={() => {
-              onOpenFinder(menu.code as string);
-              onClose();
-            }}
-          >
-            <Icon name="search" size={16} className="text-on-surface-variant" />
-            Open in Course Finder
-          </button>
-          {aiLocked ? (
-            <button
-              type="button"
-              role="menuitem"
-              disabled
-              aria-disabled="true"
-              title="Sign in to use AI chat"
-              className="text-on-surface flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm opacity-45"
-            >
-              <Icon name="chat1" size={16} className="text-on-surface-variant" />
-              Ask AI about this tree
-              <Icon name="lock" size={13} className="text-on-surface-variant ml-auto" />
-            </button>
-          ) : (
+      <div className="ui-popover-enter">
+        {menu.code ? (
+          <>
             <button
               type="button"
               role="menuitem"
               className={itemClass}
               onClick={() => {
-                onAskAi();
+                onOpenFinder(menu.code as string);
                 onClose();
               }}
             >
-              <Icon name="chat1" size={16} className="text-on-surface-variant" />
-              Ask AI about this tree
+              <Icon name="search" size={16} className="text-on-surface-variant" />
+              Open in Course Finder
             </button>
-          )}
-          <button
-            type="button"
-            role="menuitem"
-            disabled
-            aria-disabled="true"
-            title="Schedule building is coming soon"
-            className="text-on-surface flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm opacity-45"
-          >
-            <Icon name="calendar" size={16} className="text-on-surface-variant" />
-            Add to Schedule
-            <Icon name="lock" size={13} className="text-on-surface-variant ml-auto" />
-          </button>
-        </>
-      ) : (
-        <>
-          <button
-            type="button"
-            role="menuitem"
-            className={itemClass}
-            onClick={() => {
-              zoomIn({ duration: 150 });
-              onClose();
-            }}
-          >
-            <Icon name="zoomIn" size={16} className="text-on-surface-variant" />
-            Zoom in
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            className={itemClass}
-            onClick={() => {
-              zoomOut({ duration: 150 });
-              onClose();
-            }}
-          >
-            <Icon name="zoomOut" size={16} className="text-on-surface-variant" />
-            Zoom out
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            className={itemClass}
-            onClick={() => {
-              fitGraph();
-              onClose();
-            }}
-          >
-            <Icon name="fullscreen" size={16} className="text-on-surface-variant" />
-            Fit view
-          </button>
-        </>
-      )}
+            {aiLocked ? (
+              <button
+                type="button"
+                role="menuitem"
+                disabled
+                aria-disabled="true"
+                title="Sign in to use AI chat"
+                className="text-on-surface flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm opacity-45"
+              >
+                <Icon name="chat1" size={16} className="text-on-surface-variant" />
+                Ask AI about this tree
+                <Icon name="lock" size={13} className="text-on-surface-variant ml-auto" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                role="menuitem"
+                className={itemClass}
+                onClick={() => {
+                  onAskAi();
+                  onClose();
+                }}
+              >
+                <Icon name="chat1" size={16} className="text-on-surface-variant" />
+                Ask AI about this tree
+              </button>
+            )}
+            <button
+              type="button"
+              role="menuitem"
+              disabled
+              aria-disabled="true"
+              title="Schedule building is coming soon"
+              className="text-on-surface flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm opacity-45"
+            >
+              <Icon name="calendar" size={16} className="text-on-surface-variant" />
+              Add to Schedule
+              <Icon name="lock" size={13} className="text-on-surface-variant ml-auto" />
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              role="menuitem"
+              className={itemClass}
+              onClick={() => {
+                zoomIn({ duration: reducedMotion ? 0 : 150 });
+                onClose();
+              }}
+            >
+              <Icon name="zoomIn" size={16} className="text-on-surface-variant" />
+              Zoom in
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className={itemClass}
+              onClick={() => {
+                zoomOut({ duration: reducedMotion ? 0 : 150 });
+                onClose();
+              }}
+            >
+              <Icon name="zoomOut" size={16} className="text-on-surface-variant" />
+              Zoom out
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className={itemClass}
+              onClick={() => {
+                fitGraph();
+                onClose();
+              }}
+            >
+              <Icon name="fullscreen" size={16} className="text-on-surface-variant" />
+              Fit view
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -346,7 +350,7 @@ function AccordionFallback({
                   type="button"
                   aria-pressed={index === data.selectedIdx}
                   onClick={() => data.onChange?.(index)}
-                  className={`focus-visible:ring-primary/40 min-h-11 rounded-lg px-3 py-2 text-left focus-visible:ring-2 ${
+                  className={`focus-visible:ring-primary/40 min-h-11 rounded-lg px-3 py-2 text-left transition-colors duration-150 focus-visible:ring-2 ${
                     index === data.selectedIdx
                       ? "neu-inset bg-surface-container text-on-surface"
                       : "text-on-surface-variant hover:bg-surface-container"
@@ -756,7 +760,7 @@ export function PrereqTreePane({
     </div>
   );
   const noPrereqState = (
-    <div className="m-auto flex max-w-md flex-col items-center gap-3 px-6 text-center">
+    <div className="ui-content-enter m-auto flex max-w-md flex-col items-center gap-3 px-6 text-center">
       <div>
         <Heading>{activeCode} has no listed prerequisites</Heading>
         <p className="text-on-surface-variant mt-1 text-sm">
@@ -893,8 +897,10 @@ export function PrereqTreePane({
                 <SkeletonList label="Loading course index…" rows={4} />
               ) : (
                 <>
-                  <div className={compactView === "outline" ? "h-full" : "hidden"}>{outlineSurface}</div>
-                  <div className={compactView === "map" ? "h-full" : "hidden"}>{graphSurface}</div>
+                  <div className={compactView === "outline" ? "ui-content-enter h-full" : "hidden"}>
+                    {outlineSurface}
+                  </div>
+                  <div className={compactView === "map" ? "ui-content-enter h-full" : "hidden"}>{graphSurface}</div>
                 </>
               )}
             </WorkspaceCanvas>

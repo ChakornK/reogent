@@ -394,6 +394,87 @@ details[open] > *:not(summary) {
   }
 }
 
+@keyframes ui-notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ui-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ui-chart-in {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.ui-content-enter {
+  animation: content-opacity-in 180ms ease-out backwards;
+}
+
+.ui-notice-enter {
+  animation: ui-notice-in 200ms var(--neu-ease) backwards;
+}
+
+.ui-popover-enter {
+  animation: ui-popover-in 220ms var(--neu-ease) backwards;
+}
+
+.ui-chart-enter {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: ui-chart-in 320ms var(--neu-ease) backwards;
+}
+
+@supports (interpolate-size: allow-keywords) and selector(details::details-content) {
+  details {
+    interpolate-size: allow-keywords;
+  }
+
+  details::details-content {
+    block-size: 0;
+    overflow: clip;
+    opacity: 0;
+    transition:
+      block-size 240ms var(--neu-ease),
+      opacity 160ms ease-out,
+      content-visibility 240ms;
+    transition-behavior: allow-discrete;
+  }
+
+  details[open]::details-content {
+    block-size: auto;
+    opacity: 1;
+  }
+
+  details[open] > *:not(summary) {
+    animation: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    details::details-content {
+      transition: none;
+    }
+  }
+}
+
 @keyframes shell-progress-reveal {
   to {
     opacity: 1;
@@ -581,6 +662,29 @@ html.vt-active *::after {
   background: var(--surface);
   border-top: 1px solid var(--border-subtle);
   padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.mobile-mode-indicator {
+  position: absolute;
+  top: 0;
+  left: 0.5rem;
+  width: calc((100% - 1.5rem) / 3);
+  pointer-events: none;
+  transition: transform 280ms var(--neu-ease);
+}
+
+.mobile-mode-indicator > span {
+  display: block;
+  width: 1.5rem;
+  height: 2px;
+  margin-inline: auto;
+  border-radius: 9999px;
+  background: var(--primary);
+}
+
+.app-notification-stack {
+  bottom: 1rem;
+  max-width: calc(100vw - 2rem);
 }
 
 .shell-sidebar-drawer {
@@ -948,6 +1052,10 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
     padding-bottom: 0;
   }
 
+  .app-notification-stack {
+    bottom: calc(var(--app-viewport-bottom, 0px) + 3.75rem + 1px + env(safe-area-inset-bottom) + 1rem);
+  }
+
   [data-chat-frame] > .chat-message-well {
     background: var(--surface);
     box-shadow: none;
@@ -1100,13 +1208,6 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
   .tool-sidebar-content-offset {
     transition: padding-left 0.3s var(--neu-ease);
   }
-}
-
-.profile-menu-surface {
-  transition:
-    opacity 180ms ease-out,
-    transform 240ms var(--neu-ease),
-    filter 180ms ease-out;
 }
 
 /* ---- Assistant Markdown ---- */

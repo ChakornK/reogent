@@ -179,7 +179,7 @@ function ThinkingBlock({ content, compact = false }: { content: string; compact?
         <span className="truncate">Thinking…</span>
         <Icon name="down" size={12} className="ml-auto shrink-0 transition-transform group-open:rotate-180" />
       </summary>
-      {open && content ? (
+      {content ? (
         <div className="border-border-subtle overflow-hidden border-t">
           <p className="text-muted max-h-40 overflow-auto px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap">
             {content}
@@ -225,7 +225,7 @@ export const AssistantMessage = memo(function AssistantMessage({
       {showAvatar && <AssistantIdentity />}
       <div className="bg-surface max-w-[88%] min-w-0 rounded-[16px_16px_16px_5px] px-4 py-3">
         {message.warning && (
-          <div className="bg-tertiary-container text-body-sm text-on-tertiary-container mb-3 flex items-start gap-2 rounded-xl px-3 py-2">
+          <div className="ui-notice-enter bg-tertiary-container text-body-sm text-on-tertiary-container mb-3 flex items-start gap-2 rounded-xl px-3 py-2">
             <Icon name="alert" size={16} className="mt-0.5 shrink-0" />
             <span>{message.warning}</span>
           </div>
@@ -249,7 +249,7 @@ export const AssistantMessage = memo(function AssistantMessage({
         )}
         {message.content && <AssistantMarkdown content={message.content} citations={message.citations} />}
         {message.stopped && (
-          <p className="text-muted mt-2 flex items-center gap-1.5 text-xs">
+          <p className="ui-notice-enter text-muted mt-2 flex items-center gap-1.5 text-xs">
             <Icon name="stop" size={12} className="shrink-0" />
             Response stopped
           </p>
@@ -279,7 +279,11 @@ export function TypingIndicator({ slow, isFirstMessage }: { slow: boolean; isFir
         <span className="thinking-orb" aria-hidden="true" />
         <span className="text-on-surface text-sm font-medium">{label}</span>
       </div>
-      {slow && <p className="text-muted mt-2 text-xs">Working across data sources — this can take up to 30 seconds.</p>}
+      {slow && (
+        <p className="ui-notice-enter text-muted mt-2 text-xs">
+          Working across data sources — this can take up to 30 seconds.
+        </p>
+      )}
     </div>
   );
 }

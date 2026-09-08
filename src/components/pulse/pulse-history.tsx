@@ -36,8 +36,12 @@ export function PulseHistory() {
         Previous rounds
       </Heading>
       {loading ? <PulseCardsLoading label="Loading previous rounds" /> : null}
-      {error ? <RetryState message={error} onRetry={() => void fetchHistory()} compact className="py-4" /> : null}
-      {rounds?.length === 0 && <p className="text-muted py-4 text-center text-sm">No previous rounds yet.</p>}
+      {error ? (
+        <RetryState message={error} onRetry={() => void fetchHistory()} compact className="ui-notice-enter py-4" />
+      ) : null}
+      {rounds?.length === 0 && (
+        <p className="ui-content-enter text-muted py-4 text-center text-sm">No previous rounds yet.</p>
+      )}
       {rounds?.map((round) => (
         <div key={round.id} className="flex flex-col gap-3">
           <Heading as="h3" size="label" tone="muted" className="tracking-[0.05em] uppercase">

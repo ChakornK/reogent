@@ -52,6 +52,41 @@ describe("ScheduleGrid", () => {
     expect(onAction).toHaveBeenCalledOnce();
   });
 
+  it("reveals the selected day without remounting columns or changing scroll and block geometry", () => {
+    const model = buildScheduleGrid([
+      {
+        id: "course",
+        courseKey: "CPSC 110",
+        code: "CPSC 110",
+        title: "Programming",
+        days: ["Mon", "Tue"],
+        startMin: 540,
+        endMin: 600,
+      },
+    ]);
+    const props = { model, onActiveDayChange: vi.fn(), onBlockActivate: vi.fn() };
+    const view = render(<ScheduleGrid {...props} activeDay="Mon" />);
+    const days = [...view.container.querySelectorAll("[data-schedule-day]")];
+    const blocks = [...view.container.querySelectorAll<HTMLElement>("[data-schedule-block]")];
+    const geometry = blocks.map((block) => block.style.cssText);
+    const scroller = view.getByRole("region", { name: "Timetable scroll area" });
+    scroller.scrollTop = 180;
+
+    view.rerender(<ScheduleGrid {...props} activeDay="Tue" />);
+    const nextDays = [...view.container.querySelectorAll("[data-schedule-day]")];
+    nextDays.forEach((day, index) => {
+      expect(day).toBe(days[index]);
+    });
+    const nextBlocks = [...view.container.querySelectorAll<HTMLElement>("[data-schedule-block]")];
+    nextBlocks.forEach((block, index) => {
+      expect(block).toBe(blocks[index]);
+    });
+    expect(nextBlocks.map((block) => block.style.cssText)).toEqual(geometry);
+    expect(scroller.scrollTop).toBe(180);
+    expect(blocks[0].parentElement?.className).not.toContain("ui-content-enter");
+    expect(blocks[1].parentElement?.className).toContain("ui-content-enter");
+  });
+
   it("activates one logical section from any rendered day", () => {
     const onBlockActivate = vi.fn();
     const model = buildScheduleGrid([

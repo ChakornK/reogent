@@ -151,7 +151,7 @@ function SessionItem({
   // Editing: inline text input with checkmark/x
   if (mode === "editing") {
     return (
-      <div data-session-editing className="flex min-h-11 items-center gap-1 px-1 sm:min-h-9">
+      <div data-session-editing className="ui-content-enter flex min-h-11 items-center gap-1 px-1 sm:min-h-9">
         <input
           ref={inputRef}
           type="text"
@@ -187,7 +187,10 @@ function SessionItem({
   // Confirming delete: shows "Confirm deletion" with checkmark/x
   if (mode === "confirming-delete") {
     return (
-      <div data-session-delete-confirmation className="flex min-h-11 items-center gap-1 px-1 sm:min-h-9">
+      <div
+        data-session-delete-confirmation
+        className="ui-content-enter flex min-h-11 items-center gap-1 px-1 sm:min-h-9"
+      >
         <span className="text-error min-w-0 flex-1 truncate px-2 text-sm">Confirm deletion</span>
         <button
           type="button"

@@ -128,7 +128,9 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
             shadowOn="surface-container-low"
             className="relative z-10"
           >
-            <Icon name="stop" size={16} />
+            <span key="stop" aria-hidden="true" className="ui-content-enter inline-flex">
+              <Icon name="stop" size={16} />
+            </span>
           </Button>
         ) : (
           <Button
@@ -140,7 +142,9 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
             aria-label="Send message"
             className="relative z-10"
           >
-            <Icon name="arrowUp" size={18} />
+            <span key="send" aria-hidden="true" className="ui-content-enter inline-flex">
+              <Icon name="arrowUp" size={18} />
+            </span>
           </Button>
         )}
       </form>

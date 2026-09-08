@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion, useIsPresent, useReducedMotion } from "motion/react";
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 
 export type ToastKind = "info" | "error";
@@ -9,6 +10,25 @@ const ToastContext = createContext<(message: string, kind?: ToastKind) => void>(
 /** Shows a transient message above the schedule surface. */
 export function useToast() {
   return useContext(ToastContext);
+}
+
+function ToastMessage({ message, kind }: { message: string; kind: ToastKind }) {
+  const present = useIsPresent();
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      aria-hidden={!present || undefined}
+      initial={reduce ? false : { opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: reduce ? 0 : 4, transition: { duration: reduce ? 0 : 0.14 } }}
+      transition={{ duration: reduce ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className={`neu-panel max-w-sm rounded-xl px-4 py-2.5 text-sm font-medium ${
+        kind === "error" ? "text-error" : "text-on-surface"
+      }`}
+    >
+      {message}
+    </motion.div>
+  );
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -27,18 +47,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2"
+        className="app-notification-stack pointer-events-none fixed left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2"
       >
-        {items.map((t) => (
-          <div
-            key={t.id}
-            className={`neu-panel max-w-sm rounded-xl px-4 py-2.5 text-sm font-medium ${
-              t.kind === "error" ? "text-error" : "text-on-surface"
-            }`}
-          >
-            {t.message}
-          </div>
-        ))}
+        <AnimatePresence initial={false}>
+          {items.map((t) => (
+            <ToastMessage key={t.id} message={t.message} kind={t.kind} />
+          ))}
+        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   );

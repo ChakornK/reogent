@@ -9,7 +9,7 @@ import {
   LAST_UNITY_PATH_KEY,
   SHELL_MODE_STORAGE_KEY,
 } from "@/src/lib/shell-mode";
-import { act, cleanup, fireEvent, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -146,7 +146,26 @@ describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
     expect(tooltip.textContent).toBe(`Sign in to use ${label}.`);
     expect(link.getAttribute("aria-describedby")).toBe(tooltip.id);
     expect(view.container.contains(tooltip)).toBe(false);
+    fireEvent.pointerLeave(link, { pointerType: "touch" });
+    fireEvent.mouseLeave(link);
+    expect(view.getByRole("tooltip")).toBe(tooltip);
     expect(routerPush).not.toHaveBeenCalled();
+  });
+
+  it("keeps current hint references unique while the previous hint exits", () => {
+    auth.isGuest = true;
+    pathname.value = "/tools/map";
+    const view = render(
+      <ChatShellProvider>
+        <ModeToggle presentation="bottom" />
+      </ChatShellProvider>,
+    );
+    fireEvent.focus(view.getByRole("link", { name: "AI" }));
+    fireEvent.focus(view.getByRole("link", { name: "Unity" }));
+    const hints = [...document.querySelectorAll<HTMLElement>('[role="tooltip"]')];
+    expect(new Set(hints.map((hint) => hint.id)).size).toBe(hints.length);
+    const currentId = view.getByRole("link", { name: "Unity" }).getAttribute("aria-describedby");
+    expect(document.getElementById(currentId ?? "")?.textContent).toBe("Sign in to use Unity.");
   });
 
   it.each([
@@ -261,7 +280,7 @@ describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
     expect(modeLink(view.container, "Tools").getAttribute("aria-current")).toBe("page");
   });
 
-  it("exposes collapsed mode names and sign-in hints outside the sidebar", () => {
+  it("exposes collapsed mode names and sign-in hints outside the sidebar", async () => {
     auth.isGuest = true;
     const { container, getByRole } = render(
       <ChatShellProvider>
@@ -277,7 +296,9 @@ describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
     expect(tooltip.textContent).toBe("Sign in to use AI.");
     expect(ai.getAttribute("aria-describedby")).toBe(tooltip.id);
     fireEvent.blur(ai);
-    expect(document.querySelector('[role="tooltip"]')).toBeNull();
+    expect(tooltip.hasAttribute("inert")).toBe(true);
+    expect(tooltip.getAttribute("aria-hidden")).toBe("true");
+    await waitFor(() => expect(document.querySelector('[role="tooltip"]')).toBeNull());
   });
 
   it("blocks modified and auxiliary activation for guest-locked destinations", () => {
