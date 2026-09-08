@@ -21,9 +21,9 @@ Planner blocks show course, section, and type with a compact one-line form for s
 
 ## Visual direction
 
-Use the shared `WorkspacePage` geometry: 24px desktop and 16px compact padding, a raised 20rem controls panel, a 16px gap, and one inset canvas around the 10px timetable frame. The panel owns a fixed 48px header while its contained body preserves fixed search/import controls and the module scroller. Host context suppresses duplicate Answer Canvas titles before paint, keeps the term toolbar inside the workspace, and portals only bounded actions such as Share.
+Use the shared `WorkspacePage` geometry: 24px wide and 16px compact spacing, a 20rem controls region, and a 16px region gap. From 640px upward, keep the raised controls panel and inset canvas around the 10px timetable frame. Below 640px, use a flat edge-to-edge page, retain 16px header and view-switch insets, and remove the timetable's outer padding and rounded frame. Present Controls as a full-width section with the same fixed 48px header, fixed search/import controls, and module scroller. Day tabs retain 44px minimum width and scroll horizontally when weekend tabs do not fit. Host context suppresses duplicate Answer Canvas titles before paint, keeps the term toolbar inside the workspace, and portals only bounded actions such as Share.
 
-Type uses the documented 20/14/13/12 hierarchy with mono only for identifiers and measurements. Radius is fixed by level: 16px protected modal/sheet, 12px actions and floating overlay, 10px timetable frame, 8px modules/fields/rows/blocks, 6px compact subcontrols, full only for pills/avatars/dots. Course colors keep the documented 1px edge and low-opacity surface mix.
+Type uses the documented 20/14/13/12 hierarchy with mono only for identifiers and measurements. Radius is fixed by level: square mobile page and timetable edges, 16px protected modal/sheet, 12px actions and floating overlay, 10px wider-screen timetable frame, 8px modules/fields/rows/blocks, 6px compact subcontrols, full only for pills/avatars/dots. Course colors keep the documented 1px edge and low-opacity surface mix.
 
 ## Boundaries
 
@@ -31,4 +31,4 @@ Preserve planner persistence, hydration journals, Workday reconciliation, sectio
 
 ## Verification
 
-Measure zero search layout shift; explicit full-code commit; active/off-term/duplicate/stale/error paths; inline known and additional selectors; compact/tall blocks; hidden-person derivations; keyed group switching; all three host contexts; the shared 20rem/16px workspace geometry; 55rem view switching; 1440, constrained, 768, 390, and 320 widths; empty and populated axe passes. Screenshots require human review because this session has no vision model.
+Measure zero search layout shift; explicit full-code commit; active/off-term/duplicate/stale/error paths; inline known and additional selectors; compact/tall blocks; hidden-person derivations; keyed group switching; all three host contexts; the shared 20rem/16px workspace geometry; 55rem view switching; flat primary regions below 640px and preserved panels above it; 1440, constrained, 768, 390, and 320 widths; short viewports, safe areas, keyboard scrolling, and empty and populated axe checks. Browser emulation does not verify physical device behavior.

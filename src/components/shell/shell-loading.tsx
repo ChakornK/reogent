@@ -170,13 +170,13 @@ export function ShellBootLoading({ pathname = "/chat" }: { pathname?: string }) 
       data-shell-boot-loading
       data-shell-boot-mode={mode}
       aria-busy="true"
-      className="app-shell-canvas bg-background flex h-svh flex-col overflow-hidden"
+      className="app-shell-canvas app-shell-frame flex h-dvh flex-col overflow-hidden"
     >
-      <span className="shell-boot-menu neu-panel bg-surface text-primary fixed top-3 left-3 z-40 flex size-11 items-center justify-center rounded-xl">
+      <span className="shell-boot-menu shell-menu-trigger neu-panel bg-surface text-primary fixed z-40 flex size-11 items-center justify-center rounded-xl">
         <Icon name="school" size={18} />
       </span>
       <div className="shell-body min-h-0 flex-1">
-        <div className="chat-workspace shell-boot-layout relative min-h-0 min-w-0 flex-1 p-3">
+        <div className="chat-workspace shell-boot-layout relative min-h-0 min-w-0 flex-1">
           <aside className="sessions-aside shell-boot-sidebar absolute top-3 bottom-3 left-3 z-10 hidden min-h-0 w-68 overflow-hidden">
             <div className="neu-panel bg-surface flex h-full flex-col rounded-2xl p-2 pt-0">
               <div data-shell-boot-brand className="flex h-15 shrink-0 items-center gap-2 px-2">

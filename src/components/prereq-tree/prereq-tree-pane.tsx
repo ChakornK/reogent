@@ -859,7 +859,7 @@ export function PrereqTreePane({
         description="Choose a course, then trace the prerequisites and corequisites that lead to it."
       >
         <div data-prereq-layout className="flex h-full min-h-0 flex-col gap-1">
-          <div className="flex shrink-0 flex-col gap-2 @min-[40rem]:flex-row @min-[40rem]:items-start">
+          <div className="mx-4 flex shrink-0 flex-col gap-2 sm:mx-0 @min-[40rem]:flex-row @min-[40rem]:items-start">
             {searchForm}
             <fieldset
               data-prereq-view-toggle
@@ -884,7 +884,7 @@ export function PrereqTreePane({
               ))}
             </fieldset>
           </div>
-          <div data-prereq-feedback className="min-h-5 shrink-0">
+          <div data-prereq-feedback className="mx-4 min-h-5 shrink-0 sm:mx-0">
             {feedback}
           </div>
           <div data-prereq-compact-view={compactView} className="min-h-0 flex-1">

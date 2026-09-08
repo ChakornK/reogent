@@ -228,7 +228,7 @@ export function ChatPanel({ sessionId: initialSessionId }: { sessionId: string |
   }, []);
 
   const inputRef = useRef<ChatInputHandle>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLElement>(null);
   const pendingRetry = useRef<{ conversation: ChatMessage[] } | null>(null);
 
   // Cleanup: abort in-flight requests and cancel pending frames on unmount.

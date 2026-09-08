@@ -163,15 +163,15 @@ components:
 
 **Creative North Star: "The Whisper Instrument"**
 
-Every surface carries dimension at rest, but gently — barely-there shadows that register subconsciously rather than announcing themselves. Raised means interactive. Recessed means input. Flat means content. One material, shaped into different forms for different functions. No decoration, no illustration, no ornament. Quality lives in restraint: the lightest possible shadow that still communicates depth.
+Use restrained depth for controls, contained cards, and overlays. Keep mobile pages flat and edge-to-edge so students can use the available screen for their task. Raised actions, recessed inputs, and flat content share one neutral material. Use the smallest shadow that communicates a boundary.
 
-Shadows are whisper-quiet: tiny offsets (2-3px), minimal blur (4-8px), near-transparent opacity (4-6%). The light source never moves. You can feel what is pressable, what is a well, what is content — but you have to look closely. Physical metaphor at a murmur.
+Use small offsets (2-3px), soft blur (4-8px), and low opacity (4-6%) for composed shadows. Keep the light source at the upper left and use the same recipes across related controls.
 
-The character is calm and precise. Every radius, shadow recipe, and spacing value repeats from a finite set. Nothing is approximate. The system is small. Its application is rigorous. The landing page breaks this restraint intentionally — larger type, spring physics, blur reveals — to create contrast between marketing energy and in-app calm.
+Choose spacing, type, and radii from the documented scales. Keep app transitions brief and tied to interaction. Reserve larger type, spring entrances, and blur reveals for the landing page.
 
 **Key Characteristics:**
 
-- Whisper-level dimension on every surface at rest — felt, not seen
+- Restrained depth for controls and contained surfaces; flat mobile pages
 - Minimal shadows with tiny offsets and near-transparent opacity
 - Single-material coherence across all elements
 - Precision and consistency as the aesthetic itself
@@ -297,11 +297,13 @@ Flexbox keeps the sidebar and outer workspace stable while destinations replace 
 
 **Tablet:** Below each mode's persistent-sidebar breakpoint, the sidebar becomes a drawer with a backdrop. Chat and Answer Canvas share the workspace from 640px upward.
 
-**Mobile (<640px):** Chat uses one column. The sidebar becomes a slide-over drawer with a `bg-scrim` backdrop at z-40/z-50. Answer Canvas becomes an 80vh bottom sheet (`fixed inset-x-0 bottom-0`) with touch drag-to-dismiss at 20% of its height. Safe-area padding uses `env(safe-area-inset-bottom)`.
+**Mobile (<640px):** Use the available dynamic viewport (`100dvh`) for Chat, Tools, Unity, and Settings. Remove the shell gutter and the outer page radius and shadow. Keep the main canvas flat and full-width; put 16px side insets on headers, view switches, and command groups. Preserve content padding inside lists, forms, and the degree board. Contextual rail panels become full-width sections with a hairline between stacked sections. Keep the 55rem container-based view switching and mounted state independent of this phone-only material change. From 640px upward, retain the 12px shell gutter and raised page panels.
 
-**Spacing rhythm:** 8px grid with 6px sub-grid for tight icon gaps. Common values: `gap-1.5` (6px icon-to-label), `gap-2` (8px), `gap-2.5` (10px), `gap-3` (12px inter-panel), `gap-6` (24px message spacing). Panel padding: `p-2` (8px) sidebar outer, `p-3` (12px) workspace gaps around all panels, `px-4 py-3` (16/12px) header sections, `p-4 sm:p-6` (16/24px) chat message well. Panel and section headers (chat title, answer-canvas titlebar, sidebar top row) share one height: `h-15` (60px), `items-center px-4` on panels, `px-2` inside the sidebar, flush with the panel top edge so all header baselines align. Sidebar collapsed rail: 3.75rem (60px). Sidebar expanded: 17rem (272px).
+The shell reserves top and side safe areas; workspace bodies and the chat composer reserve the bottom inset. Align the 44px menu trigger with the 60px chat header and keep it clear of workspace headings. The sidebar remains a slide-over drawer with a `bg-scrim` backdrop at z-40/z-50 and safe-area padding. Answer Canvas remains an 80dvh bottom sheet with touch drag-to-dismiss at 20% of its height. Drawers, dialogs, Explore, and Answer Canvas retain their overlay material and rounded sheet edges.
 
-**Canvas treatment:** `app-shell-canvas` sets flat `var(--background)` color. No gradients in the production app shell.
+**Spacing rhythm:** 8px grid with 6px sub-grid for tight icon gaps. Common values: `gap-1.5` (6px icon-to-label), `gap-2` (8px), `gap-2.5` (10px), `gap-3` (12px inter-panel), `gap-6` (24px message spacing). Panel padding: `p-2` (8px) sidebar outer, 12px shell gutters from 640px upward, `px-4 py-3` (16/12px) header sections, `p-4 sm:p-6` (16/24px) chat message content. Mobile main canvases have no outer gutter; headers and commands keep their own 16px insets. Panel and section headers (chat title, answer-canvas titlebar, sidebar top row) share one height: `h-15` (60px), `items-center px-4` on panels, `px-2` inside the sidebar, flush with the panel top edge so all header baselines align. Sidebar collapsed rail: 3.75rem (60px). Sidebar expanded: 17rem (272px).
+
+**Canvas treatment:** `app-shell-canvas` uses `var(--background)`. The authenticated `app-shell-frame` uses `var(--surface)` below 640px so safe areas, headers, and full-width content share one flat page. Keep gradients out of the production app shell.
 
 ## Elevation & Depth
 
@@ -372,18 +374,19 @@ Fallback: without `backdrop-filter` support, renders as solid `var(--surface)`.
 
 **The Light-Source Rule.** Light source is upper-left. Shadows fall bottom-right, highlights sit top-left. Consistent across both tiers.
 
-**The Whisper-Dimension Rule.** Neumorphic surfaces carry depth at rest, but at minimal intensity (4-6% opacity shadows). The depth is felt rather than seen. Hover/active states modify the shadow recipe (expand or invert to `--neu-inset-shadow`).
+**The Whisper-Dimension Rule.** Use minimal resting depth on controls, contained cards, desktop panels, and overlays. Mobile page frames and primary workspace regions stay flat. Hover and active states expand or invert the control shadow to `--neu-inset-shadow`.
 
 ## Shapes
 
 **Form language:** Rounded, consistent per element size. Radius increases with element size.
 
-- **Major panels** (chat panel, map panel, sidebar, bottom sheets): `rounded-2xl` (16px)
+- **Major panels** (tablet/desktop chat and workspace panels, sidebar, bottom sheets): `rounded-2xl` (16px)
+- **Mobile pages and primary canvases**: square edges and no outer shadow below 640px; preserve rounded contained cards and overlays
 - **Action buttons, icon buttons, collapse/expand controls**: `rounded-xl` (12px)
 - **Inner controls** (session items, details blocks, tool cards, nav items, thinking blocks): `rounded-lg` (8px)
 - **Small elements** (inline code, small badges, icon containers in tool results): `rounded-md` (6px)
 - **Pills** (action chips, suggestion pills, avatars, dots, credit badges): `rounded-full` (9999px)
-- **Panel-level inputs** (chat composer): `rounded-2xl` (16px) — matches its parent panel radius rather than pill category
+- **Panel-level inputs** (chat composer): `rounded-2xl` (16px), including inside flat mobile pages
 - **Landing outer frame**: `rounded-[1.75rem]` (28px) — exclusively for the product mock container
 - **Chat bubbles**, asymmetric corners signal direction:
   - User (right-aligned): `16px 16px 5px 16px`, flat bottom-right means "from me"
@@ -437,9 +440,9 @@ State changes through shadow transformation + press scale. Buttons never transla
 
 ### Cards / Containers
 
-- **Standard panel** (`.neu-panel`): `bg-surface rounded-2xl` + surface shadow. No border, no blur. Padding: 12-16px. Used for: chat panel, sidebar, building popup, and map controls.
-- **Workspace surface** (`.workspace-surface`): The App Shell wraps every Tools and Pulse route in one `bg-surface rounded-2xl` panel with the standard neumorphic surface shadow and clipped overflow. `WorkspacePage` owns the inner header, 24px/16px padding, 16px gaps, optional 20rem contextual rail, 55rem compact threshold, and scroll boundaries. The content region keeps a 20rem height floor; shorter viewports scroll the page rather than collapse the controls or canvas. Mobile menu clearance applies to the heading group, while toolbars align with the content edges. `WorkspaceRail`, `WorkspacePanel`, and `WorkspaceCanvas` provide the only shared geometry variants; feature code supplies content rather than recreating the frame.
-- **Chat panel**: `.neu-panel rounded-2xl`. Internal: title bar (transparent bg, `px-4 py-3`), message well (`.chat-message-well`, recessed with deep inset shadows at `inset 0 10px 24px -22px`, 72% surface-container-low mixed with background), composer area at bottom.
+- **Standard panel** (`.neu-panel`): `bg-surface rounded-2xl` + surface shadow. No border, no blur. Padding: 12-16px. Used for the sidebar, building popup, map controls, and contained cards.
+- **Workspace surface** (`.workspace-surface`): Share the live and loading page material across Chat, Tools, Unity, and Settings. Below 640px, use a flat surface with square edges and no shell gutter. From 640px upward, use the standard 16px panel radius and neumorphic shadow. `WorkspacePage` owns 24px wide/16px compact spacing, 16px region gaps, the optional 20rem rail, the 55rem compact threshold, and scroll boundaries. On phones, apply the 16px inset to headers, notices, view switches, and command groups; let the body fill the width and flatten its `WorkspaceCanvas` and `WorkspacePanel` wrappers. Keep a visible inset keyboard-focus outline on edge-to-edge canvases. The content region retains its 20rem height floor, so short viewports scroll the page without collapsing controls or the canvas. Keep menu clearance on the heading group. Reuse `WorkspaceRail`, `WorkspacePanel`, and `WorkspaceCanvas`; feature code supplies content rather than another page frame. Embedded Answer Canvas workspaces retain their contained layout.
+- **Chat panel**: `ChatFrame` uses `.workspace-surface`, a 60px title bar, one message scroller, and the bottom composer. Below 640px, the message region shares the flat page color and has no inset shadow. At wider sizes, `.chat-message-well` uses the recessed channel with deep inset shadows at `inset 0 10px 24px -22px` and 72% surface-container-low mixed with background. Keep the landing example's recessed treatment independent of the mobile app.
 - **Sidebar** (`.neu-panel rounded-2xl p-2`): Standard panel material. Anatomy, top to bottom: brand header (logo tile `size-9` + `Reodite` wordmark on the left; collapse chevron, and the close button in the mobile drawer, on the right; collapsed rail shows the tile only), mode content (session list in AI, tool list in Tools, community links in Unity) in a recessed well (`bg-surface-container-low/60 rounded-xl p-2`), then a footer stack with the AI/Tools/Unity mode toggle and account row (avatar + username, full width). The footer has no divider; spacing separates it from the rounded content well. The account menu portals out of the sidebar's `overflow-hidden` card and anchors 8px above the trigger, spanning the trigger's full width (collapsed rail: flyout to the right, 224px). It contains username, the theme radiogroup, sign out, and the version badge. The shell has no top bar. The Tools sidebar becomes a drawer below 1280px to preserve working width; other modes switch at 1024px.
 - **Tool result cards**: `bg-surface-container-low rounded-lg p-3`. Flat within the message bubble. Icon containers use `bg-secondary-container text-on-secondary-container size-9 rounded-lg` (or `size-8 rounded-md` for compact variants).
 
@@ -462,7 +465,7 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 - **Browse composition**: Course Lookup uses one full-width workspace. The command area keeps Find a course, Session, Sort, and Filters visible above the inset results canvas. Year, Average, Enrollment, Credits, and Faculty appear only in the inline Filters disclosure, which shows its active count and owns one Reset action. Search and filter changes update results directly; no separate Show step or Filters destination remains.
 - **Search behavior**: Exact, partial, and subject-shaped course queries use structured catalog parameters before free-text fallback. An exact code resolves to its session record instead of a broad fuzzy list. Loading, stale, error, empty, pagination, and result-count states remain inside the canvas.
 - **Detail composition**: Detail routes use the same single workspace. An icon-only Back action sits immediately before the Course lookup heading, while Session remains in the header toolbar and the record fills the scrolling canvas. Term groups progressively disclose section tables, preventing phone records from expanding into a long wrapped list. Missing codes retain one header-level exit plus relevant alternatives.
-- **Compact flow**: Search leads at phone widths, followed by Session, Sort, and the Filters disclosure. Results show Code and Course name without document overflow; enrollment and average move into each row's secondary line. Controls and rows retain the 44px touch floor.
+- **Compact flow**: Search leads at phone widths, followed by Session, Sort, and the Filters disclosure. Keep search and advanced filters inset 16px while the results region spans the page. Results show Code and Course name without document overflow; enrollment and average move into each row's secondary line. Controls and rows retain the 44px touch floor. Keep the results region at least 16rem tall so expanded filters extend the page scroller and leave the table and footer reachable.
 
 ### Prereq Tree
 
@@ -475,7 +478,7 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 ### Degree Planner
 
 - **Composition**: Operate-mode workbench with 24px desktop padding, 16px region gaps, and 8px internal gaps. The top bar places the title above one shared toolbar row, with visible-label program selectors on the left and labeled actions on the right. The body places a fixed 320px Requirements and Find Courses rail to the left of the horizontally scrollable year board.
-- **Rail**: Requirements and Find Courses are separate `.neu-panel bg-surface rounded-2xl` cards in equal `WorkspaceRail` rows. Both use `min-w-0 min-h-0`, stable scrollbar gutters, and internal scrolling; neither card shrinks to make room for the other. Find Courses lists only courses not already planned. Its source row hides during drag, a successful drop removes it from the results, and lookup drags never animate back to the source.
+- **Rail**: Requirements and Find Courses use equal `WorkspaceRail` regions: raised cards from 640px upward and flat, full-width sections with a shared divider on phones. Both use `min-w-0 min-h-0`, stable scrollbar gutters, and internal scrolling; neither region shrinks to make room for the other. Find Courses lists only courses not already planned. Its source row hides during drag, a successful drop removes it from the results, and lookup drags never animate back to the source.
 - **Material**: Planner surfaces use neutral background, surface, and container tokens only. Primary color is limited to true affordances and state indicators such as Ask AI, focus, links, add controls, progress, and checkbox completion; errors use the error family. Study terms use tonal inset depth, course chips use tonal raised depth, and drag ghosts reuse that same elevation rather than `shadow-xl`.
 - **Terms**: Every study term keeps one anatomy: header, scrollable course region, and optional full-width `Mark as co-op work term` action. Co-op cards center the icon, title, and months inside the available body with 16px side padding, omit generic placement copy, and use the inverse full-width `Switch to study term` action. Without summer, the two winter terms split all available height. Adding summer grows a second equal flex region from zero while fading in over 300ms with `--neu-ease`; removal reverses the transition. Reduced-motion users switch immediately. Summer controls remain full-width at the bottom of each year.
 - **Course chips**: Search results and placed courses share a compact raised two-row card with 8px horizontal and 4px vertical padding. The header pairs a plain-text course code with right-aligned actions: Info and Add in search, Info, Move, and Remove in the plan. Search cards have no remove placeholder. Add and Move use their natural button widths; square icon buttons use centered icons and uniform 4px gaps. Code and title share one left text edge, outside buttons, and serve as drag surfaces. The second row gives the title the remaining width beside unwrapped credits. Desktop controls are 32px high and compact-screen controls retain 44px hit areas. Each drag ghost copies its source card's content, actions, and width under `inert` and `aria-hidden`, without scaling. Year columns retain an 18rem minimum width. Add and Move reveal a non-shrinking native term selector outside the measured card; it omits co-op terms and disables the current move destination. Both commands use the same undoable store operations as drag and drop. Pointer drag retains anchored spring and velocity tilt, with immediate anchored positioning for reduced-motion users.
@@ -486,7 +489,7 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 
 ### Schedule Workspaces
 
-- **Shared workspace alignment**: `/tools/schedule` and `/pulse/schedule` use `WorkspacePage`: 24px desktop/16px compact padding, a raised 20rem controls panel, a 16px region gap, and one inset data canvas. Search stays fixed, course modules scroll, and import stays fixed inside the contained panel body. The timetable keeps its 10px `border-subtle` frame, 2px gutter, and 8px surface fields without another outer card.
+- **Shared workspace alignment**: `/tools/schedule` and `/pulse/schedule` use `WorkspacePage`: 24px wide/16px compact spacing, a 20rem controls panel, a 16px region gap, and one data canvas. From 640px upward, keep the raised panel, inset canvas, and timetable's 10px `border-subtle` frame with its 2px gutter and 8px fields. Below 640px, flatten the controls and canvas, remove the timetable's outer padding and corner radius, and let the timetable reach both page edges. Keep search fixed, course modules scrolling, and import fixed inside the contained controls body.
 - **Host-aware header**: `WorkspaceHostContext` identifies Tools, Unity, Answer Canvas, and Settings before rendering. Answer Canvas suppresses the duplicate title immediately, keeps the term toolbar inside the workspace, and portals only bounded actions such as Share. Tools and Unity use the shared page header and reserve compact-menu clearance at their shell breakpoints.
 - **Planner discovery**: Search is discovery only. Partial and full-code results use one 12px floating combobox overlay; typing never changes terms, courses, or the week. Click or Enter explicitly adds. Off-term results name the switch before commit. Search stays fixed, course modules scroll, and the compact Workday action stays fixed below them.
 - **Planner modules**: Selected courses use flat surface modules with 8px radius and a standard 1px border. Known component selectors remain visible. Unrecognized prefixes stay independent under “Additional component types” with a visible count when automatic selection skipped them. A timetable activation focuses the matching selector; drag remains the spatial shortcut.
@@ -496,7 +499,7 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 - **Radius hierarchy**: 16px is reserved for protected modals and mobile sheets; 12px for actions and floating search; 10px for the timetable frame; 8px for course modules, fields, rows, and blocks; 6px for selected term/view cells and compact subcontrols; full radius for status pills, avatars, and identity dots only.
 - **Typography**: Schedule titles use the 20px title step; section headings and buttons use 14px; helper copy uses 13px; labels and metadata use 12px. Planner and sharer surfaces use Aspekta throughout, including course codes, section identifiers, times, rooms, and counts. Schedule controls use no tracked uppercase labels and no text below 12px.
 - **Import**: Both routes parse Workday Excel exports in the browser. Planner imports reconcile term, component, days, and times with catalog identifiers, require a choice for ambiguous matches, list skipped rows, and ask whether to merge or replace before one atomic update. Sharer imports remain read-only calendar data.
-- **Responsive flow**: At the shared 55rem container width, the rail and canvas become explicit 44px Schedule and Controls views while both remain mounted. The workspace uses 16px padding and gaps, opens Schedule first, renders one day column with 44px day tabs, and preserves term, day, form, and scroll state across view changes.
+- **Responsive flow**: At the shared 55rem container width, the rail and canvas become explicit 44px Schedule and Controls views while both remain mounted. Use 16px spacing and open Schedule first with one day column. Below 640px, retain the header and view-switch insets while making the timetable full-width. Keep day tabs at least 44px wide and horizontally scrollable when weekend tabs do not fit. Preserve term, day, form, and scroll state across view changes.
 
 ### Settings
 
@@ -521,7 +524,7 @@ Use `SidebarItemButton` for Tools, Unity, and conversation destinations. It owns
 
 ### Chat Messages
 
-- **Shared frame**: Compose live and pending conversations with `ChatFrame` and `ChatComposerFrame`. Keep the 60px header, one padded message scroller, safe-area footer, and reserved caption row. Below the sidebar breakpoint, reserve 64px at the start of the chat header for the menu control. Reuse `AssistantIdentity` for live, pending, and marketing-example identity rows without importing chat state into the landing page. Tool summary cards use `ToolResultCard` title, metadata, detail, and action slots; format money, distance, and time with the data font. Mapped data-tool badges use native shared pill buttons; unmapped badges remain static.
+- **Shared frame**: Compose live and pending conversations with `ChatFrame` and `ChatComposerFrame`. Keep the 60px header, one padded Conversation messages section, 16px composer side insets, safe-area footer, and reserved caption row. Give the message section `tabIndex={0}` and an inset focus outline so keyboard users can scroll a text-only conversation. Below 640px, use the flat edge-to-edge page material. Below the sidebar breakpoint, reserve 64px at the start of the chat header for the menu control. Reuse `AssistantIdentity` for live, pending, and marketing-example identity rows without importing chat state into the landing page. Tool summary cards use `ToolResultCard` title, metadata, detail, and action slots; format money, distance, and time with the data font. Mapped data-tool badges use native shared pill buttons; unmapped badges remain static.
 - **User bubble**: `bg-accent-subtle text-on-surface rounded-[16px_16px_5px_16px] px-4 py-3 text-sm leading-relaxed`. Right-aligned, max-width 85%. Flat on the message well surface (no shadow).
 - **Assistant bubble**: `bg-surface rounded-[16px_16px_16px_5px] px-4 py-3`. Left-aligned, max-width 88%. Contains: markdown (`.assistant-markdown`), tool badges, thinking blocks (collapsible), warning cards.
 - **Assistant avatar**: `bg-primary-container text-on-primary-container size-7 rounded-lg text-[0.6875rem] font-medium`. Placed beside the label row, not inside the bubble.
@@ -633,7 +636,7 @@ Under `prefers-reduced-motion: reduce`, use 0.01ms CSS animations with a single 
 
 - **Touch targets**: 44x44px minimum on mobile. Achieved via `size-11` on buttons or `min-h-[44px] min-w-[44px]` on visually smaller controls.
 - **Focus indicators**: `focus-visible:ring-primary/40 ring-2 ring-offset-1` on inputs, `ring-offset-2` on pills. `.neu-button`/`.neu-primary-button` use a 2px outline at 40% primary opacity with 2px offset (CSS-defined). Never hidden behind mouse-only styles.
-- **Safe-area insets**: `pb-[max(0.75rem,env(safe-area-inset-bottom))]` on chat input wrapper, `pb-[env(safe-area-inset-bottom)]` on bottom sheet.
+- **Safe-area insets**: Reserve `env(safe-area-inset-top)`, left, and right in the mobile shell and align its menu with those insets. Reserve the bottom inset in workspace layouts, use `pb-[max(0.75rem,env(safe-area-inset-bottom))]` on the chat composer, and keep bottom-sheet safe-area padding. Apply top, bottom, and left safe areas to the sidebar drawer.
 - **Screen reader**: `sr-only` for status announcements, `aria-label` on icon-only buttons, `role="img"` on labeled icons.
 - **Keyboard**: Tab through messages, Enter to send, Escape to dismiss overlays. `role="radiogroup"` on theme toggle.
 
@@ -646,7 +649,7 @@ Under `prefers-reduced-motion: reduce`, use 0.01ms CSS animations with a single 
 - **Do** use spring physics for isolated draggable surfaces and `--neu-ease` (cubic-bezier 0.16, 1, 0.3, 1) for CSS-only transitions such as drawers, sheets, and menus. Keep navigation fades to 180ms and mobile panel travel to 250–300ms.
 - **Do** respect `prefers-reduced-motion`. All animations collapse to 0.01ms, reveals show at once, the thinking orb freezes.
 - **Do** use `[data-theme="dark"]` for theme switching. Never `prefers-color-scheme` media query. The user controls the theme, not the OS.
-- **Do** maintain whisper-level dimension on all surfaces at rest. Depth is the resting state, not a hover effect.
+- **Do** keep mobile pages and their primary workspace regions flat and edge-to-edge. Use resting depth on controls, contained cards, desktop panels, and overlays.
 - **Do** use asymmetric bubble radii (flat corner on the tail side) to indicate message direction.
 - **Do** use opacity modifiers on color tokens for tinted backgrounds and state indicators.
 - **Do** enforce 44px minimum touch targets on mobile via `size-11` or `min-h-[44px] min-w-[44px]`.
@@ -664,4 +667,5 @@ Under `prefers-reduced-motion: reduce`, use 0.01ms CSS animations with a single 
 - **Don't** use primary indigo for background fills, decorative accents, or large surfaces. It means "interactive" or "active state."
 - **Don't** retain outgoing route trees or animate layout properties during navigation. Replace stale content with the destination or its matched loading surface, then animate opacity.
 - **Don't** use blur reveals in the app shell. Those belong to the landing page only. CSS `--neu-ease` handles micro-interactions and gesture-driven slides.
+- **Don't** wrap a phone's main view in a rounded card or restore shell gutters below 640px. Keep content and control padding inside the full-width page.
 - **Don't** create new shadow recipes without documenting them. Use `--neu-surface-shadow` or `--neu-inset-shadow` from Tier 2, the five elevation utilities from Tier 1, or the sanctioned `.chat-message-well` recipe.

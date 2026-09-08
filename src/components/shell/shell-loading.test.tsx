@@ -24,6 +24,9 @@ describe("shell loading surfaces", () => {
     const history = container.querySelector("[data-chat-loading]");
     expect(newChat?.className).toContain("h-full");
     expect(history?.className).toContain("h-full");
+    expect(newChat?.className).toContain("workspace-surface");
+    expect(history?.className).toContain("workspace-surface");
+    expect(newChat?.className).not.toContain("neu-panel");
     expect(newChat?.querySelector("header")?.className).toContain("h-15");
     expect(history?.querySelector("header")?.className).toContain("h-15");
     expect(history?.querySelector("header")?.className).not.toContain("border-b");
@@ -79,7 +82,10 @@ describe("shell loading surfaces", () => {
     const { container } = render(<ShellBootLoading />);
     expect(container.querySelectorAll("main")).toHaveLength(1);
     const boot = container.querySelector("[data-shell-boot-loading]");
-    expect(boot?.className).toContain("h-svh");
+    expect(boot?.className).toContain("h-dvh");
+    expect(boot?.className).toContain("app-shell-frame");
+    expect(boot?.querySelector(".shell-boot-menu")?.className).toContain("shell-menu-trigger");
+    expect(boot?.querySelector(".chat-workspace")?.classList.contains("p-3")).toBe(false);
     expect(boot?.getAttribute("data-shell-boot-mode")).toBe("ai");
     expect(boot?.querySelector(".shell-boot-layout")?.classList.contains("shell-boot-workspace")).toBe(false);
     expect(boot?.querySelectorAll(".shell-boot-workspace")).toHaveLength(1);

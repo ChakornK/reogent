@@ -61,7 +61,7 @@ export function ScheduleWorkspace({
         </WorkspaceRail>
       }
     >
-      <WorkspaceCanvas overflow="hidden" padding="sm">
+      <WorkspaceCanvas data-schedule-canvas overflow="hidden" padding="sm">
         {children}
       </WorkspaceCanvas>
     </WorkspacePage>

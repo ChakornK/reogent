@@ -227,6 +227,14 @@ describe("10.4 — AppShell layouts (REQ-2.1, REQ-4.1, REQ-7.1)", () => {
     expect(container.querySelector('[aria-label="Expand right pane"]')).toBeNull();
   });
 
+  it("shares the dynamic mobile shell and safe-area menu placement with loading", () => {
+    const { container, getByRole } = renderShell(false);
+    const shell = container.querySelector(".app-shell-frame");
+    expect(shell?.className).toContain("h-dvh");
+    expect(shell?.querySelector(".chat-workspace")?.classList.contains("p-3")).toBe(false);
+    expect(getByRole("button", { name: "Open sidebar" }).className).toContain("shell-menu-trigger");
+  });
+
   it("mobile AI has no way to manually open the answer sheet — only show_widget can", () => {
     const { container } = renderShell(false);
     expect(container.querySelector('[data-answer-sheet="open"]')).toBeNull();

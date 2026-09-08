@@ -489,8 +489,8 @@ html.vt-active *::after {
 
 .workspace-surface {
   background-color: var(--surface);
-  border-radius: 1rem;
-  box-shadow: var(--neu-surface-shadow);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 @layer components {
@@ -569,6 +569,21 @@ html.vt-active *::after {
   background-color: var(--background);
 }
 
+.app-shell-frame {
+  background-color: var(--surface);
+}
+
+.shell-menu-trigger {
+  top: calc(env(safe-area-inset-top) + 0.5rem);
+  left: calc(env(safe-area-inset-left) + 0.75rem);
+}
+
+.shell-sidebar-drawer {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+}
+
 .auth-canvas {
   background-color: var(--background);
 }
@@ -581,6 +596,10 @@ html.vt-active *::after {
   overscroll-behavior: contain;
 }
 
+[data-chat-frame] > .chat-message-well:focus-visible {
+  outline-offset: -2px;
+}
+
 .shell-body {
   display: flex;
   min-width: 0;
@@ -591,6 +610,27 @@ html.vt-active *::after {
   --sidebar-offset: 17.75rem;
 
   display: flex;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+}
+
+@media (min-width: 640px) {
+  .app-shell-frame {
+    background-color: var(--background);
+  }
+
+  .chat-workspace {
+    padding: 0.75rem;
+  }
+
+  .workspace-surface {
+    border-radius: 1rem;
+    box-shadow: var(--neu-surface-shadow);
+  }
+
+  .shell-menu-trigger {
+    top: 0.75rem;
+    left: 0.75rem;
+  }
 }
 
 .chat-workspace[data-sidebar-collapsed],
@@ -841,6 +881,69 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
     .workspace-page[data-workspace-composition="split"][data-workspace-view="rail"]
     .maplibregl-ctrl-bottom-left {
     bottom: calc(min(72%, 36rem) + 0.5rem);
+  }
+}
+
+@media (max-width: 639px) {
+  [data-chat-frame] > .chat-message-well {
+    background: var(--surface);
+    box-shadow: none;
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"])) .workspace-page-layout {
+    padding: 1rem 0 env(safe-area-inset-bottom);
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"]))
+    .workspace-page-layout
+    > :not(.workspace-page-body) {
+    margin-inline: 1rem;
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"]))
+    :is([data-workspace-canvas], [data-workspace-panel]) {
+    background-color: var(--surface);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"])) [data-workspace-canvas]:focus-visible {
+    outline-offset: -2px;
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"])) .workspace-rail {
+    gap: 0;
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"]))
+    .workspace-rail
+    > [data-workspace-panel]
+    + [data-workspace-panel] {
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"])) [data-schedule-canvas] {
+    padding: 0;
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"])) [data-schedule-grid-frame] {
+    border-radius: 0;
+    padding: 0;
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"])) [data-schedule-grid-frame] > section {
+    border-radius: 0;
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"])) .schedule-grid-day-tabs {
+    border-radius: 0;
+    padding: 0.5rem 1rem;
+    overflow-x: auto;
+  }
+
+  :where(.workspace-page:not([data-workspace-host="answer-canvas"])) .schedule-grid-day-tabs > [role="tab"] {
+    min-width: 2.75rem;
+    flex-shrink: 0;
   }
 }
 

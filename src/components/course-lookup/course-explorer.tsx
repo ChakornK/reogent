@@ -284,7 +284,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
       <div className="flex h-full min-h-0 flex-col gap-3">
         <div
           data-course-command
-          className="grid shrink-0 grid-cols-2 items-end gap-3 @min-[55rem]:grid-cols-[minmax(18rem,1fr)_9rem_11rem_auto]"
+          className="mx-4 grid shrink-0 grid-cols-2 items-end gap-3 sm:mx-0 @min-[55rem]:grid-cols-[minmax(18rem,1fr)_9rem_11rem_auto]"
         >
           <Field label="Find a course" htmlFor="course-explorer-search" className="col-span-2 @min-[55rem]:col-span-1">
             <SearchInput
@@ -320,7 +320,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
           <section
             id="course-explorer-advanced-filters"
             aria-label="Advanced course filters"
-            className="border-border-subtle bg-surface-container-low grid shrink-0 grid-cols-2 items-end gap-3 rounded-xl border p-3 @min-[55rem]:grid-cols-6"
+            className="border-border-subtle bg-surface-container-low mx-4 grid shrink-0 grid-cols-2 items-end gap-3 rounded-xl border p-3 sm:mx-0 @min-[55rem]:grid-cols-6"
           >
             <FilterSelect
               id="course-explorer-level"
@@ -370,7 +370,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
           </section>
         ) : null}
 
-        <div className="min-h-0 flex-1">
+        <div className="min-h-64 flex-1">
           <WorkspaceCanvas overflow="hidden">
             <div aria-busy={loading} className="flex h-full min-h-0 flex-col">
               {error && total === null ? (

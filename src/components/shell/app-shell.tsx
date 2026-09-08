@@ -1,10 +1,7 @@
 "use client";
 
-// The dashboard shell: TopBar + LeftSidebar + a mode-dependent workspace
-// (AI: Chat Surface + Answer Canvas; Tools: a single Full-Bleed Tool). The Answer
-// Canvas is hosted here, not inside ChatPanel, so the map survives session swaps
-// (REQ-9.4). Below each mode's desktop breakpoint, the AI canvas surfaces as a
-// Bottom Sheet and the Tools list lives in the left drawer.
+// Hosts the sidebar and mode-dependent workspace. The Answer Canvas remains
+// mounted across chat session swaps and becomes a bottom sheet below 640px.
 import { useAppAuth } from "@/src/components/auth/app-auth";
 import { useChatShell } from "@/src/components/chat/chat-shell-context";
 import { Icon } from "@/src/components/icons";
@@ -130,7 +127,7 @@ function SidebarDrawer() {
         role="dialog"
         aria-modal="true"
         aria-label={mode === "ai" ? "Chat sessions" : mode === "tools" ? "Tools" : "Unity"}
-        className={`fixed inset-y-0 left-0 z-50 w-[min(18.5rem,calc(100vw-3rem))] p-3 transition-transform duration-250 [transition-timing-function:var(--neu-ease)] ${desktopHidden}`}
+        className={`shell-sidebar-drawer fixed inset-y-0 left-0 z-50 w-[min(18.5rem,calc(100vw-3rem))] p-3 transition-transform duration-250 [transition-timing-function:var(--neu-ease)] ${desktopHidden}`}
         style={{ transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" }}
       >
         <div className="h-full">
@@ -299,22 +296,20 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <RequireAuth>
-      <div className="app-shell-canvas flex h-svh flex-col overflow-hidden">
+      <div className="app-shell-canvas app-shell-frame flex h-dvh flex-col overflow-hidden">
         <a
           href="#main-content"
           className="focus-visible:bg-primary focus-visible:text-on-primary sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:z-[100] focus-visible:rounded-xl focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium"
         >
           Skip to main content
         </a>
-        {/* Mobile-only drawer trigger: the former top bar's duties (brand,
-            theme, account) live in the sidebar now. */}
         <button
           ref={sidebarOpenRef}
           type="button"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open sidebar"
           inert={sidebarOpen || undefined}
-          className={`neu-panel bg-surface text-on-surface-variant hover:text-primary fixed top-3 left-3 z-40 flex size-11 items-center justify-center rounded-xl transition-colors duration-150 ${mode === "tools" ? "xl:hidden" : "lg:hidden"}`}
+          className={`shell-menu-trigger neu-panel bg-surface text-on-surface-variant hover:text-primary fixed z-40 flex size-11 items-center justify-center rounded-xl transition-colors duration-150 ${mode === "tools" ? "xl:hidden" : "lg:hidden"}`}
         >
           <Icon name="menu" size={21} />
         </button>
@@ -324,7 +319,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div inert={sidebarOpen || undefined} className="shell-body min-h-0 flex-1">
           <div
             data-sidebar-collapsed={sessionsCollapsed || undefined}
-            className="chat-workspace relative min-h-0 min-w-0 flex-1 p-3"
+            className="chat-workspace relative min-h-0 min-w-0 flex-1"
           >
             <aside
               aria-label={mode === "ai" ? "Chat sessions" : mode === "tools" ? "Tools" : "Unity"}

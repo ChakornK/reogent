@@ -8,7 +8,7 @@ import { ChatInput } from "./chat-input";
 
 describe("shared conversation geometry", () => {
   it("keeps the scroll ref, busy state, and compact menu clearance on the shared frame", () => {
-    const scrollRef = createRef<HTMLDivElement>();
+    const scrollRef = createRef<HTMLElement>();
     const { container, getByRole } = render(
       <ChatFrame
         aria-label="Conversation"
@@ -26,6 +26,9 @@ describe("shared conversation geometry", () => {
     expect(scrollRef.current).toBe(container.querySelector(".chat-message-well"));
     expect(scrollRef.current?.getAttribute("aria-busy")).toBe("true");
     expect(scrollRef.current?.className).toContain("overflow-y-auto");
+    expect(scrollRef.current?.tagName).toBe("SECTION");
+    expect(scrollRef.current?.getAttribute("aria-label")).toBe("Conversation messages");
+    expect(scrollRef.current?.tabIndex).toBe(0);
     expect(frame.lastElementChild?.textContent).toBe("Footer");
   });
 

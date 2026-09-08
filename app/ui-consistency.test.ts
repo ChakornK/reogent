@@ -50,6 +50,51 @@ describe("shared UI ownership", () => {
   });
 });
 
+describe("mobile workspace framing", () => {
+  const mobileLayout = globalsCss.match(/@media \(max-width: 639px\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+  const wideLayout = globalsCss.match(/@media \(min-width: 640px\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+
+  it("reserves raised page surfaces and shell gutters for wider layouts", () => {
+    const surface = globalsCss.match(/\.workspace-surface\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    const workspace = globalsCss.match(/\.chat-workspace\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    expect(surface).toContain("border-radius: 0;");
+    expect(surface).toContain("box-shadow: none;");
+    expect(workspace).toContain(
+      "padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);",
+    );
+    expect(wideLayout).toMatch(/\.chat-workspace\s*\{\s*padding: 0\.75rem;/);
+    expect(wideLayout).toMatch(
+      /\.workspace-surface\s*\{\s*border-radius: 1rem;\s*box-shadow: var\(--neu-surface-shadow\);/,
+    );
+  });
+
+  it("bleeds workspace content while preserving command insets and overlay material", () => {
+    expect(mobileLayout).toContain('.workspace-page:not([data-workspace-host="answer-canvas"])');
+    expect(mobileLayout).toContain("padding: 1rem 0 env(safe-area-inset-bottom);");
+    expect(mobileLayout).toMatch(/\.workspace-page-layout\s*>\s*:not\(\.workspace-page-body\)/);
+    expect(mobileLayout).toContain("margin-inline: 1rem;");
+    expect(mobileLayout).toContain(":is([data-workspace-canvas], [data-workspace-panel])");
+    expect(mobileLayout).toContain("border-radius: 0;");
+    expect(mobileLayout).toContain("box-shadow: none;");
+    expect(mobileLayout).toContain("[data-workspace-canvas]:focus-visible");
+    expect(mobileLayout).toContain("outline-offset: -2px;");
+  });
+
+  it("flattens live chat without changing the landing-page example", () => {
+    expect(mobileLayout).toContain("[data-chat-frame] > .chat-message-well");
+    expect(mobileLayout).toContain("background: var(--surface);");
+    expect(mobileLayout).not.toMatch(/(?:^|\n)\s*\.chat-message-well\s*\{/);
+  });
+
+  it("keeps the mobile timetable flush and weekend day tabs scrollable", () => {
+    expect(mobileLayout).toContain("[data-schedule-canvas]");
+    expect(mobileLayout).toContain("[data-schedule-grid-frame]");
+    expect(mobileLayout).toContain(".schedule-grid-day-tabs");
+    expect(mobileLayout).toContain("overflow-x: auto;");
+    expect(mobileLayout).toContain("min-width: 2.75rem;");
+  });
+});
+
 describe("shared surface materials", () => {
   it.each([".neu-panel", ".neu-raised", ".neu-inset"])(
     "keeps %s defaults below theme and state utilities in the cascade",

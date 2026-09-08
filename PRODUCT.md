@@ -57,7 +57,7 @@ The app has three zones, left to right:
 
 1. **Sidebar** (left): Session history list. Collapsible on desktop (3.75rem collapsed rail to 17rem expanded). Drawer with backdrop scrim on mobile (<1024px). Contains: new conversation button, session list grouped by recency.
 
-2. **Chat panel** (center): Always visible, full-height. Contains: message history (scrollable), chat input composer (bottom-pinned). The primary and permanent surface. When no visual pane is open, chat stretches to fill the remaining width.
+2. **Chat panel** (center): Full-height conversation with scrollable history and a bottom-pinned composer. Without a visual pane, chat fills the remaining width. On phones, use a flat edge-to-edge page with content insets rather than a surrounding card.
 
 3. **Visual pane** (right): Conditionally visible. Appears when the agent's response includes visual content (map route, building highlight, POI pins). Disappears when dismissed. On desktop: side-by-side flex layout with chat (50% width when open, 3.75rem collapsed rail when closed). On mobile (<640px): a draggable bottom sheet (80vh height, 20% drag threshold to dismiss).
 
@@ -77,7 +77,7 @@ The app has three zones, left to right:
 
 - **Desktop (>=1024px)**: Sidebar + Chat + Visual Pane (when active). Sidebar is collapsible (flex layout with animated width). Visual pane transitions width.
 - **Tablet (640-1024px)**: Sidebar is a drawer (hidden by default, triggered by menu button). Chat + Visual Pane side-by-side.
-- **Mobile (<640px)**: Chat full-width. Sidebar is a drawer with backdrop scrim. Visual pane becomes a bottom sheet overlay (80vh, drag-to-dismiss).
+- **Mobile (<640px)**: Chat, Tools, Unity, and Settings use the available dynamic viewport with flat, edge-to-edge main views. Keep text and control insets inside the page, preserve 44px touch targets, and reserve safe areas for navigation and bottom-pinned controls. The sidebar remains a drawer with a backdrop scrim; the visual pane remains an 80dvh bottom sheet with drag-to-dismiss. Keep contained cards, input depth, and overlay shapes. At 640px and wider, retain the existing inset panel layout.
 
 ## Capabilities and Constraints
 
@@ -145,7 +145,7 @@ Neumorphism at whisper intensity is the primary visual language:
 
 - **Raised surfaces** (buttons, cards, panels) sit above the background via dual-direction box-shadows: dark shadow bottom-right, light highlight top-left. Light source is upper-left.
 - **Recessed surfaces** (input fields, sidebar wells, content areas) sit below the background via inset shadows with the same dual-direction logic.
-- **Flat surfaces** (text content, message bubbles, inline elements) have no shadow. They sit on the surface plane.
+- **Flat surfaces** (mobile pages and their main content regions, text, message bubbles, inline elements) have no shadow. Use the available phone width for the task, with padding around content and controls.
 
 Shadows use tiny offsets (2-3px), minimal blur (4-8px), and near-transparent opacity (4-6%). Depth communicates function — raised = interactive, recessed = input, flat = content — but registers subconsciously rather than announcing itself. The interface reads as one continuous material shaped into different forms.
 
@@ -168,7 +168,7 @@ Controls feel physical and unambiguous:
 
 - A button looks pressable (raised) and animates inward on press (recessed)
 - An input looks like a well you type into (recessed)
-- A panel sits on top of the background (raised)
+- Contained cards, wider-screen panels, and overlays sit above the background; mobile main views share the page plane
 - Hover states are visible but subtle
 - Active/pressed states show physical depression (shadow inversion)
 - Disabled states flatten and fade, losing their depth
@@ -222,15 +222,15 @@ The interface has warmth and character. Copy is human, varied, and specific to U
 
 4. **Minimal friction**: Direct to chat. No onboarding flow, no feature tour, no empty state tutorial. Sign in, type, get an answer. The design is self-explanatory.
 
-5. **Single-material coherence**: Every surface, control, and container shares the same neumorphic treatment. Nothing looks bolted on from a different system.
+5. **Single-material coherence**: Use one neutral material across the interface. Keep mobile main views flat and full-width; reserve depth for controls, contained content, and overlays.
 
 ## Accessibility & Inclusion
 
 - WCAG 2.1 AA compliance as baseline (all text meets 4.5:1 contrast on its background; subdued text uses `--muted` #5a6066 which passes AA on all surfaces)
 - Map content has text alternatives: when a route is displayed, distance and time are also stated in chat message text
-- Chat is keyboard-navigable: Tab through messages, Enter to send, Escape to dismiss overlays
+- Chat is keyboard-navigable: focus Conversation messages to scroll with the keyboard, use Enter to send, and Escape to dismiss overlays
 - Reduced-motion preference respected: all animations collapse to 0.01ms duration, reveals show at once, spinning elements freeze
 - Screen reader support: messages are announced via sr-only live region, tool execution states communicated, icon buttons have aria-labels
 - Focus indicators are visible on keyboard navigation (`ring-primary/40 ring-2` with ring-offset), not hidden behind mouse-only styles
 - Interactive elements target 44x44px on mobile via `min-h-[44px]` on pills; some icon buttons remain at 36-40px where density is prioritized over the WCAG minimum
-- Safe-area insets respected for bottom-pinned elements on iOS (`env(safe-area-inset-bottom)`)
+- Safe-area insets protect mobile headers, side controls, drawers, and bottom-pinned elements on iOS. The page fills the dynamic viewport as browser chrome changes.

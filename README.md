@@ -17,6 +17,14 @@ Built with Next.js 16 (App Router), React 19, and TypeScript.
 | Testing  | Vitest, fast-check (property tests)                   |
 | Lint     | Biome, Prettier                                       |
 
+## Responsive UI
+
+Below 640px, Chat, Tools, Unity, and Settings use flat, edge-to-edge pages that fill the dynamic viewport. Headers and command groups keep 16px side insets; main canvases and controls views use the available width. Drawers, dialogs, and contained content cards retain their material. At wider sizes, the shell keeps its 12px gutters and raised panels.
+
+Shared layout lives in `src/components/ui/workspace.tsx`, `src/components/chat/chat-frame.tsx`, and `app/globals.css`. Use the same frames for loading states. The 55rem workspace container threshold controls rail/canvas switching independently of the mobile page treatment. Preserve native scrolling, menu clearance, and safe-area insets when adding a workspace.
+
+See `DESIGN.md`, `PRODUCT.md`, and `.impeccable/surfaces/` for design contracts. Run `npm test` for shared UI and layout regressions, then check rendered phone and desktop views for overflow and focus placement.
+
 ## Agent and tools
 
 The agent runs a streaming tool-calling loop. Each user message can trigger up to 8 model turns. The model calls tools, receives results, and continues until it can respond. The client receives NDJSON events (`thinking`, `text`, `tool_start`, `tool_end`, `done`).

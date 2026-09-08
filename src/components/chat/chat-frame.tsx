@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 type ChatFrameProps = Omit<ComponentPropsWithoutRef<"section">, "className" | "style"> & {
   header: ReactNode;
   footer: ReactNode;
-  scrollRef?: Ref<HTMLDivElement>;
+  scrollRef?: Ref<HTMLElement>;
   messagesBusy?: boolean;
 };
 
@@ -12,17 +12,20 @@ export function ChatFrame({ header, footer, children, scrollRef, messagesBusy, .
   return (
     <section
       data-chat-frame
-      className="neu-panel bg-surface flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-2xl"
+      className="workspace-surface flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden"
       {...props}
     >
       <header className="flex h-15 min-w-0 shrink-0 items-center justify-between pr-4 pl-16 lg:pl-4">{header}</header>
-      <div
+      <section
         ref={scrollRef}
+        aria-label="Conversation messages"
         aria-busy={messagesBusy}
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users scroll conversations without interactive messages.
+        tabIndex={0}
         className="chat-message-well min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6"
       >
         {children}
-      </div>
+      </section>
       {footer}
     </section>
   );
@@ -41,7 +44,7 @@ export function ChatComposerFrame({
   return (
     <div
       data-chat-composer-footer
-      className="shrink-0 bg-transparent px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:pb-4"
+      className="shrink-0 bg-transparent px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-4"
     >
       {children}
       <div data-chat-composer-caption className="mt-2 flex min-h-4 items-center justify-between px-1">

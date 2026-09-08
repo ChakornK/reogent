@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-08T00:00:00Z",
+  "generatedAt": "2026-09-08T08:42:26Z",
   "title": "Design System: Reodite",
   "extensions": {
     "colorMeta": {
@@ -130,7 +130,7 @@
       {
         "name": "neu-surface-shadow",
         "value": "3px 3px 8px var(--neu-shadow), -2px -2px 6px var(--neu-highlight)",
-        "purpose": "All .neu-panel and .neu-raised surfaces. Unified composed shadow."
+        "purpose": "Shared raised material for controls, contained cards, wider-screen panels, and overlays. Mobile page frames and primary workspace regions stay flat."
       },
       {
         "name": "neu-inset-shadow",
@@ -182,7 +182,9 @@
     ],
     "breakpoints": [
       { "name": "sm", "value": "640px" },
-      { "name": "lg", "value": "1024px" }
+      { "name": "workspace", "value": "55rem" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
     ]
   },
   "components": [
@@ -246,7 +248,7 @@
       "name": "Panel Card",
       "kind": "card",
       "refersTo": "card",
-      "description": "Standard neumorphic panel with whisper-level shadow.",
+      "description": "Contained neumorphic card. Mobile main views use a flat, edge-to-edge page instead.",
       "html": "<div class=\"ds-panel\"><h3 class=\"ds-panel-title\">CPSC 310</h3><p class=\"ds-panel-meta\">Introduction to Software Engineering</p><p class=\"ds-panel-detail\">Credits: 4 · Prerequisites: CPSC 210</p></div>",
       "css": ".ds-panel { background: #fafafa; border-radius: 16px; padding: 16px; box-shadow: 3px 3px 8px rgba(105,112,116,0.045), -2px -2px 6px rgba(255,255,255,0.2); } .ds-panel-title { font-family: Aspekta, ui-sans-serif, system-ui, sans-serif; font-size: 1rem; font-weight: 500; color: #18191b; margin: 0 0 4px; } .ds-panel-meta { font-family: Aspekta, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: #3e4348; margin: 0 0 8px; line-height: 1.5; } .ds-panel-detail { font-family: 'Commit Mono', ui-monospace, monospace; font-size: 0.8125rem; color: #5a6066; margin: 0; }"
     },
@@ -269,9 +271,9 @@
   ],
   "narrative": {
     "northStar": "The Whisper Instrument",
-    "overview": "Reodite's interface is a precision instrument where every surface is permanently shaped — dimensioned at rest, but barely. Shadows function at whisper intensity: tiny offsets, minimal blur, near-transparent opacity. You feel what is pressable, what is a well, what is content, but the depth registers subconsciously rather than announcing itself.\n\nThe system reads as one continuous material shaped into different forms for different functions: raised for actions, recessed for input, flat for content. No decoration, no illustration, no ornament. Quality lives in restraint: the lightest possible shadow that still communicates depth.\n\nThe landing page breaks this discipline intentionally — larger type (4xl-6xl), spring physics, blur reveals, scroll-driven parallax — creating contrast between marketing energy and in-app calm. This is a designed boundary, not inconsistency.",
+    "overview": "Use restrained depth for controls, contained cards, and overlays. Keep mobile pages flat and edge-to-edge so students can use the available screen for their task. Raised actions, recessed inputs, and flat content share one neutral material. Use the smallest shadow that communicates a boundary.\n\nUse small offsets (2-3px), soft blur (4-8px), and low opacity (4-6%) for composed shadows. Keep the light source at the upper left and use the same recipes across related controls.\n\nChoose spacing, type, and radii from the documented scales. Keep app transitions brief and tied to interaction. Reserve larger type, spring entrances, and blur reveals for the landing page.",
     "keyCharacteristics": [
-      "Whisper-level dimension on every surface — felt, not seen",
+      "Restrained depth for controls and contained surfaces; flat mobile pages",
       "Minimal shadows: 2-3px offsets, 4-8px blur, 4-6% opacity",
       "Single-material coherence across all elements",
       "Precision and consistency as the aesthetic itself",
@@ -327,7 +329,7 @@
       },
       {
         "name": "The Whisper-Dimension Rule",
-        "body": "Neumorphic surfaces have depth at rest, but at minimal intensity (4-6% opacity shadows). Depth is felt rather than seen. Hover/active modify the recipe.",
+        "body": "Use minimal resting depth on controls, contained cards, desktop panels, and overlays. Mobile page frames and primary workspace regions stay flat. Hover and active states expand or invert the control shadow to --neu-inset-shadow.",
         "section": "elevation"
       }
     ],
@@ -337,7 +339,7 @@
       "Do use --neu-ease (cubic-bezier 0.16, 1, 0.3, 1) for all in-app layout animations at 150-350ms.",
       "Do respect prefers-reduced-motion — all animations collapse to 0.01ms, reveals show immediately.",
       "Do use [data-theme=\"dark\"] for theme switching — never prefers-color-scheme media query.",
-      "Do maintain whisper-level dimension on all surfaces at all times.",
+      "Do keep mobile pages and their primary workspace regions flat and edge-to-edge. Use resting depth on controls, contained cards, desktop panels, and overlays.",
       "Do use asymmetric bubble radii to indicate message direction.",
       "Do use opacity modifiers on color tokens for tinted backgrounds.",
       "Do enforce 44px minimum touch targets on mobile.",
@@ -353,6 +355,7 @@
       "Don't use font-weight 700+ anywhere. Maximum is 600.",
       "Don't use primary indigo for backgrounds, decoration, or large surfaces. It means interactive only.",
       "Don't use spring physics or blur reveals in the app shell. Those belong to the landing page only.",
+      "Don't wrap a phone's main view in a rounded card or restore shell gutters below 640px. Keep content and control padding inside the full-width page.",
       "Don't create new shadow recipes. Use --neu-surface-shadow or --neu-inset-shadow, or the five Tier 1 utilities."
     ]
   }

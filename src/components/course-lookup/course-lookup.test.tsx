@@ -367,6 +367,20 @@ describe("course-lookup-pane — tools-mode list/detail split", () => {
     expect(screen.queryByRole("button", { name: "Show courses" })).toBeNull();
   });
 
+  it("reserves a result viewport when advanced filters expand", async () => {
+    shellState.mode = "tools";
+    apiState.searchCourses.mockResolvedValue({ courses: [fullRecord], subject_total: 1 });
+    const { container } = render(<CourseLookupPane state={{ code: "" }} setState={vi.fn()} />);
+    await screen.findByRole("table");
+    fireEvent.click(screen.getByRole("button", { name: "Filters" }));
+
+    expect(screen.getByRole("region", { name: "Advanced course filters" })).not.toBeNull();
+    const results = container.querySelector("[data-workspace-canvas]")?.parentElement;
+    expect(results?.className).toContain("min-h-64");
+    expect(container.querySelector("[data-workspace-page]")?.className).toContain("overflow-y-auto");
+    expect(results?.querySelector("footer")).not.toBeNull();
+  });
+
   it("tools mode row click navigates to the course detail URL", async () => {
     shellState.mode = "tools";
     apiState.searchCourses.mockResolvedValue({
