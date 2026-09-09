@@ -96,7 +96,8 @@ describe("mobile workspace framing", () => {
     const modeBar = globalsCss.match(/\.mobile-mode-bar\s*\{([\s\S]*?)\}/)?.[1] ?? "";
     expect(modeBar).toContain("env(safe-area-inset-bottom)");
     expect(mobileLayout).toContain('[data-mode-navigation="sidebar"]');
-    expect(mobileLayout).toMatch(/\.app-shell-frame :is\(input, textarea, select\)\s*\{\s*font-size: 1rem;/);
+    const phoneFields = mobileLayout.match(/(?:^|\n)\s*:is\(input, textarea, select\)\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(phoneFields).toContain("font-size: 1rem;");
     expect(mobileLayout).toMatch(/\[data-chat-composer-footer\]\s*\{\s*padding-bottom: 0.75rem;/);
   });
 

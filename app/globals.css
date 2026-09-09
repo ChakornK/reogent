@@ -1159,7 +1159,7 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
     -webkit-tap-highlight-color: transparent;
   }
 
-  .app-shell-frame :is(input, textarea, select) {
+  :is(input, textarea, select) {
     font-size: 1rem;
   }
 
