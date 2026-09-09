@@ -38,6 +38,11 @@ describe("shared UI ownership", () => {
     expect(globalsCss).toContain("line-height: var(--text-sm--line-height);");
   });
 
+  it("keeps chart focus paint inside its scroll boundary", () => {
+    const rule = globalsCss.match(/\[data-grade-chart-scroll\]:focus-visible[^{}]*\{([^}]+)\}/)?.[1] ?? "";
+    expect(rule).toContain("outline-offset: -2px;");
+  });
+
   it("uses shared application heading roles outside marketing and the standalone crash fallback", () => {
     const copies = uiFiles.filter(
       ({ path, source }) =>

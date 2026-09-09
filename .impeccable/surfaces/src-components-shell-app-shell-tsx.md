@@ -36,7 +36,7 @@ Center leading controls on the workspace's 28px title anchor without shrinking t
 
 Keep progress-card totals unwrapped in a nonshrinking column, with an 8px gap from labels that wrap in the remaining width. Preserve each card's independent inset.
 
-Give embedded prerequisite search its own in-flow command row below the titlebar, with 16px side insets and 8px separation; keep its input and graph mounted across width changes. Outline codes stay unbroken beside truncated titles, while literal notes wrap.
+Give embedded prerequisite search its own in-flow command row below the titlebar, with 16px side insets and 8px separation; keep its input and graph mounted across width changes. Outline codes stay unbroken beside truncated titles, while literal notes wrap. Bound charts within their own keyboard scroll region with inset focus paint.
 
 Derive close matching curves from real border-box insets: expanded navigation 16/8/8, collapsed navigation and theme 12/4/8, segmented controls 8/4/4, and timetable 12/2/10 followed by 10/2/8 (outer radius/inset/inner radius). The single-line composer keeps a 44px field inside a 56px well; action radius/inset is 10/6 on phones and 6/10 on wider screens. Preserve phone flattening and independent cards, avatars, input fields, and interior rows. Confirm measurements with original-scale images and enlarged details; reject image estimates that contradict actual bounds.
 

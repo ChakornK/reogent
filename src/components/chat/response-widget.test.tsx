@@ -490,6 +490,34 @@ it("expands extra courses without remounting the preview and deactivates closing
   expect(getByRole("button", { name: /CPSC 110/ })).toBe(preview);
 });
 
+describe("shared grade chart envelopes", () => {
+  it.each(["grades", "direct distribution", "nested distribution"] as const)(
+    "keeps chart data and local keyboard scrolling for %s",
+    async (envelope) => {
+      const buckets = { "80-84": 4, "90-100": 2 };
+      const type = envelope === "grades" ? "grades" : "grade_distribution";
+      const data =
+        envelope === "grades"
+          ? { grade_distribution: { buckets, total_enrolled: 6 }, grade_summary: { avg: 86, sample_sections: 2 } }
+          : {
+              ...(envelope === "direct distribution" ? { buckets } : { bucket_distribution: { buckets } }),
+              highlight_bucket: "90-100",
+            };
+      const view = renderWidget({ name: "show_widget", input: { type }, result: { type, result: data } });
+      await act(async () => {});
+      const chart = view.getByRole("region", { name: "Grade distribution chart" });
+      expect(chart.tabIndex).toBe(0);
+      expect(chart.hasAttribute("data-grade-chart-scroll")).toBe(true);
+      expect(chart.querySelector(".min-w-64")).not.toBeNull();
+      expect(chart.querySelector("[data-chart-bars]")?.children).toHaveLength(11);
+      const highlighted = chart.querySelector('[aria-label="90-100: 2 students"] > div');
+      expect(highlighted?.classList.contains("bg-primary")).toBe(envelope !== "grades");
+      expect(chart.contains(view.getByText(/Grade distribution.+6 students/))).toBe(false);
+      expect(chart.closest("[data-widget]")?.getAttribute("role")).toBeNull();
+    },
+  );
+});
+
 describe("unsupported rich-widget history and stream selection", () => {
   it("restores the last supported call across trailing unsupported history entries", async () => {
     api.getSession.mockResolvedValue([
