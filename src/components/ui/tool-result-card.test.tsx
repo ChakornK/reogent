@@ -48,6 +48,39 @@ describe("tool result primitives", () => {
     expect(screen.getByText("2 more")).not.toBeNull();
   });
 
+  it("places wrapping metadata below the truncated description without moving trailing content", () => {
+    const { getByText } = render(
+      <div className={toolResultRowClasses()}>
+        <ToolResultRowContent
+          title="Registration deadline"
+          description="Undergraduate registration"
+          metadata={<span>September 1 through September 30, 2026</span>}
+          trailing={<span>Trailing action</span>}
+        />
+      </div>,
+    );
+    const title = getByText("Registration deadline");
+    const description = getByText("Undergraduate registration");
+    const metadata = getByText("September 1 through September 30, 2026").parentElement!;
+    expect(metadata.parentElement).toBe(title.parentElement);
+    expect(description.nextElementSibling).toBe(metadata);
+    expect(metadata.className).toContain("flex-wrap");
+    expect(metadata.className).toContain("gap-2");
+    expect(metadata.className).toContain("text-xs");
+    expect(metadata.className).toContain("text-muted");
+    expect(metadata.className).not.toMatch(/truncate|shrink-0|whitespace-nowrap/);
+    expect(description.className).toContain("truncate");
+    expect(title.parentElement?.className).toContain("min-w-0");
+    expect(title.parentElement?.nextElementSibling).toBe(getByText("Trailing action"));
+  });
+
+  it.each([undefined, null, 0, ""])("renders row metadata only when non-null: %s", (metadata) => {
+    const { getByText } = render(<ToolResultRowContent title="Deadline" metadata={metadata} />);
+    const column = getByText("Deadline").parentElement!;
+    expect(column.childElementCount).toBe(metadata == null ? 1 : 2);
+    if (metadata === 0) expect(column.lastElementChild?.textContent).toBe("0");
+  });
+
   it("preserves safe raw evidence when a rich renderer fails", () => {
     render(<ToolResultFailure name="show_widget" result={{ course: "CPSC 110" }} />);
     expect(screen.getByRole("alert").textContent).toContain("show widget result couldn't be displayed");

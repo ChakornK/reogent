@@ -492,10 +492,11 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
               </div>
             )}
           </div>
-          <div className="mt-0.5 flex gap-2">
+          <div className="mt-0.5 flex flex-wrap items-center gap-2">
             <Button
               variant="primary"
               size="field"
+              wrap
               onClick={(event) => {
                 event.stopPropagation();
                 setActiveChannel("calendar", {
@@ -505,7 +506,7 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
                   kinds: ["academic", "holiday"],
                 });
               }}
-              className="flex-1"
+              className="h-auto min-h-11 max-w-full min-w-0 flex-1 py-2"
             >
               Add to Calendar
             </Button>
@@ -584,11 +585,11 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
               <ToolResultRowContent
                 title={room.room}
                 description={room.location ?? "—"}
-                trailing={
-                  <span className="flex shrink-0 items-center gap-2">
+                metadata={
+                  <>
                     {room.capacity != null ? <InfoChip>{room.capacity} seats</InfoChip> : null}
                     {typeof room.minutes === "number" ? <InfoChip>free {formatMinutes(room.minutes)}</InfoChip> : null}
-                  </span>
+                  </>
                 }
               />
             </div>
@@ -702,9 +703,7 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
             >
               <ToolResultRowContent
                 title={date.name}
-                trailing={
-                  <span className="text-muted shrink-0 font-mono text-xs">{date.date_text ?? date.start ?? "—"}</span>
-                }
+                metadata={<span className="font-mono">{date.date_text ?? date.start ?? "—"}</span>}
               />
             </div>
           ))}

@@ -329,11 +329,6 @@ export function toolCallToCanvasView(call: ToolCall): CanvasView | null {
       if (!first?.code) return null;
       return { paneId: "course-lookup", state: { code: first.code } };
     }
-    case "prereq_tree": {
-      const g = data as { rootCode?: string } | undefined;
-      if (!g?.rootCode) return null;
-      return { paneId: "prereq-tree", state: { root: g.rootCode, selections: {} } };
-    }
     case "key_dates": {
       const list = data as { dates?: unknown[] } | undefined;
       if (!Array.isArray(list?.dates) || list.dates.length === 0) return null;

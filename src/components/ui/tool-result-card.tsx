@@ -63,17 +63,25 @@ export function toolResultRowClasses(interactive = false): string {
 interface ToolResultRowContentProps {
   title: ReactNode;
   description?: ReactNode;
+  metadata?: ReactNode;
   trailing?: ReactNode;
   titleClassName?: string;
 }
 
-/** Renders the shared title, description, and trailing metadata anatomy for result rows. */
-export function ToolResultRowContent({ title, description, trailing, titleClassName }: ToolResultRowContentProps) {
+/** Renders row text with optional wrapping metadata and a separate trailing slot. */
+export function ToolResultRowContent({
+  title,
+  description,
+  metadata,
+  trailing,
+  titleClassName,
+}: ToolResultRowContentProps) {
   return (
     <>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className={`text-on-surface truncate text-sm font-medium ${titleClassName ?? ""}`}>{title}</span>
         {description ? <span className="text-muted truncate text-xs">{description}</span> : null}
+        {metadata != null ? <span className="text-muted flex flex-wrap gap-2 text-xs">{metadata}</span> : null}
       </span>
       {trailing}
     </>

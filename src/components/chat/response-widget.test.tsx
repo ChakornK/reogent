@@ -1,13 +1,24 @@
 // @vitest-environment happy-dom
+import { ChatPanel } from "@/src/components/chat/chat-panel";
 import { ChatShellProvider, useChatShell, type ChatShellState } from "@/src/components/chat/chat-shell-context";
 import { renderers, ResponseWidget } from "@/src/components/chat/tool-renderers";
-import type { ToolCall } from "@/src/lib/api-types";
+import type { ChatMessage, ToolCall } from "@/src/lib/api-types";
 import { cachePaneState, getCachedPaneState } from "@/src/lib/pane-state-cache";
-import { act, cleanup, fireEvent, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/src/components/providers", () => ({ useApi: () => ({ listSessions: async () => [] }) }));
-vi.mock("@/src/components/auth/app-auth", () => ({ useAppAuth: () => ({ status: "signedOut" }) }));
+const api = vi.hoisted(() => ({
+  chat: vi.fn(),
+  getSession: vi.fn(async () => [] as ChatMessage[]),
+  listSessions: vi.fn(async () => []),
+}));
+vi.mock("@/src/components/providers", () => ({ useApi: () => api }));
+vi.mock("@/src/components/auth/app-auth", () => ({ useAppAuth: () => ({ status: "signedIn" }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: () => {}, replace: () => {} }),
+  usePathname: () => "/chat",
+  useParams: () => ({}),
+}));
 vi.mock("@/src/components/prereq-tree/prereq-tree-pane", () => ({ PrereqTreePane: () => null }));
 vi.mock("@/src/components/map/map-panel", () => ({ MapArea: () => null }));
 
@@ -42,6 +53,8 @@ beforeAll(() => {
 afterEach(() => {
   mem.clear();
   vi.clearAllMocks();
+  api.chat.mockReset();
+  api.getSession.mockReset().mockResolvedValue([]);
   cleanup();
 });
 afterAll(() => {
@@ -106,7 +119,96 @@ const courseCall = {
   status: "ok",
 } as unknown as ToolCall;
 
+const unsupportedPrereqCall: ToolCall = {
+  name: "show_widget",
+  input: { type: "prereq_tree" },
+  result: { type: "prereq_tree", result: { rootCode: "CPSC 320", nodes: [], edges: [] } },
+};
+
 describe("5.3 — ResponseWidget (REQ-3, REQ-4)", () => {
+  it("does not give an unsupported prereq widget an empty action or tab stop", () => {
+    const { container, queryByRole } = renderWidget(unsupportedPrereqCall, "unsupported");
+    const widget = container.querySelector('[data-widget="show_widget"]')!;
+    expect(widget.getAttribute("role")).toBeNull();
+    expect(widget.getAttribute("tabindex")).toBeNull();
+    expect(queryByRole("button")).toBeNull();
+    act(() => shellRef.current?.activateCanvasView(keyDatesCall, "valid"));
+    const view = shellRef.current?.workspaceView;
+    fireEvent.click(widget);
+    fireEvent.keyDown(widget, { key: "Enter" });
+    fireEvent.keyDown(widget, { key: " " });
+    act(() => shellRef.current?.activateCanvasView(unsupportedPrereqCall, "unsupported"));
+    expect(shellRef.current?.workspaceView).toBe(view);
+    expect(shellRef.current?.activeCallKey).toBe("valid");
+  });
+
+  it("wraps event actions and the primary label while retaining the map target and cursor", () => {
+    const { getByRole } = renderWidget({
+      name: "show_widget",
+      input: { type: "event" },
+      result: { type: "event", result: { events: [{ title: "Campus event", start_date: "2026-10-01" }] } },
+    });
+    const calendar = getByRole("button", { name: "Add to Calendar" });
+    const map = getByRole("button", { name: "Show on map" });
+    expect(calendar.parentElement?.className).toContain("flex-wrap");
+    expect(calendar.parentElement?.className).toContain("items-center");
+    for (const token of ["whitespace-normal", "min-w-0", "max-w-full", "min-h-11", "h-auto", "py-2"]) {
+      expect(calendar.classList.contains(token)).toBe(true);
+    }
+    expect(calendar.classList.contains("whitespace-nowrap")).toBe(false);
+    expect(map.classList.contains("size-11")).toBe(true);
+    expect(map.classList.contains("shrink-0")).toBe(true);
+    fireEvent.click(calendar);
+    expect(shellRef.current?.workspaceView).toEqual({
+      paneId: "calendar",
+      state: { cursor: "2026-10", kinds: ["academic", "holiday"] },
+    });
+  });
+
+  it.each([
+    ["September 1 through September 30, 2026", "2026-09-01", "September 1 through September 30, 2026"],
+    [null, "2026-09-01", "2026-09-01"],
+    [null, null, "—"],
+  ])("keeps the complete key-date value beneath its title: %s", (dateText, start, expected) => {
+    const { getByText } = renderWidget({
+      name: "show_widget",
+      input: { type: "key_dates" },
+      result: { type: "key_dates", result: { dates: [{ name: "Registration deadline", date_text: dateText, start }] } },
+    });
+    const title = getByText("Registration deadline");
+    const value = getByText(expected);
+    expect(title.parentElement?.contains(value)).toBe(true);
+    expect(value.className).toContain("font-mono");
+    for (
+      let element: HTMLElement | null = value;
+      element && element !== title.parentElement;
+      element = element.parentElement
+    ) {
+      expect(element.className).not.toMatch(/truncate|shrink-0|whitespace-nowrap/);
+    }
+  });
+
+  it("wraps free-room chips beneath the location and preserves zero values", () => {
+    const { getByText } = renderWidget({
+      name: "show_widget",
+      input: { type: "free_rooms" },
+      result: {
+        type: "free_rooms",
+        result: {
+          rooms: [{ room: "Learning Centre room 201", location: "ICCS", capacity: 0, minutes: 0, start: "2026-09-01" }],
+        },
+      },
+    });
+    const column = getByText("Learning Centre room 201").parentElement!;
+    const seats = getByText("0 seats");
+    const minutes = getByText("free 1 min");
+    expect(column.contains(seats)).toBe(true);
+    expect(column.contains(minutes)).toBe(true);
+    expect(getByText("ICCS").nextElementSibling?.contains(seats)).toBe(true);
+    expect(seats.parentElement?.className).toContain("flex-wrap");
+    expect(seats.parentElement?.className).toContain("gap-2");
+    expect(seats.parentElement?.className).not.toContain("shrink-0");
+  });
   it("a mapped widget is focusable and loads its canvas view on click", () => {
     const { container } = renderWidget(keyDatesCall);
     const widget = container.querySelector('[data-widget="show_widget"]') as HTMLElement;
@@ -252,7 +354,8 @@ describe("5.3 — ResponseWidget (REQ-3, REQ-4)", () => {
     fireEvent.click(getByRole("button", { name: "Prereq Tree" }));
     const state = shellRef.current?.workspaceView?.state;
     expect(state?.root).toBe("CPSC_V 110");
-    expect(state?.query || state?.root).toBe("CPSC_V 110");
+    expect(state?.query).toBe("CPSC_V 110");
+    expect(state?.selections).toEqual({});
   });
 
   it("renders study-space evidence as static rows when no concrete row action exists", () => {
@@ -385,4 +488,87 @@ it("expands extra courses without remounting the preview and deactivates closing
   expect(disclosure.getAttribute("inert")).not.toBeNull();
   expect(disclosure.getAttribute("aria-hidden")).toBe("true");
   expect(getByRole("button", { name: /CPSC 110/ })).toBe(preview);
+});
+
+describe("unsupported rich-widget history and stream selection", () => {
+  it("restores the last supported call across trailing unsupported history entries", async () => {
+    api.getSession.mockResolvedValue([
+      {
+        role: "assistant",
+        content: "Supported calendar result",
+        activity: [
+          { type: "tool_call", content: keyDatesCall.name, input: keyDatesCall.input, result: keyDatesCall.result },
+        ],
+      },
+      {
+        role: "assistant",
+        content: "Unsupported result",
+        activity: [
+          {
+            type: "tool_call",
+            content: unsupportedPrereqCall.name,
+            input: unsupportedPrereqCall.input,
+            result: unsupportedPrereqCall.result,
+          },
+        ],
+      },
+    ]);
+    render(
+      <ChatShellProvider>
+        <ChatPanel sessionId="rich-history" />
+        <Capture />
+      </ChatShellProvider>,
+    );
+    await waitFor(() => expect(shellRef.current?.workspaceView?.paneId).toBe("calendar"));
+    expect(shellRef.current?.activeCallKey).toBeNull();
+  });
+
+  it.each([false, true])("keeps the supported streamed call and dismissal policy (dismissed=%s)", async (dismissed) => {
+    const tools = [keyDatesCall, unsupportedPrereqCall];
+    api.chat.mockImplementation(
+      async (
+        _id: string,
+        _messages: ChatMessage[],
+        callbacks: {
+          onToolStart?: (name: string, input: Record<string, unknown>) => void;
+          onToolEnd?: (name: string, result: unknown) => void;
+        },
+      ) => {
+        for (const call of tools) {
+          callbacks.onToolStart?.(call.name, call.input);
+          callbacks.onToolEnd?.(call.name, call.result);
+        }
+        return { message: "Stream complete", tool_calls: tools };
+      },
+    );
+    const { getByRole, findByText, container } = render(
+      <ChatShellProvider>
+        <ChatPanel sessionId={null} />
+        <Capture />
+      </ChatShellProvider>,
+    );
+    act(() => {
+      shellRef.current?.setUserDismissedPane(dismissed);
+      shellRef.current?.setAnswerSheetOpen(false);
+      shellRef.current?.setRightPaneCollapsed(true);
+    });
+    fireEvent.change(getByRole("textbox", { name: "Message the assistant" }), { target: { value: "Show dates" } });
+    fireEvent.click(getByRole("button", { name: "Send message" }));
+    await findByText("Stream complete");
+    await waitFor(() => expect(shellRef.current?.workspaceView?.paneId).toBe("calendar"));
+    expect(shellRef.current?.userDismissedPane).toBe(dismissed);
+    expect(shellRef.current?.answerSheetOpen).toBe(!dismissed);
+    expect(shellRef.current?.rightPaneCollapsed).toBe(dismissed);
+    const widgets = container.querySelectorAll('[data-widget="show_widget"]');
+    expect(widgets).toHaveLength(2);
+    expect(widgets[1].getAttribute("role")).toBeNull();
+    expect(widgets[1].getAttribute("tabindex")).toBeNull();
+    if (dismissed) {
+      expect(shellRef.current?.activeCallKey).toBeNull();
+    } else {
+      expect(shellRef.current?.activeCallKey).toMatch(/:tc-0$/);
+      expect(widgets[0].getAttribute("data-active")).toBe("true");
+      expect(widgets[1].getAttribute("data-active")).toBeNull();
+    }
+  });
 });

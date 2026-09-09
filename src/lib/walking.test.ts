@@ -500,7 +500,7 @@ describe("toolCallToCanvasView", () => {
     ).toBeNull();
   });
 
-  it("maps show_widget course/courses/prereq_tree/key_dates to their panes", () => {
+  it("maps supported course/courses/key_dates widgets but rejects unsupported prereq_tree", () => {
     const course = toolCallToCanvasView({
       name: "show_widget",
       input: { type: "course" },
@@ -522,8 +522,7 @@ describe("toolCallToCanvasView", () => {
       input: { type: "prereq_tree" },
       result: { type: "prereq_tree", result: { rootCode: "CPSC 320" } },
     } as unknown as ToolCall);
-    expect(prereq?.paneId).toBe("prereq-tree");
-    expect(prereq?.state.root).toBe("CPSC 320");
+    expect(prereq).toBeNull();
 
     const dates = toolCallToCanvasView({
       name: "show_widget",
