@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { readFileSync } from "node:fs";
 import type { BuildingDetails, BuildingSummary } from "@/src/lib/api-types";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -163,12 +164,18 @@ function props(overrides: Partial<BuildingRailProps> = {}): BuildingRailProps {
 afterEach(cleanup);
 
 describe("BuildingRail", () => {
-  it("reserves detail geometry inside the scroller while keeping identity and actions mounted", () => {
+  it("keeps identity, actions and details in one bounded panel scroller", () => {
     const railProps = props({ mode: "details", selected: iblc, details: { status: "loading" } });
     const view = render(<BuildingRail {...railProps} />);
     const identity = screen.getByRole("heading", { name: iblc.name });
     const directions = screen.getByRole("button", { name: "Directions" });
     const loading = screen.getByRole("status", { name: "Loading building details" });
+    const scroller = view.container.querySelector("[data-workspace-panel-body]");
+    expect(scroller?.classList.contains("overflow-y-auto")).toBe(true);
+    for (const content of [identity, directions, loading]) {
+      expect(content.closest(".overflow-y-auto")).toBe(scroller);
+    }
+    expect(scroller?.contains(screen.getByRole("button", { name: "Back to all buildings" }))).toBe(false);
     expect(loading.parentElement?.className).toContain("px-3 py-4");
     expect(loading.querySelector("[data-skeleton]")?.className).toContain("h-36");
     expect(loading.querySelectorAll("[data-skeleton]").length).toBeGreaterThan(8);
@@ -183,8 +190,47 @@ describe("BuildingRail", () => {
     view.rerender(<BuildingRail {...railProps} details={{ status: "ready", data: details }} />);
     expect(screen.getByRole("heading", { name: iblc.name })).toBe(identity);
     expect(screen.getByRole("button", { name: "Directions" })).toBe(directions);
-    expect(screen.getByText("IBLC 100")).toBeTruthy();
+    expect(screen.getByText("IBLC 100").closest(".overflow-y-auto")).toBe(scroller);
     expect(screen.queryByRole("status", { name: "Loading building details" })).toBeNull();
+  });
+
+  it("reveals new building identity without resetting same-building updates or remounting the body", () => {
+    const railProps = props({ mode: "details", selected: iblc, details: { status: "ready", data: details } });
+    const view = render(<BuildingRail {...railProps} />);
+    const body = view.container.querySelector<HTMLElement>("[data-workspace-panel-body]")!;
+    const identity = screen.getByRole("heading", { name: iblc.name });
+    const directions = screen.getByRole("button", { name: "Directions" });
+    body.scrollTop = 1619;
+    view.rerender(<BuildingRail {...railProps} selected={{ ...iblc }} shareStatus="copy" />);
+    expect(body.scrollTop).toBe(1619);
+
+    const changed = { ...railProps, selected: chem, details: { status: "loading" } as BuildingDetailsState };
+    view.rerender(<BuildingRail {...changed} />);
+    expect(view.container.querySelector("[data-workspace-panel-body]")).toBe(body);
+    expect(screen.getByRole("heading", { name: chem.name })).toBe(identity);
+    expect(screen.getByRole("button", { name: "Directions" })).toBe(directions);
+    expect(body.scrollTop).toBe(0);
+
+    body.scrollTop = 50;
+    for (const detailState of [
+      { status: "error" },
+      { status: "loading" },
+      {
+        status: "ready",
+        data: { ...details, code: chem.code, name: chem.name, building: { ...details.building, ...chem } },
+      },
+    ] as BuildingDetailsState[]) {
+      view.rerender(<BuildingRail {...changed} details={detailState} />);
+      expect(body.scrollTop).toBe(50);
+    }
+    view.rerender(<BuildingRail {...changed} mode="directions" />);
+    const routeScroll = view.container.querySelector<HTMLElement>("[data-route-results-scroll]")!;
+    routeScroll.scrollTop = 80;
+    view.rerender(<BuildingRail {...changed} mode="directions" selected={iblc} />);
+    expect(routeScroll.scrollTop).toBe(80);
+    view.rerender(<BuildingRail {...railProps} />);
+    expect(view.container.querySelector("[data-workspace-panel-body]")).toBe(body);
+    expect(body.scrollTop).toBe(0);
   });
 
   it("insets saved-list skeleton rows once without hiding curated or stale buildings", () => {
@@ -338,6 +384,11 @@ describe("BuildingRail", () => {
     expect(screen.getByText("20 results")).toBeTruthy();
     expect(scroller?.contains(input)).toBe(true);
     expect(scroller?.contains(list)).toBe(true);
+    expect(container.querySelector("[data-route-editor]")?.classList.contains("sticky")).toBe(false);
+    const styles = readFileSync("app/globals.css", "utf8");
+    const scrollRule = styles.match(/\[data-route-results-scroll\]\s*\{([^}]+)\}/)?.[1];
+    expect(scrollRule).toContain("overscroll-behavior-y: contain");
+    expect(scrollRule).not.toContain("scroll-padding");
 
     fireEvent.keyDown(input, { key: "End" });
     const options = screen.getAllByRole("option");
@@ -345,6 +396,10 @@ describe("BuildingRail", () => {
     expect(options.at(-1)?.getAttribute("aria-selected")).toBe("true");
     expect(options.at(-1)?.className).toContain("rounded-xl");
     expect(options.at(-1)?.className).toContain("neu-inset");
+    expect(options.at(-1)?.classList.contains("scroll-mt-36")).toBe(false);
+    fireEvent.keyDown(input, { key: "Home" });
+    expect(input.getAttribute("aria-activedescendant")).toBe(options[0].id);
+    expect(options[0].getAttribute("aria-selected")).toBe("true");
   });
 
   it("clears an endpoint query before cancelling endpoint editing", () => {
@@ -518,7 +573,9 @@ describe("BuildingRail", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+    const copy = screen.getByRole("button", { name: "Copy link" });
+    expect(copy.closest(".overflow-y-auto")).toBe(copy.closest("[data-workspace-panel-body]"));
+    fireEvent.click(copy);
     expect(onCopyLink).toHaveBeenCalledOnce();
   });
 

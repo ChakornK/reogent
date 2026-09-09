@@ -37,6 +37,9 @@ describe("BuildingPopup loading", () => {
     const onClose = vi.fn();
     const { container } = render(<BuildingPopup building={building} onClose={onClose} />);
     const identity = screen.getByRole("heading", { name: building.name });
+    const popup = screen.getByRole("dialog", { name: `${building.name} details` });
+    expect(popup.classList.contains("w-80")).toBe(true);
+    expect(popup.classList.contains("max-w-[calc(100%-5rem)]")).toBe(true);
     const close = screen.getByRole("button", { name: "Close building details" });
     const loading = screen.getByRole("status", { name: "Loading building details" });
     expect(loading.parentElement?.className).toContain("px-3.5 py-3");

@@ -992,7 +992,6 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
 [data-route-results-scroll] {
   overscroll-behavior-y: contain;
   touch-action: pan-y;
-  scroll-padding-top: 9rem;
   scrollbar-width: thin;
   scrollbar-color: var(--outline-variant) transparent;
   -webkit-overflow-scrolling: touch;

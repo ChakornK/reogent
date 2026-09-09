@@ -11,7 +11,16 @@ import { WorkspacePanel } from "@/src/components/ui/workspace";
 import type { BuildingDetails, BuildingSummary, OfficialBuildingPhoto, RouteResponse } from "@/src/lib/api-types";
 import { searchBuildings } from "@/src/lib/building-catalog";
 import { formatMeters, formatMinutes } from "@/src/lib/format";
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 
 export type BuildingDetailsState =
   { status: "idle" } | { status: "loading" } | { status: "ready"; data: BuildingDetails } | { status: "error" };
@@ -320,9 +329,7 @@ function BuildingRow({
       tabIndex={tabIndex}
       onClick={onSelect}
       className={`focus-visible:ring-primary/40 hover:bg-surface-container-high flex w-full items-center gap-3 py-2 text-left focus-visible:ring-2 ${
-        variant === "route"
-          ? "bg-surface-container-low/55 min-h-14 scroll-mt-36 rounded-xl px-3"
-          : "min-h-11 rounded-lg px-3"
+        variant === "route" ? "bg-surface-container-low/55 min-h-14 rounded-xl px-3" : "min-h-11 rounded-lg px-3"
       } ${selected ? "neu-inset bg-surface-container text-on-surface" : ""}`}
     >
       <span className="bg-surface-container text-primary flex size-9 shrink-0 items-center justify-center rounded-lg">
@@ -373,6 +380,7 @@ function BuildingList({
 export function BuildingRail(props: BuildingRailProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
+  const identityRef = useRef<HTMLDivElement>(null);
   const discoveryScrollRef = useRef(0);
   const originInputRef = useRef<HTMLInputElement>(null);
   const destinationInputRef = useRef<HTMLInputElement>(null);
@@ -392,6 +400,12 @@ export function BuildingRail(props: BuildingRailProps) {
       return building ? [building] : [];
     });
   }, [props.catalog, props.favorites]);
+
+  useLayoutEffect(() => {
+    if (props.mode !== "details" || !props.selected?.code) return;
+    const body = identityRef.current?.parentElement;
+    if (body) body.scrollTop = 0;
+  }, [props.mode, props.selected?.code]);
 
   useEffect(() => {
     if (props.mode !== "discover") return;
@@ -498,12 +512,12 @@ export function BuildingRail(props: BuildingRailProps) {
           </Button>
         ) : undefined
       }
-      bodyMode="contained"
+      bodyMode={props.mode === "details" && props.selected ? "scroll" : "contained"}
       padding="none"
     >
       {props.mode === "details" && props.selected ? (
-        <div className="flex h-full min-h-0 flex-col">
-          <div className="ui-content-enter border-border-subtle shrink-0 border-b px-3 py-3">
+        <>
+          <div ref={identityRef} className="ui-content-enter border-border-subtle border-b px-3 py-3">
             <div>
               <Heading as="h2" size="section">
                 {props.selected.name}
@@ -572,7 +586,7 @@ export function BuildingRail(props: BuildingRailProps) {
               </Button>
             ) : null}
           </div>
-          <div className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto px-3 py-4">
+          <div className="px-3 py-4">
             {props.details.status === "loading" ? (
               <SkeletonGroup label="Loading building details" className="flex flex-col gap-4">
                 <div className="overflow-hidden rounded-lg">
@@ -621,7 +635,7 @@ export function BuildingRail(props: BuildingRailProps) {
               </>
             ) : null}
           </div>
-        </div>
+        </>
       ) : (
         <div className="flex h-full min-h-0 flex-col">
           {props.mode !== "directions" ? (
@@ -655,7 +669,7 @@ export function BuildingRail(props: BuildingRailProps) {
             }`}
           >
             {props.mode === "directions" && props.selected ? (
-              <div data-route-editor className="ui-content-enter bg-surface sticky top-0 z-20 px-3 pt-3 pb-2">
+              <div data-route-editor className="ui-content-enter bg-surface px-3 pt-3 pb-2">
                 <div className="neu-raised bg-surface rounded-xl p-2">
                   <div
                     data-route-endpoints

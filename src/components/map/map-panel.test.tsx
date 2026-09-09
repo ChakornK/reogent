@@ -276,6 +276,25 @@ describe("MapArea", () => {
     expect(container.querySelector("[data-map-status]")?.getAttribute("aria-busy")).toBe("false");
   });
 
+  it("keeps grouped zoom focus paint outside the well without changing control targets", async () => {
+    const { container } = renderMap("ai");
+    await act(async () => {});
+    const well = container.querySelector("[data-map-zoom-controls]")!;
+    expect(well.classList.contains("overflow-hidden")).toBe(false);
+    expect(well.classList.contains("rounded-xl")).toBe(true);
+    for (const [name, corner] of [
+      ["Zoom in", "rounded-t-xl"],
+      ["Zoom out", "rounded-b-xl"],
+    ]) {
+      const button = screen.getByRole("button", { name });
+      expect(button.parentElement).toBe(well);
+      expect(button.classList.contains(corner)).toBe(true);
+      expect(button.classList.contains("size-11")).toBe(true);
+      expect(button.classList.contains("sm:size-10")).toBe(true);
+      expect(button.classList.contains("focus-visible:ring-2")).toBe(true);
+    }
+  });
+
   it("keeps the map timeout and retry distinct from loading", () => {
     vi.useFakeTimers();
     renderMap("ai");

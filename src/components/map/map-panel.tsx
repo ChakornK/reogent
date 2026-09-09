@@ -328,15 +328,12 @@ function MapSurface({
           </div>
 
           {/* Zoom — floating bottom-right */}
-          <div
-            data-map-zoom-controls
-            className="neu-panel absolute right-3 bottom-6 z-10 flex flex-col overflow-hidden rounded-xl"
-          >
+          <div data-map-zoom-controls className="neu-panel absolute right-3 bottom-6 z-10 flex flex-col rounded-xl">
             <button
               type="button"
               aria-label="Zoom in"
               onClick={() => controls.current?.zoomIn()}
-              className="focus-visible:ring-primary/40 text-on-surface-variant hover:text-primary flex size-11 items-center justify-center transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:size-10"
+              className="focus-visible:ring-primary/40 text-on-surface-variant hover:text-primary flex size-11 items-center justify-center rounded-t-xl transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:size-10"
             >
               <Icon name="add" size={20} />
             </button>
@@ -345,7 +342,7 @@ function MapSurface({
               type="button"
               aria-label="Zoom out"
               onClick={() => controls.current?.zoomOut()}
-              className="focus-visible:ring-primary/40 text-on-surface-variant hover:text-primary flex size-11 items-center justify-center transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:size-10"
+              className="focus-visible:ring-primary/40 text-on-surface-variant hover:text-primary flex size-11 items-center justify-center rounded-b-xl transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:size-10"
             >
               <Icon name="minimize" size={20} />
             </button>
