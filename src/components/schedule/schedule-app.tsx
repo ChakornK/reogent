@@ -515,7 +515,7 @@ function ScheduleAppInner({ groupCode }: Props) {
               </section>
             </Disclosure>
           </section>
-          {termIsLive ? (
+          {termIsLive && enabledPeopleWithSchedules.length > 0 ? (
             <div data-control-section="now" className="border-border-subtle border-t py-4">
               <NowPanel people={enabledPeople} now={now} />
             </div>
@@ -580,15 +580,28 @@ function ScheduleAppInner({ groupCode }: Props) {
           loading={groupView.status === "loading" ? `Loading ${groupLabel} weekly schedule` : undefined}
           renderBlockFooter={(block) => {
             const peopleForBlock = grid.blocksById.get(block.id)?.people ?? [];
+            const participantLabel = `${peopleForBlock.length} ${peopleForBlock.length === 1 ? "person" : "people"}`;
             return (
-              <>
-                {peopleForBlock.slice(0, 4).map((person) => (
-                  <AvatarChip key={person.id} avatar={person.avatar} size={16} title={person.handle} />
-                ))}
-                {peopleForBlock.length > 4 ? (
-                  <span className="text-on-surface-variant ml-0.5 text-xs">+{peopleForBlock.length - 4}</span>
-                ) : null}
-              </>
+              <span className="@container/schedule-participants w-full min-w-0">
+                <span
+                  role="img"
+                  aria-label={participantLabel}
+                  title={participantLabel}
+                  className="text-on-surface-variant block text-right text-xs tabular-nums @min-[6rem]/schedule-participants:hidden"
+                >
+                  {peopleForBlock.length}
+                </span>
+                <span className="hidden items-center justify-end @min-[6rem]/schedule-participants:flex">
+                  {peopleForBlock.slice(0, 4).map((person) => (
+                    <AvatarChip key={person.id} avatar={person.avatar} size={16} title={person.handle} />
+                  ))}
+                  {peopleForBlock.length > 4 ? (
+                    <span className="text-on-surface-variant ml-0.5 shrink-0 text-xs">
+                      +{peopleForBlock.length - 4}
+                    </span>
+                  ) : null}
+                </span>
+              </span>
             );
           }}
           ariaLabel={group ? `${group.name} weekly schedule` : `${groupLabel} weekly schedule preview`}
@@ -639,7 +652,7 @@ function ScheduleLoading() {
       toolbar={<ScheduleToolbarSkeleton />}
       controlsLabel="Controls"
       controls={
-        <div className="h-full [scrollbar-gutter:stable] overflow-y-auto px-3">
+        <div className="h-full [scrollbar-gutter:stable] overflow-y-auto px-4">
           <ScheduleControlsSkeleton label="Loading schedule controls" includeGroup />
         </div>
       }

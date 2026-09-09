@@ -2,7 +2,7 @@
 import { WorkspaceHostProvider } from "@/src/components/shell/workspace-host";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateGroupModal, ScheduleApp, scheduleEmptyState } from "./schedule-app";
 
 const router = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
@@ -18,6 +18,7 @@ vi.mock("@/src/components/auth/app-auth", () => ({
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
   vi.clearAllMocks();
 });
 
@@ -183,6 +184,9 @@ describe("ScheduleApp group loading", () => {
     expect(
       screen.getByRole("status", { name: "Loading schedule controls" }).querySelector("[data-skeleton]"),
     ).toBeTruthy();
+    const loadingControls = screen.getByRole("status", { name: "Loading schedule controls" }).parentElement;
+    expect(loadingControls?.classList.contains("px-4")).toBe(true);
+    expect(loadingControls?.classList.contains("px-3")).toBe(false);
     expect(screen.getByRole("status", { name: "Loading schedule terms" }).querySelector(".sm\\:h-8")).toBeTruthy();
     expect(screen.getByRole("status", { name: "Loading your weekly schedule" })).toBeTruthy();
     expect(screen.getByText("9 AM")).toBeTruthy();
@@ -325,6 +329,7 @@ describe("ScheduleApp group loading", () => {
 
     render(<ScheduleApp groupCode="AAAAAA" />);
     await screen.findAllByText("Person A");
+    await act(async () => {});
     fireEvent.focus(window);
     await waitFor(() =>
       expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/groups/AAAAAA"))).toHaveLength(2),
@@ -344,6 +349,11 @@ describe("ScheduleApp group loading", () => {
 });
 
 describe("ScheduleApp controls", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-08T12:00:00Z"));
+  });
+
   it("keeps Share as the only header action and renders ready controls in order", async () => {
     stubSharerFetch({ loadGroup: (code) => Promise.resolve(json({ group: group(code, "Group A") })) });
     const view = render(<ScheduleApp groupCode="AAAAAA" />);
@@ -354,6 +364,7 @@ describe("ScheduleApp controls", () => {
     expect(screen.getByRole("button", { name: "New group" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Leave" })).toBeTruthy();
     expect(controlOrder(view.container)).toEqual(["group", "management", "people", "free-time", "now", "import"]);
+    expect(screen.getByRole("region", { name: "Right now" }).textContent).toContain("Person A");
     expect(view.container.querySelector("[data-control-section] .neu-panel")).toBeNull();
     expect(screen.getByRole("combobox", { name: "Group" }).className).toContain("rounded-lg");
     expect(screen.getByText("Replace my schedule")).toBeTruthy();
@@ -370,6 +381,34 @@ describe("ScheduleApp controls", () => {
 
     expect(controlOrder(view.container)).toEqual(["group", "management", "people", "free-time", "now", "import"]);
     expect(screen.getByText("Import my schedule")).toBeTruthy();
+  });
+
+  it("omits the Now wrapper when only unscheduled people remain enabled", async () => {
+    const me = wirePerson("u1", "Ada", false);
+    stubSharerFetch({
+      me,
+      loadGroup: (code) => Promise.resolve(json({ group: group(code, "Group A", [me, wirePerson("u2", "Ada")]) })),
+    });
+    const view = render(<ScheduleApp groupCode="AAAAAA" />);
+    const scheduledToggle = await screen.findByRole("checkbox", { name: "Show Ada (2) on the calendar" });
+    expect(screen.getByRole("region", { name: "Right now" }).textContent).toContain("Ada (2)");
+
+    fireEvent.click(scheduledToggle);
+
+    expect(controlOrder(view.container)).toEqual(["group", "management", "people", "free-time", "import"]);
+    expect(screen.queryByRole("region", { name: "Right now" })).toBeNull();
+    expect(screen.getByRole("tab", { name: "Fall 2026" }).getAttribute("aria-selected")).toBe("true");
+    expect((screen.getByRole("checkbox", { name: "Show Ada on the calendar" }) as HTMLInputElement).checked).toBe(true);
+  });
+
+  it("omits the Now wrapper for a group with no imported schedules", async () => {
+    const me = wirePerson("u1", "Ada", false);
+    stubSharerFetch({ me, loadGroup: (code) => Promise.resolve(json({ group: group(code, "Group A", [me]) })) });
+    const view = render(<ScheduleApp groupCode="AAAAAA" />);
+    await screen.findByRole("button", { name: "Leave" });
+
+    expect(controlOrder(view.container)).toEqual(["group", "management", "people", "free-time", "import"]);
+    expect(screen.queryByRole("region", { name: "Right now" })).toBeNull();
   });
 
   it("uses flat, capped free-time states and all enabled-person derivatives", async () => {
@@ -393,7 +432,13 @@ describe("ScheduleApp controls", () => {
 
     fireEvent.click(personToggle);
     expect(screen.getByText("Show at least one person with a schedule to compare free time.")).toBeTruthy();
-    expect(nowSection?.textContent).not.toContain("Person A");
+    expect(view.container.querySelector('[data-control-section="now"]')).toBeNull();
+    expect(controlOrder(view.container)).toEqual(["group", "management", "people", "free-time", "import"]);
+    expect(screen.getByRole("tab", { name: "Fall 2026" }).getAttribute("aria-selected")).toBe("true");
+
+    fireEvent.click(personToggle);
+    expect(controlOrder(view.container)).toEqual(["group", "management", "people", "free-time", "now", "import"]);
+    expect(screen.getByRole("region", { name: "Right now" }).textContent).toContain("Person A");
   });
 
   it("makes collapsing free-time results inactive and supports reopening immediately", async () => {
@@ -432,5 +477,52 @@ describe("ScheduleApp controls", () => {
 
     render(<ScheduleApp groupCode="AAAAAA" />);
     expect(await screen.findByText("The enabled schedules have no common interval in this timetable.")).toBeTruthy();
+  });
+});
+
+describe("ScheduleApp block participants", () => {
+  it.each([1, 5])("separates the compact total from the wide avatar remainder for %i people", async (count) => {
+    const members = Array.from({ length: count }, (_, index) => ({
+      ...wirePerson(`u${index + 1}`, `Person ${index + 1}`),
+      schedule: {
+        ...schedule,
+        sections: [
+          {
+            ...schedule.sections[0],
+            meetings: [{ days: ["Mon"], startMin: 540, endMin: 660, raw: "" }],
+          },
+        ],
+      },
+    }));
+    stubSharerFetch({ loadGroup: (code) => Promise.resolve(json({ group: group(code, "Group A", members) })) });
+    render(<ScheduleApp groupCode="AAAAAA" />);
+    const block = await screen.findByRole("button", { name: /CPSC 110.*Lecture/ });
+    const label = `${count} ${count === 1 ? "person" : "people"}`;
+    const compact = block.querySelector<HTMLElement>(`[title="${label}"]`);
+    expect(compact).toBeTruthy();
+    expect(compact?.getAttribute("role")).toBe("img");
+    expect(compact?.getAttribute("aria-label")).toBe(label);
+    expect(compact?.textContent).toBe(String(count));
+    expect(compact?.children).toHaveLength(0);
+    expect(compact?.classList.contains("block")).toBe(true);
+    expect(compact?.classList.contains("@min-[6rem]/schedule-participants:hidden")).toBe(true);
+
+    const container = compact?.parentElement;
+    expect(container?.classList.contains("@container/schedule-participants")).toBe(true);
+    expect(container?.classList.contains("w-full")).toBe(true);
+    expect(container?.classList.contains("min-w-0")).toBe(true);
+    const wide = compact?.nextElementSibling;
+    expect(wide?.classList.contains("hidden")).toBe(true);
+    expect(wide?.classList.contains("@min-[6rem]/schedule-participants:flex")).toBe(true);
+    const avatars = wide?.querySelectorAll<HTMLElement>("[title]");
+    expect(avatars).toHaveLength(Math.min(count, 4));
+    avatars?.forEach((avatar, index) => {
+      expect(avatar.title).toBe(`Person ${index + 1}`);
+      expect(avatar.style.width).toBe("16px");
+      expect(avatar.style.height).toBe("16px");
+    });
+    expect(wide?.textContent?.includes("+1")).toBe(count === 5);
+    expect(wide?.textContent).not.toContain("+5");
+    expect(block.getAttribute("aria-label")).toContain(`People: ${members.map((person) => person.handle).join(", ")}`);
   });
 });
