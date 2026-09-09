@@ -323,6 +323,37 @@ describe("10.4 — AppShell layouts (REQ-2.1, REQ-4.1, REQ-7.1)", () => {
     expect(bottom?.hasAttribute("inert")).toBe(false);
   });
 
+  it("keeps the body paint layer above navigation through sheet closure and below the sidebar drawer", async () => {
+    const { container, getByRole } = renderShell(false);
+    await act(async () => {});
+    const body = container.querySelector(".shell-body")!;
+    const stage = container.querySelector("[data-shell-route-stage]")!;
+    const sheet = container.querySelector("[data-answer-sheet]")!;
+    const navigation = container.querySelector("[data-mobile-navigation]")!;
+    const drawer = container.querySelector(".shell-sidebar-drawer")!;
+    expect(body.classList.contains("z-10")).toBe(true);
+    expect(stage.classList.contains("isolate")).toBe(true);
+    expect(body.contains(stage)).toBe(true);
+    expect(body.contains(sheet)).toBe(true);
+    expect(body.contains(navigation)).toBe(false);
+    expect(body.contains(drawer)).toBe(false);
+    expect(drawer.classList.contains("z-50")).toBe(true);
+
+    for (const open of [true, false, true, false]) {
+      act(() => capturedShell.current?.setAnswerSheetOpen(open));
+      expect(container.querySelector(".shell-body")).toBe(body);
+      expect(body.classList.contains("z-10")).toBe(true);
+      expect(container.querySelector("[data-shell-route-stage]")).toBe(stage);
+      expect(container.querySelector("[data-answer-sheet]")).toBe(sheet);
+      expect(sheet.getAttribute("data-answer-sheet")).toBe(open ? "open" : "closed");
+      expect(navigation.hasAttribute("inert")).toBe(open);
+    }
+    fireEvent.click(getByRole("button", { name: "Open sidebar" }));
+    expect(body.hasAttribute("inert")).toBe(true);
+    expect(navigation.hasAttribute("inert")).toBe(true);
+    expect(drawer.classList.contains("z-50")).toBe(true);
+  });
+
   it("keeps navigation available when returning from Settings with a retained answer sheet", () => {
     pathname.value = "/chat";
     const view = render(<NavigatingShellFixture />);

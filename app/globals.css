@@ -700,8 +700,13 @@ html.vt-active *::after {
   background-color: var(--surface-container-high);
 }
 
+.mobile-mode-bar [data-mode-toggle]:focus-visible {
+  outline: none;
+}
+
 .mobile-mode-bar [data-mode-toggle]:focus-visible::before {
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 40%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: -2px;
 }
 
 .mobile-mode-indicator {

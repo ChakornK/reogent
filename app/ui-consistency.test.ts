@@ -139,7 +139,12 @@ describe("mobile workspace framing", () => {
     expect(effect).toContain("pointer-events: none;");
     expect(globalsCss).toContain(".mobile-mode-bar [data-mode-toggle]:active::before");
     expect(globalsCss).toContain(".mobile-mode-bar [data-mode-toggle]:hover::before");
-    expect(globalsCss).toMatch(/\[data-mode-toggle\]:focus-visible::before\s*\{\s*box-shadow: inset/);
+    const focus = globalsCss.match(/\.mobile-mode-bar \[data-mode-toggle\]:focus-visible\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(focus).toContain("outline: none;");
+    const focusPaint =
+      globalsCss.match(/\.mobile-mode-bar \[data-mode-toggle\]:focus-visible::before\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(focusPaint).toContain("outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent);");
+    expect(focusPaint).toContain("outline-offset: -2px;");
     const marker = globalsCss.match(/\.mobile-mode-indicator\s*\{([\s\S]*?)\}/)?.[1] ?? "";
     expect(marker).toContain("top: 0.25rem;");
     expect(marker).toContain("width: calc(100% / 3);");

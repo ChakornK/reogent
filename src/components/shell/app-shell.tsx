@@ -355,7 +355,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
         <SidebarDrawer id={sidebarId} />
 
-        <div inert={sidebarOpen || undefined} className="shell-body min-h-0 flex-1">
+        {/* The flex-item layer keeps sheets above navigation and below the sidebar drawer. */}
+        <div inert={sidebarOpen || undefined} className="shell-body z-10 min-h-0 flex-1">
           <div
             data-sidebar-collapsed={sessionsCollapsed || undefined}
             className="chat-workspace relative min-h-0 min-w-0 flex-1"
