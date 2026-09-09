@@ -31,7 +31,6 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { createPortal } from "react-dom";
 import ReactFlow, {
   Background,
   getNodesBounds,
@@ -332,7 +331,7 @@ function AccordionFallback({
     return (
       <details key={id} open={id === rootId} className="border-border-subtle bg-surface rounded-lg border text-sm">
         <summary className="text-on-surface flex min-h-11 items-center gap-2 px-3 py-2">
-          <span className="font-mono font-medium">{label}</span>
+          <span className={`font-mono font-medium ${data.code ? "shrink-0 whitespace-nowrap" : ""}`}>{label}</span>
           {data.title ? <span className="text-on-surface-variant min-w-0 truncate">{data.title}</span> : null}
         </summary>
         <div className="border-border-subtle flex flex-col gap-2 border-t p-2 pl-4">
@@ -397,7 +396,7 @@ export function PrereqTreePane({
   onNavigateCourse?: (code: string) => void;
 }) {
   const api = useApi();
-  const { host, titlebarOutlet } = useWorkspaceHost();
+  const { host } = useWorkspaceHost();
   const toolsMode = host === "tools";
   const { push: navigate } = useShellNavigation();
   const shell = useChatShellOptional();
@@ -709,10 +708,10 @@ export function PrereqTreePane({
     });
   }, [shell, graph, activeCode]);
 
-  const searchShadowOn = titlebarOutlet ? "surface" : toolsMode ? "surface" : "surface-container-low";
+  const searchShadowOn = toolsMode ? "surface" : "surface-container-low";
 
   const searchForm = (
-    <form onSubmit={submit} className={`flex w-full items-start gap-2 ${toolsMode ? "max-w-xl" : "mx-auto max-w-md"}`}>
+    <form onSubmit={submit} className={`flex w-full items-start gap-2 ${toolsMode ? "max-w-xl" : ""}`}>
       <div className="min-w-0 flex-1">
         <CourseSearchField
           value={query}
@@ -787,11 +786,7 @@ export function PrereqTreePane({
       <ReactFlowProvider>
         <div data-prereq-canvas className="bg-surface-container-low absolute inset-0">
           {indexStatus === "loading" ? (
-            <SkeletonList
-              label="Loading course index…"
-              rows={4}
-              className={!toolsMode && !titlebarOutlet ? "pt-20" : undefined}
-            />
+            <SkeletonList label="Loading course index…" rows={4} />
           ) : toolsMode && noPrereqs ? (
             noPrereqState
           ) : graph.nodes.length > 0 ? (
@@ -820,18 +815,14 @@ export function PrereqTreePane({
                 <Background color="var(--border)" gap={16} />
                 <FitOnChange bbox={graph.bbox} rootBounds={rootBounds} fitKey={fitKey} onFitted={onFitted} />
               </ReactFlow>
+              {awaitingFit ? (
+                <div className="pointer-events-none absolute inset-0">
+                  <SkeletonList label="Preparing prerequisite map" rows={4} />
+                </div>
+              ) : null}
             </PaneErrorBoundary>
           ) : indexStatus === "ready" && !missingCode && !activeCode ? (
             noRootState
-          ) : null}
-          {indexStatus === "ready" && awaitingFit && graph.nodes.length > 0 ? (
-            <div className="pointer-events-none absolute inset-0">
-              <SkeletonList
-                label="Preparing prerequisite map"
-                rows={4}
-                className={!toolsMode && !titlebarOutlet ? "pt-20" : undefined}
-              />
-            </div>
           ) : null}
         </div>
         {ctxMenu ? (
@@ -911,20 +902,12 @@ export function PrereqTreePane({
   }
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      {graphSurface}
-      {titlebarOutlet ? (
-        createPortal(searchForm, titlebarOutlet)
-      ) : (
-        <div className="absolute top-3 right-3 left-3 z-20">{searchForm}</div>
-      )}
-      <div
-        className={`pointer-events-none absolute right-3 left-3 z-10 mx-auto flex max-w-md flex-col gap-2 ${
-          titlebarOutlet ? "top-3" : "top-16"
-        } [&>*]:pointer-events-auto`}
-      >
+    <div className="bg-surface-container-low flex h-full min-h-0 w-full flex-col gap-2 overflow-hidden">
+      <div className="bg-surface-container-low w-full shrink-0 px-4 pt-2">{searchForm}</div>
+      <div data-prereq-feedback className="flex shrink-0 flex-col gap-2 px-4 empty:hidden">
         {feedback}
       </div>
+      <div className="min-h-0 flex-1">{graphSurface}</div>
     </div>
   );
 }
