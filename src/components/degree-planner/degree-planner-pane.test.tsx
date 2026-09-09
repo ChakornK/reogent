@@ -84,7 +84,9 @@ describe("planner loading layout", () => {
     const select = screen.getByRole("combobox", { name: "Move CPSC 100 to term" });
     const disclosure = select.closest("[data-disclosure]");
     expect(select.closest("[data-block-id]")).toBeNull();
+    expect(select.parentElement?.hasAttribute("data-disclosure-content")).toBe(true);
     expect(list.contains(disclosure)).toBe(true);
+    list.scrollTop = 80;
 
     fireEvent.click(screen.getByRole("button", { name: "Add summer session" }));
     expect(container.querySelector("[data-summer-terms]")?.children).toHaveLength(2);
@@ -96,6 +98,8 @@ describe("planner loading layout", () => {
     expect(list.parentElement).toBe(winter);
     expect(screen.getByRole("combobox", { name: "Move CPSC 100 to term" })).toBe(select);
     expect(select.closest("[data-disclosure]")).toBe(disclosure);
+    expect(select.parentElement?.hasAttribute("data-disclosure-content")).toBe(true);
+    expect(list.scrollTop).toBe(80);
     expect(list.querySelectorAll("[data-block-id]")).toHaveLength(21);
     expect(list.classList.contains("min-h-36")).toBe(true);
     expect(list.classList.contains("[contain:size]")).toBe(true);

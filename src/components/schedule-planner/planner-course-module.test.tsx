@@ -127,6 +127,29 @@ describe("PlannerCourseModule", () => {
     expect(view.container.querySelector("details")?.open).toBe(false);
   });
 
+  it("keeps native Additional focus paint outside the article and rounds only its closed hover edge", async () => {
+    const view = render(<PlannerCourseModule {...baseProps} />);
+    const article = view.container.querySelector("article")!;
+    const details = article.querySelector("details")!;
+    const summary = details.querySelector("summary")!;
+    const lecture = view.getByLabelText<HTMLSelectElement>("Lecture");
+    expect(article.classList.contains("overflow-hidden")).toBe(false);
+    expect(article.classList.contains("rounded-lg")).toBe(true);
+    expect(article.classList.contains("border")).toBe(true);
+    expect(details.classList.contains("group/additional")).toBe(true);
+    expect(summary.getAttribute("role")).toBeNull();
+    expect(summary.getAttribute("tabindex")).toBeNull();
+    expect(summary.classList.contains("min-h-11")).toBe(true);
+    expect(summary.classList.contains("rounded-b-[calc(var(--radius-lg)-1px)]")).toBe(true);
+    expect(summary.classList.contains("group-open/additional:rounded-b-none")).toBe(true);
+    fireEvent.click(summary);
+    await waitFor(() => expect(details.open).toBe(true));
+    fireEvent.click(summary);
+    await waitFor(() => expect(details.open).toBe(false));
+    expect(view.getByLabelText("Lecture")).toBe(lecture);
+    expect(lecture.value).toBe("101");
+  });
+
   it("puts meeting time and instructor on separate sans-serif lines", () => {
     const view = render(<PlannerCourseModule {...baseProps} entries={[entry("101", "Danica Sutherland")]} />);
 

@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
-import { cleanup, render, waitFor } from "@testing-library/react";
+import { act, cleanup, render, waitFor } from "@testing-library/react";
 import { AnimatePresence } from "motion/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DialogPanel, DialogRoot } from "./dialog";
+import { Disclosure } from "./disclosure";
 
 const preference = vi.hoisted(() => ({ reduce: false }));
 vi.mock("motion/react", async (importOriginal) => ({
@@ -27,6 +28,43 @@ function Fixture({ open }: { open: boolean }) {
 afterEach(() => {
   cleanup();
   preference.reduce = false;
+  vi.restoreAllMocks();
+});
+
+describe("real Disclosure presence lifecycle", () => {
+  it.each([false, true])("reveals focused content and removes closing payload, reduced %s", async (reduce) => {
+    preference.reduce = reduce;
+    vi.spyOn(HTMLElement.prototype, "getClientRects").mockReturnValue([
+      new DOMRect(0, 0, 120, 44),
+    ] as unknown as DOMRectList);
+    const fixture = (open: boolean) => (
+      <Disclosure open={open}>
+        <input
+          aria-label="Disclosure field"
+          // biome-ignore lint/a11y/noAutofocus: Exercises native autofocus with the real presence lifecycle.
+          autoFocus
+          defaultValue="Kept"
+        />
+      </Disclosure>
+    );
+    const view = render(fixture(false));
+    view.rerender(fixture(true));
+    const input = view.getByRole("textbox");
+    const scroll = vi.spyOn(input, "scrollIntoView").mockImplementation(() => {});
+    await waitFor(() => expect(scroll).toHaveBeenCalledOnce());
+    expect(document.activeElement).toBe(input);
+    expect(scroll).toHaveBeenCalledWith({ block: "nearest", inline: "nearest", behavior: "instant" });
+    view.rerender(fixture(true));
+    expect(view.getByRole("textbox")).toBe(input);
+    expect((input as HTMLInputElement).value).toBe("Kept");
+    view.rerender(fixture(false));
+    expect(input.closest("[aria-hidden='true'][inert]")).not.toBeNull();
+    await waitFor(() => expect(view.container.querySelector("[data-disclosure]")).toBeNull());
+    view.rerender(fixture(true));
+    const reopened = view.getByRole("textbox");
+    expect(reopened).not.toBe(input);
+    await act(async () => {});
+  });
 });
 
 describe("real overlay presence lifecycle", () => {

@@ -206,7 +206,7 @@ export function PlannerCourseModule({
       ref={rootRef}
       tabIndex={-1}
       data-planner-course={code}
-      className="border-border bg-surface overflow-hidden rounded-lg border"
+      className="border-border bg-surface rounded-lg border"
     >
       <header className="flex min-h-11 items-start gap-2 px-3 py-2.5">
         <span className="mt-1.5 size-2.5 shrink-0 rounded-full" style={{ backgroundColor: courseColor(code) }} />
@@ -259,9 +259,9 @@ export function PlannerCourseModule({
         <details
           open={additionalOpen || forceAdditionalOpen}
           onToggle={(event) => setAdditionalOpen(event.currentTarget.open)}
-          className="border-border-subtle border-t"
+          className="group/additional border-border-subtle border-t"
         >
-          <summary className="text-on-surface hover:bg-surface-container focus-visible:ring-primary/40 flex min-h-11 list-none items-center justify-between gap-2 px-3 text-xs font-medium focus-visible:ring-2">
+          <summary className="text-on-surface hover:bg-surface-container focus-visible:ring-primary/40 flex min-h-11 list-none items-center justify-between gap-2 rounded-b-[calc(var(--radius-lg)-1px)] px-3 text-xs font-medium group-open/additional:rounded-b-none focus-visible:ring-2">
             <span>Additional component types</span>
             <span className="text-muted font-normal">
               {unselectedAdditional > 0 ? `${unselectedAdditional} not selected automatically` : "Configured"}

@@ -38,6 +38,21 @@ describe("shared UI ownership", () => {
     expect(globalsCss).toContain("line-height: var(--text-sm--line-height);");
   });
 
+  it("reserves workspace keyboard scroll clearance for the four-pixel focus outset", () => {
+    const focus = globalsCss.match(/:where\(\.workspace-page\) :focus-visible\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(focus).toContain("scroll-margin-block: 4px;");
+  });
+
+  it("insets only edge-mounted Disclosure controls without changing padded descendants", () => {
+    const rule = globalsCss.match(/\[data-disclosure-content\] > :focus-visible\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(rule).toContain("outline-offset: -2px;");
+    expect(rule).toContain("--tw-ring-inset: inset;");
+    expect(rule).toContain("--tw-ring-offset-width: 0px;");
+    expect(rule).not.toContain("padding");
+    expect(rule).not.toContain("margin");
+    expect(globalsCss).not.toContain("[data-disclosure-content] :focus-visible");
+  });
+
   it("keeps chart focus paint inside its scroll boundary", () => {
     const rule = globalsCss.match(/\[data-grade-chart-scroll\]:focus-visible[^{}]*\{([^}]+)\}/)?.[1] ?? "";
     expect(rule).toContain("outline-offset: -2px;");

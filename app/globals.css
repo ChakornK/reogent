@@ -280,8 +280,18 @@ body {
   outline-offset: 2px;
 }
 
+:where(.workspace-page) :focus-visible {
+  scroll-margin-block: 4px;
+}
+
 [data-grade-chart-scroll]:focus-visible {
   outline-offset: -2px;
+}
+
+[data-disclosure-content] > :focus-visible {
+  outline-offset: -2px;
+  --tw-ring-inset: inset;
+  --tw-ring-offset-width: 0px;
 }
 
 html[data-planner-dragging],
