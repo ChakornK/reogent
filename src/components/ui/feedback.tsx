@@ -40,7 +40,7 @@ export function FullPageState({
 }: FullPageStateProps) {
   return (
     <div
-      className={`bg-background flex items-center justify-center px-4 ${fill === "viewport" ? "min-h-svh" : "h-full"}`}
+      className={`bg-background flex items-center justify-center px-4 py-4 ${fill === "viewport" ? "min-h-svh" : "min-h-full"}`}
     >
       <section
         role={alert ? "alert" : undefined}

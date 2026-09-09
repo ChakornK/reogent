@@ -123,18 +123,18 @@ function LandingContent() {
   }, []);
 
   return (
-    <div className="landing-root bg-background text-on-surface overflow-hidden">
+    <div className="landing-root bg-background text-on-surface overflow-x-clip">
       <a
         href="#main"
-        className="bg-primary text-on-primary fixed top-2 left-2 z-[60] rounded-lg px-4 py-2 text-sm font-medium opacity-0 focus:opacity-100"
+        className="bg-primary text-on-primary pointer-events-none fixed top-2 left-2 z-[60] rounded-lg px-4 py-2 text-sm font-medium opacity-0 focus:pointer-events-auto focus:opacity-100"
       >
         Skip to content
       </a>
 
       {/* Header */}
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-40">
+      <header className="pointer-events-none sticky top-0 z-40">
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-48"
+          className={`pointer-events-none absolute inset-x-0 top-0 h-48 ${scrolled ? "opacity-100" : "opacity-0"}`}
           style={{
             background:
               "linear-gradient(to bottom in oklch, var(--background) 0%, var(--background) 40%, color-mix(in oklch, var(--background) 70%, transparent) 65%, color-mix(in oklch, var(--background) 30%, transparent) 85%, transparent 100%)",
@@ -145,17 +145,21 @@ function LandingContent() {
             initial={skipAnim ? false : { opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 120, damping: 20 }}
-            className={`pointer-events-auto mx-auto flex h-14 max-w-5xl items-center justify-between rounded-2xl px-4 transition-[background-color,box-shadow] duration-200 ${
+            className={`pointer-events-auto mx-auto flex min-h-14 max-w-5xl flex-wrap items-center justify-between gap-2 rounded-2xl px-4 py-0.5 transition-[background-color,box-shadow] duration-200 ${
               scrolled ? "neu-panel" : ""
             }`}
           >
-            <Link href="/" className="flex min-h-11 items-center gap-2" aria-label="Reodite home">
-              <span className="bg-primary-container text-on-primary-container flex size-8 items-center justify-center rounded-xl">
+            <Link
+              href="/"
+              className="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap"
+              aria-label="Reodite home"
+            >
+              <span className="bg-primary-container text-on-primary-container flex size-8 shrink-0 items-center justify-center rounded-xl">
                 <Icon name="school" size={16} />
               </span>
               <span className="text-on-surface text-sm font-medium tracking-[-0.02em]">Reodite</span>
             </Link>
-            <div className="flex items-center gap-2">
+            <div className="ml-auto flex max-w-full flex-wrap items-center gap-2">
               <ThemeToggle />
               <ButtonLink href="/login" shadowOn={scrolled ? "surface" : "background"}>
                 Sign in
@@ -165,9 +169,9 @@ function LandingContent() {
         </div>
       </header>
 
-      <main id="main">
+      <main id="main" className="scroll-mt-48">
         {/* Hero */}
-        <section className="relative flex min-h-[100dvh] flex-col items-center justify-center px-4 sm:px-6">
+        <section className="relative flex min-h-[calc(100dvh-4.25rem)] flex-col items-center justify-center px-4 py-8 sm:px-6">
           {/* Topo texture with drift + fade-in + gradient mask */}
           <motion.div
             initial={skipAnim ? false : { opacity: 0 }}

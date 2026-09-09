@@ -46,12 +46,34 @@ describe("shared feedback states", () => {
       />,
     );
     const alert = getByRole("alert", { name: "Something went wrong" });
-    expect(alert.parentElement?.className).toContain("h-full");
+    expect(alert.parentElement?.classList.contains("min-h-full")).toBe(true);
     expect(alert.textContent).not.toContain("/srv/app.ts");
     expect(alert.textContent).toContain("Error ID: test");
     const meta = Array.from(alert.querySelectorAll("div")).find((element) => element.textContent === "Error ID: test");
     expect(meta?.className).not.toContain("text-muted/60");
     expect(getByRole("link", { name: "Go home" })).not.toBeNull();
+  });
+
+  it.each([
+    ["parent", "min-h-full"],
+    ["viewport", "min-h-svh"],
+  ] as const)("uses a padded %s minimum without capping recovery content height", (fill, minimum) => {
+    const { getByRole } = render(
+      <FullPageState
+        fill={fill}
+        title="Page unavailable"
+        description="Please try again."
+        actions={<a href="/">Go home</a>}
+      />,
+    );
+    const card = getByRole("region", { name: "Page unavailable" });
+    const wrapper = card.parentElement!;
+
+    expect(Array.from(wrapper.classList)).toEqual(
+      expect.arrayContaining([minimum, "px-4", "py-4", "items-center", "justify-center"]),
+    );
+    expect(wrapper.classList.contains("h-full")).toBe(false);
+    expect(Array.from(card.classList)).toEqual(expect.arrayContaining(["w-full", "max-w-sm", "rounded-2xl", "p-8"]));
   });
 
   it("announces one loading label with the requested spinner size", () => {
