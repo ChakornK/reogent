@@ -105,7 +105,25 @@ describe("ProgramSelectors", () => {
   });
 });
 
-describe("ProgramProgress loading", () => {
+describe("ProgramProgress", () => {
+  it("reserves an unwrapped credit column beside long category labels", async () => {
+    const label = "Partial category with a long program requirement label";
+    getRequirementsFor.mockResolvedValue({
+      kind: "structured",
+      program_url: "structured",
+      categories: [{ name: label, credits_required: 12, options: [{ code: "CPSC 110", credit_value: 4 }] }],
+    });
+    usePlanner.setState({ major: "structured" });
+    render(<ProgramProgress courseIndex={new Map()} plannedCodes={new Set(["CPSC 110"])} />);
+    const value = await screen.findByText("4/12 cr");
+    expect(value.parentElement?.classList.contains("gap-2")).toBe(true);
+    expect(screen.getByText(label).classList.contains("min-w-0")).toBe(true);
+    expect(screen.getByText(label).classList.contains("flex-1")).toBe(true);
+    expect(value.classList.contains("shrink-0")).toBe(true);
+    expect(value.classList.contains("whitespace-nowrap")).toBe(true);
+    expect(value.closest("li")?.classList.contains("p-2")).toBe(true);
+  });
+
   it("removes the previous program while the next requirements load", async () => {
     getRequirementsFor.mockResolvedValueOnce({
       kind: "prose",

@@ -246,9 +246,9 @@ function RequirementProgressCard({
   const Component = listItem ? "li" : "div";
   return (
     <Component className="border-border bg-surface-container-low flex flex-col gap-1 rounded-lg border p-2">
-      <div className="flex items-baseline justify-between text-sm">
-        <span className="text-on-surface">{label}</span>
-        <span className="text-on-surface-variant text-xs">{value}</span>
+      <div className="flex items-baseline justify-between gap-2 text-sm">
+        <span className="text-on-surface min-w-0 flex-1">{label}</span>
+        <span className="text-on-surface-variant shrink-0 text-xs whitespace-nowrap">{value}</span>
       </div>
       <ProgressBar earned={earned} required={required} />
       {children}
