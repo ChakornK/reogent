@@ -285,7 +285,8 @@ body {
 }
 
 [data-thinking-scroll]:focus-visible,
-[data-grade-chart-scroll]:focus-visible {
+[data-grade-chart-scroll]:focus-visible,
+.schedule-toast-stack:focus-visible {
   outline-offset: -2px;
 }
 
@@ -724,6 +725,19 @@ html.vt-active *::after {
 .app-notification-stack {
   bottom: 1rem;
   max-width: calc(100vw - 2rem);
+}
+
+/* Keep partially visible messages inside the viewport clearance. */
+.schedule-toast-stack {
+  max-width: calc(100vw - 1rem);
+  max-height: max(0px, calc(var(--app-viewport-height, 100dvh) - 2rem - env(safe-area-inset-top)));
+}
+
+.schedule-toast-stack[data-toast-host="answer-canvas"] {
+  position: absolute;
+  bottom: 1rem;
+  max-width: calc(100% - 1rem);
+  max-height: max(0px, calc(100% - 2rem));
 }
 
 .shell-sidebar-drawer {
@@ -1194,6 +1208,13 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
 
   .app-notification-stack {
     bottom: calc(var(--app-viewport-bottom, 0px) + 3.75rem + 1px + env(safe-area-inset-bottom) + 1rem);
+  }
+
+  .schedule-toast-stack {
+    max-height: max(
+      0px,
+      calc(var(--app-viewport-height, 100dvh) - 5.75rem - 1px - env(safe-area-inset-bottom) - env(safe-area-inset-top))
+    );
   }
 
   [data-chat-frame] > .chat-message-well {

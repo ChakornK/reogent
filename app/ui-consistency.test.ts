@@ -43,6 +43,15 @@ describe("shared UI ownership", () => {
     expect(focus).toContain("scroll-margin-block: 4px;");
   });
 
+  it.each(["[data-thinking-scroll]", "[data-grade-chart-scroll]", ".schedule-toast-stack"])(
+    "keeps %s focus paint inside its scroll boundary",
+    (selector) => {
+      const rule = globalsCss.match(/\[data-thinking-scroll\]:focus-visible,[\s\S]*?\{([^}]+)\}/)?.[0] ?? "";
+      expect(rule).toContain(`${selector}:focus-visible`);
+      expect(rule).toContain("outline-offset: -2px;");
+    },
+  );
+
   it("insets only edge-mounted Disclosure controls without changing padded descendants", () => {
     const rule = globalsCss.match(/\[data-disclosure-content\] > :focus-visible\s*\{([^}]+)\}/)?.[1] ?? "";
     expect(rule).toContain("outline-offset: -2px;");
@@ -52,15 +61,6 @@ describe("shared UI ownership", () => {
     expect(rule).not.toContain("margin");
     expect(globalsCss).not.toContain("[data-disclosure-content] :focus-visible");
   });
-
-  it.each(["[data-thinking-scroll]", "[data-grade-chart-scroll]"])(
-    "keeps %s focus paint inside its scroll boundary",
-    (selector) => {
-      const rule = globalsCss.match(/\[data-thinking-scroll\]:focus-visible,[\s\S]*?\{([^}]+)\}/)?.[0] ?? "";
-      expect(rule).toContain(`${selector}:focus-visible`);
-      expect(rule).toContain("outline-offset: -2px;");
-    },
-  );
 
   it("uses hanging task checkboxes without splitting inline content into flex children", () => {
     const item = globalsCss.match(/\.assistant-markdown \.task-list-item\s*\{([^}]+)\}/)?.[1] ?? "";
@@ -202,6 +202,24 @@ describe("mobile workspace framing", () => {
 });
 
 describe("feature content minima", () => {
+  it("bounds only schedule toasts and gives embedded notifications local coordinates", () => {
+    const toast = globalsCss.match(/\.schedule-toast-stack\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(toast).toContain("max-width: calc(100vw - 1rem);");
+    expect(toast).toContain("var(--app-viewport-height, 100dvh) - 2rem - env(safe-area-inset-top)");
+    expect(toast).not.toContain("margin-bottom");
+    expect(globalsCss).toContain("- 5.75rem - 1px - env(safe-area-inset-bottom) - env(safe-area-inset-top)");
+    const embedded =
+      globalsCss.match(/\.schedule-toast-stack\[data-toast-host="answer-canvas"\]\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(embedded).toContain("position: absolute;");
+    expect(embedded).toContain("bottom: 1rem;");
+    expect(embedded).toContain("max-width: calc(100% - 1rem);");
+    expect(embedded).toContain("max-height: max(0px, calc(100% - 2rem));");
+    expect(embedded).not.toContain("app-viewport");
+    const shared = globalsCss.match(/\.app-notification-stack\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(shared).not.toContain("max-height");
+    expect(shared).toContain("bottom: 1rem;");
+  });
+
   it("propagates only the course planner control minimum through its rail ancestors", () => {
     const rule = globalsCss.match(/:where\(([^)]+)\):has\(\s*\[data-planner-controls\]\s*\)\s*\{([^}]+)\}/);
     expect(rule?.[1] ?? "").toContain('[data-workspace-region="rail"]');
