@@ -20,7 +20,7 @@ Below 640px, use a flat surface page in the dynamic viewport. Remove the shell g
 
 Keep AI, Tools, and Unity at thumb level in a flat bottom bar with contiguous equal-width, 60px-high icon-and-label targets. Hover, press, and focus share an 8px-inset painted surface while the entire target remains clickable. Keep the current-mode marker 4px below the content top. Restore each mode's last routed screen, including returns from Settings. Use one 44px inline ghost menu button in each route header, with 8px phone edge clearance and an 8px title gap; the drawer contains the current mode's destinations and account controls rather than a duplicate mode switch. Attach the phone drawer to the left edge at full visible height, with flat 48px destination rows and no nested frame or recessed well.
 
-Keep the 55rem container threshold for rail/canvas switching, caller-owned view state, and mounted regions. Preserve the 20rem content-height floor and page scrolling in short viewports. At 640px upward, retain the 12px shell gutters and raised page panels; retain the existing sidebar and Answer Canvas breakpoints.
+Keep the 55rem container threshold for rail/canvas switching, caller-owned view state, and mounted regions. Preserve the 20rem content-height floor and page scrolling in short viewports. Let feature minima extend their intended scroll owner: Calendar keeps intrinsic week heights; Degree Planner reserves 16rem terms and 9rem course viewports; Course Schedule reserves a 12rem course list. Size-contain dense lists so their contents scroll without inflating ancestor minima. At 640px upward, retain the 12px shell gutters and raised page panels; retain the existing sidebar and Answer Canvas breakpoints.
 
 ## Material and interaction
 

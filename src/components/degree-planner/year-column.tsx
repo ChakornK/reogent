@@ -31,15 +31,15 @@ export function YearColumn({ year, courseIndex, validations }: YearColumnProps) 
   );
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-col gap-2">
+    <section className="flex h-full min-h-min min-w-0 flex-col gap-2 [--planner-term-min:16rem]">
       <header className="flex h-8 shrink-0 items-baseline px-1">
         <Heading as="h2" size="subsection">
           {year.label}
         </Heading>
         <span className="text-muted ml-auto w-12 text-right text-xs tabular-nums">{yearCredits} cr</span>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="flex min-h-min flex-1 flex-col">
+        <div className="flex min-h-min flex-1 flex-col gap-2">
           {winterTerms.map(({ term, index }) => (
             <TermSection
               key={term.season}
@@ -56,11 +56,12 @@ export function YearColumn({ year, courseIndex, validations }: YearColumnProps) 
             <motion.div
               key="summer-terms"
               data-summer-terms
-              initial={reduceMotion ? false : { opacity: 0, flexGrow: 0, marginTop: 0 }}
-              animate={{ opacity: 1, flexGrow: 1, marginTop: 8 }}
-              exit={{ opacity: 0, flexGrow: 0, marginTop: 0 }}
+              initial={reduceMotion ? false : { opacity: 0, flexGrow: 0, marginTop: 0, "--summer-open": 0 }}
+              animate={{ opacity: 1, flexGrow: 1, marginTop: 8, "--summer-open": 1 }}
+              exit={{ opacity: 0, flexGrow: 0, marginTop: 0, "--summer-open": 0 }}
               transition={reduceMotion ? { duration: 0 } : { duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="flex min-h-0 shrink basis-0 flex-col gap-2 overflow-hidden"
+              style={{ minHeight: "calc(var(--summer-open, 1) * (2 * var(--planner-term-min) + 0.5rem))" }}
+              className="flex shrink basis-0 flex-col gap-2 overflow-hidden [contain:size]"
             >
               {summerTerms.map(({ term, index }) => (
                 <TermSection

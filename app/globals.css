@@ -941,6 +941,12 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
   flex: 1 1 0%;
 }
 
+:where([data-workspace-region="rail"], .workspace-rail, [data-workspace-panel], [data-workspace-panel-body]):has(
+  [data-planner-controls]
+) {
+  min-height: min-content;
+}
+
 [data-map-sheet-handle] {
   display: none;
 }

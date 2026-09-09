@@ -358,10 +358,11 @@ describe("SchedulePlannerPane explicit course flow", () => {
     const footer = view.container.querySelector<HTMLElement>("[data-planner-import]");
 
     expect(root?.className).toContain("h-full");
-    expect(root?.className).toContain("min-h-0");
+    expect(root?.className).toContain("min-h-min");
     expect(search?.className).toContain("shrink-0");
     expect(search?.className).not.toContain("overflow-y-auto");
-    expect(list?.className).toContain("min-h-0");
+    expect(list?.className).toContain("min-h-48");
+    expect(list?.className).toContain("[contain:size]");
     expect(list?.className).toContain("overflow-y-auto");
     expect(footer?.className).toContain("shrink-0");
     expect(view.getByRole("button", { name: /Import Workday schedule/ })).toBeTruthy();

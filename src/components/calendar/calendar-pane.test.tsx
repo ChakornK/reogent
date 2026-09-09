@@ -320,7 +320,11 @@ describe("Compact calendar agenda", () => {
       resolve(new Response("[]", { status: 200 }));
     });
     expect(container.querySelector("[data-skeleton]")).toBeNull();
-    expect(container.querySelector("[data-calendar-grid]")).not.toBeNull();
+    const grid = container.querySelector("[data-calendar-grid]");
+    expect(grid).not.toBeNull();
+    expect(grid?.classList.contains("grow")).toBe(true);
+    expect(grid?.classList.contains("shrink-0")).toBe(true);
+    expect(grid?.classList.contains("flex-1")).toBe(false);
     expect(screen.getByText("No events upcoming.")).not.toBeNull();
   });
 

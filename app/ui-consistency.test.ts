@@ -169,6 +169,17 @@ describe("mobile workspace framing", () => {
   });
 });
 
+describe("feature content minima", () => {
+  it("propagates only the course planner control minimum through its rail ancestors", () => {
+    const rule = globalsCss.match(/:where\(([^)]+)\):has\(\s*\[data-planner-controls\]\s*\)\s*\{([^}]+)\}/);
+    expect(rule?.[1] ?? "").toContain('[data-workspace-region="rail"]');
+    expect(rule?.[1] ?? "").toContain(".workspace-rail");
+    expect(rule?.[1] ?? "").toContain("[data-workspace-panel]");
+    expect(rule?.[1] ?? "").toContain("[data-workspace-panel-body]");
+    expect(rule?.[2] ?? "").toContain("min-height: min-content;");
+  });
+});
+
 describe("shared surface materials", () => {
   it.each([".neu-panel", ".neu-raised", ".neu-inset"])(
     "keeps %s defaults below theme and state utilities in the cascade",

@@ -462,7 +462,7 @@ function MonthGrid({
       </div>
       <div
         data-calendar-grid
-        className="calendar-month-width bg-border-subtle grid flex-1 auto-rows-[minmax(8rem,1fr)] grid-cols-7 gap-0.5 overflow-hidden rounded-[0.625rem] p-0.5"
+        className="calendar-month-width bg-border-subtle grid shrink-0 grow auto-rows-[minmax(8rem,1fr)] grid-cols-7 gap-0.5 overflow-hidden rounded-[0.625rem] p-0.5"
       >
         {cells.map((cell) => {
           if (!cell.date || !cell.iso) {

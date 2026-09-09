@@ -506,7 +506,7 @@ export function DegreePlannerPane() {
       >
         <WorkspaceCanvas role="region" aria-label="Degree plan" tabIndex={0} padding="md">
           <div
-            className="grid min-h-0 flex-1 gap-4"
+            className="grid min-h-min flex-1 gap-4"
             style={{
               gridTemplateColumns: `repeat(${years.length}, minmax(18rem, 1fr))`,
               minWidth: `${years.length * 18 + Math.max(0, years.length - 1)}rem`,

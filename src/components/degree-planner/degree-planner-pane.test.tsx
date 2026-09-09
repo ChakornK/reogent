@@ -1,7 +1,11 @@
 // @vitest-environment happy-dom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
+import { usePlanner, type Year } from "./planner-store";
 
+vi.hoisted(() => {
+  vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => {}, removeItem: () => {} });
+});
 const api = vi.hoisted(() => ({ getCourseIndex: vi.fn() }));
 vi.mock("@/src/components/providers", () => ({ useApi: () => api }));
 vi.mock("./use-plan-sync", () => ({ usePlanSync: () => {} }));
@@ -10,8 +14,11 @@ const { DegreePlannerPane } = await import("./degree-planner-pane");
 
 afterEach(() => {
   cleanup();
+  usePlanner.setState(usePlanner.getInitialState());
   vi.clearAllMocks();
 });
+
+afterAll(() => vi.unstubAllGlobals());
 
 describe("planner loading layout", () => {
   it("preserves both rail panels, board padding, and compact view switching", () => {
@@ -47,6 +54,52 @@ describe("planner loading layout", () => {
     expect(container.contains(issues)).toBe(false);
     fireEvent.pointerDown(document.body);
     expect(screen.queryByRole("dialog", { name: "Placement issues" })).toBeNull();
+  });
+
+  it("keeps the loaded board minimum and winter card identity through summer toggles and an open Move", async () => {
+    const year: Year = {
+      id: "year-height",
+      label: "Year 1",
+      terms: [
+        {
+          season: "w1",
+          kind: "study",
+          blocks: Array.from({ length: 20 }, (_, i) => ({ id: `block-${i}`, code: `CPSC ${100 + i}` })),
+        },
+        { season: "w2", kind: "study", blocks: [] },
+      ],
+    };
+    usePlanner.setState({ years: [year], coop: true, past: [], future: [] });
+    api.getCourseIndex.mockResolvedValue({ courses: [] });
+    const { container } = render(<DegreePlannerPane />);
+    await screen.findByRole("button", { name: "Structure" });
+    const board = screen.getByRole("region", { name: "Degree plan" }).firstElementChild as HTMLElement;
+    const card = container.querySelector<HTMLElement>('[data-block-id="block-0"]')!;
+    const list = card.parentElement!;
+    const winter = list.parentElement!;
+
+    expect(board.classList.contains("min-h-min")).toBe(true);
+    expect(board.style.gridTemplateColumns).toBe("repeat(1, minmax(18rem, 1fr))");
+    fireEvent.click(within(card).getByRole("button", { name: "Move" }));
+    const select = screen.getByRole("combobox", { name: "Move CPSC 100 to term" });
+    const disclosure = select.closest("[data-disclosure]");
+    expect(select.closest("[data-block-id]")).toBeNull();
+    expect(list.contains(disclosure)).toBe(true);
+
+    fireEvent.click(screen.getByRole("button", { name: "Add summer session" }));
+    expect(container.querySelector("[data-summer-terms]")?.children).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "Remove summer session" }));
+    act(() => usePlanner.getState().addBlock(year.id, 0, "CPSC 221"));
+
+    expect(container.querySelector('[data-block-id="block-0"]')).toBe(card);
+    expect(card.parentElement).toBe(list);
+    expect(list.parentElement).toBe(winter);
+    expect(screen.getByRole("combobox", { name: "Move CPSC 100 to term" })).toBe(select);
+    expect(select.closest("[data-disclosure]")).toBe(disclosure);
+    expect(list.querySelectorAll("[data-block-id]")).toHaveLength(21);
+    expect(list.classList.contains("min-h-36")).toBe(true);
+    expect(list.classList.contains("[contain:size]")).toBe(true);
+    expect(list.classList.contains("overflow-y-auto")).toBe(true);
   });
 
   it("replaces skeletons with retry feedback when the index fails", async () => {

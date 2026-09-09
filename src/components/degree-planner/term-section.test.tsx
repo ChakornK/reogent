@@ -29,6 +29,44 @@ afterEach(() => {
 
 afterAll(() => vi.unstubAllGlobals());
 
+describe("TermSection height contract", () => {
+  it.each(["study", "coop"] as const)("gives %s terms the shared minimum with a standalone fallback", (kind) => {
+    const { container } = render(
+      <TermSection
+        yearId="year-1"
+        termIdx={0}
+        term={{ season: "w1", kind, blocks: [] }}
+        courseIndex={new Map()}
+        validations={new Map()}
+      />,
+    );
+
+    expect(container.firstElementChild?.classList.contains("min-h-[var(--planner-term-min,16rem)]")).toBe(true);
+  });
+
+  it.each([0, 20])("bounds the intrinsic course region with %i courses", (count) => {
+    const { container } = render(
+      <TermSection
+        yearId="year-1"
+        termIdx={0}
+        term={{
+          season: "w1",
+          kind: "study",
+          blocks: Array.from({ length: count }, (_, i) => ({ id: `block-${i}`, code: `CPSC ${i}` })),
+        }}
+        courseIndex={new Map()}
+        validations={new Map()}
+      />,
+    );
+    const list = container.firstElementChild?.children[1];
+
+    for (const token of ["min-h-36", "[contain:size]", "flex-1", "px-0.5", "pt-0.5"]) {
+      expect(list?.classList.contains(token), token).toBe(true);
+    }
+    expect(list?.classList.contains(count ? "overflow-y-auto" : "overflow-hidden")).toBe(true);
+  });
+});
+
 describe("TermSection replacement motion", () => {
   it("removes study targets and course content immediately when changing to co-op", () => {
     const courseIndex = new Map<string, CourseIndexEntry>([

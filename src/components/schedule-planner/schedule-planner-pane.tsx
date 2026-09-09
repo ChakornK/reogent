@@ -542,7 +542,7 @@ function SchedulePlannerPaneInner() {
   );
 
   const controls = (
-    <div data-planner-controls className="flex h-full min-h-0 flex-col overflow-visible">
+    <div data-planner-controls className="flex h-full min-h-min flex-col overflow-visible">
       <section data-planner-search className="relative z-20 shrink-0 p-4 pb-3">
         <Heading as="h2" size="subsection" className="mb-2">
           Find a course
@@ -578,7 +578,7 @@ function SchedulePlannerPaneInner() {
       <section
         data-planner-course-list
         aria-labelledby="planner-course-list-title"
-        className="border-border-subtle min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto border-t px-4 py-3"
+        className="border-border-subtle min-h-48 flex-1 [scrollbar-gutter:stable] overflow-y-auto border-t px-4 py-3 [contain:size]"
       >
         <div className="mb-2 flex items-center justify-between gap-2">
           <Heading as="h2" size="subsection" id="planner-course-list-title">
