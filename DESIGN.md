@@ -574,11 +574,12 @@ Use `ModeToggle` for both sidebar and bottom presentations. Phone mode links sta
 - **User bubble**: `bg-accent-subtle text-on-surface rounded-[16px_16px_5px_16px] px-4 py-3 text-sm leading-relaxed`. Right-aligned, max-width 85%. Flat on the message well surface (no shadow).
 - **Assistant bubble**: `bg-surface rounded-[16px_16px_16px_5px] px-4 py-3`. Left-aligned, max-width 88%. Contains: markdown (`.assistant-markdown`), tool badges, thinking blocks (collapsible), warning cards.
 - **Assistant avatar**: `bg-primary-container text-on-primary-container size-7 rounded-lg text-[0.6875rem] font-medium`. Placed beside the label row, not inside the bubble.
+- **Thinking disclosure**: Keep native summaries at least 44px high on phones and 32px on wider screens. Give the bounded text paragraph keyboard access and inset focus paint; preserve its node across disclosure toggles and streaming updates.
 - **Tool call blocks**: `bg-surface-container-low rounded-lg`. Summary: `px-3 py-2 text-xs font-medium` with icon, text, and chevron/spinner. Collapsible `<details>` element. Result content: `text-muted max-h-40 overflow-auto text-xs` in pre tag.
 - **Tool badges** (inline, post-message): `rounded-lg px-2 py-1 font-mono text-xs`. Success: `bg-secondary-container/15 text-on-surface-variant`. Error: `bg-error-container/40 text-on-surface-variant`.
 - **Clickable tool widgets** (answer widgets in chat): hover shows `bg-surface-container-high` plus a `ring-primary/40 ring-1` affordance, so the card reads as clickable without moving. Active (the chip that opened the current pane) keeps `bg-accent-subtle ring-primary ring-2`.
 - **Canvas handoffs**: Use the shared channel activation for explicit course and event actions, clearing dismissal and showing the phone sheet. Reopen a dismissed sheet on mapped card or badge activation; keep automatic tool activation behind the dismissal guard. Set both root and query when opening prerequisites for a selected course.
-- **Suggestion pills** (empty state): `border border-primary text-primary rounded-full text-xs px-4 py-3 min-h-[44px] font-medium`. Hover: `bg-accent-subtle`. Focus: `ring-primary/40 ring-2 ring-offset-2`. Staggered entrance via `animationDelay`.
+- **Suggestion pills** (empty state): `border border-primary text-primary rounded-full text-xs px-4 py-3 min-h-[44px] font-medium`. Hover: `bg-accent-subtle`. Focus: `ring-primary/40 ring-2 ring-offset-2`. Staggered entrance via `animationDelay`. Bound each pill to the available inline width and allow the complete label to wrap.
 - **Inline action pills** ("Show on map"): `border border-primary text-primary rounded-full px-3 py-1.5 text-xs font-medium min-h-[44px]`. Compact padding for use within tool result cards. Focus: `ring-primary/40 ring-2 ring-offset-2`. Active: `scale-95`.
 - **Warning cards**: `bg-tertiary-container text-on-tertiary-container rounded-xl px-3 py-2 text-body-sm`. Icon + text in flex row.
 - **Message entrance**: Spring physics (stiffness: 400, damping: 25) — opacity 0→1, translateY(6px→0). Reduced-motion: instant (`duration: 0`).
@@ -594,7 +595,8 @@ Prose within assistant bubbles at `0.875rem`, `line-height: 1.65` (slightly more
 - **Code blocks** (`pre`): `bg-surface-container-lowest border border-border-subtle rounded-[0.75rem]` with inset shadow. Code at `0.75rem/1.6` in mono.
 - **Tables**: `border-collapse: separate`. Headers: `bg-surface-container-low text-xs font-600`. Cells: `text-on-surface-variant text-body-sm`.
 - **Lists**: `padding-left: 1.35rem`. Markers: `color: var(--primary) font-weight: 600`. Nested lists get `0.3rem` top margin.
-- **Task lists**: no bullet, flex layout with `gap-0.5rem`, checkboxes accent-colored primary.
+- **Task lists**: Preserve GFM classes and read-only checkbox state. Use a 0.8125rem checkbox with a 0.5rem hanging gap; keep linked, cited, and formatted text in normal inline or paragraph flow.
+- **Sources**: Keep the panel outside the prose wrapper, with its own 8px top spacing, 6px row gaps, and 256px list bound. Align explicit openings after the native expansion's computed resize duration and delay, followed by a layout frame. Cancel pending alignment on further input, scrolling, closing or unmount; reduced motion aligns after layout.
 
 ### Map Controls
 

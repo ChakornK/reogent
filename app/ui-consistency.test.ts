@@ -53,9 +53,21 @@ describe("shared UI ownership", () => {
     expect(globalsCss).not.toContain("[data-disclosure-content] :focus-visible");
   });
 
-  it("keeps chart focus paint inside its scroll boundary", () => {
-    const rule = globalsCss.match(/\[data-grade-chart-scroll\]:focus-visible[^{}]*\{([^}]+)\}/)?.[1] ?? "";
-    expect(rule).toContain("outline-offset: -2px;");
+  it.each(["[data-thinking-scroll]", "[data-grade-chart-scroll]"])(
+    "keeps %s focus paint inside its scroll boundary",
+    (selector) => {
+      const rule = globalsCss.match(/\[data-thinking-scroll\]:focus-visible,[\s\S]*?\{([^}]+)\}/)?.[0] ?? "";
+      expect(rule).toContain(`${selector}:focus-visible`);
+      expect(rule).toContain("outline-offset: -2px;");
+    },
+  );
+
+  it("uses hanging task checkboxes without splitting inline content into flex children", () => {
+    const item = globalsCss.match(/\.assistant-markdown \.task-list-item\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(item).toContain("position: relative;");
+    expect(item).toContain("padding-inline-start: calc(0.8125rem + 0.5rem);");
+    expect(item).not.toContain("display: flex;");
+    expect(globalsCss).toContain(".assistant-markdown .task-list-item > p > input");
   });
 
   it("uses shared application heading roles outside marketing and the standalone crash fallback", () => {

@@ -5,12 +5,18 @@ import { CitationChip } from "@/src/components/chat/citations/citation-chip";
 import { SourcesPanel } from "@/src/components/chat/citations/sources-panel";
 import { createChatApi } from "@/src/lib/api";
 import type { Citation } from "@/src/shared/citations/citation";
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 const fixture = fixtureJson as {
   turns: { name: string; providers: { anthropic: string; openai: string; google: string } }[];
 };
+
+const preference = vi.hoisted(() => ({ reduce: false }));
+vi.mock("motion/react", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("motion/react")>()),
+  useReducedMotion: () => preference.reduce,
+}));
 
 // happy-dom lacks matchMedia; motion's useReducedMotion queries it.
 beforeAll(() => {
@@ -29,6 +35,9 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  preference.reduce = false;
 });
 
 afterAll(() => {
@@ -171,29 +180,113 @@ describe("17.8 — Sources panel two-list rendering edge cases", () => {
   });
 });
 
-describe("17.9 — Sources panel collapses by default and scrolls into view on expand", () => {
-  it("renders a closed <details> element initially", () => {
-    const citations = makeCitations(2, true, true);
-    const c = render(<SourcesPanel citations={citations} />).container;
-    const details = c.querySelector("details");
-    expect(details?.open).toBe(false);
-  });
-  it("scrolls the panel into view when the user expands the summary", () => {
-    const citations = makeCitations(2, true, true);
-    const calls: HTMLElement[] = [];
-    const spy = vi.spyOn(Element.prototype, "scrollIntoView").mockImplementation(function (this: HTMLElement) {
-      calls.push(this);
-      return undefined;
-    });
-    const { container } = render(<SourcesPanel citations={citations} />);
-    const details = container.querySelector("details") as HTMLDetailsElement;
+describe("Sources panel expansion and scroll ownership", () => {
+  function toggle(details: HTMLDetailsElement, open: boolean) {
     act(() => {
-      details.open = true;
-      details.dispatchEvent(new Event("toggle"));
+      details.open = open;
+      fireEvent(details, new Event("toggle"));
     });
-    expect(calls.length).toBeGreaterThan(0);
-    expect(calls[0].closest("[data-sources-panel]")).not.toBeNull();
-    spy.mockRestore();
+  }
+
+  function expand(transitionProperty = "none", transitionDuration = "0s", transitionDelay = "0s") {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame"] });
+    const nativeStyle = window.getComputedStyle.bind(window);
+    const readStyle = vi
+      .spyOn(window, "getComputedStyle")
+      .mockImplementation((element, pseudo) =>
+        pseudo === "::details-content"
+          ? ({ transitionProperty, transitionDuration, transitionDelay } as CSSStyleDeclaration)
+          : nativeStyle(element, pseudo),
+      );
+    const view = render(<SourcesPanel citations={makeCitations(2, true, true)} />);
+    const details = view.container.querySelector("details")!;
+    const panel = view.container.querySelector<HTMLElement>("[data-sources-panel]")!;
+    Object.defineProperty(details, "getAnimations", { configurable: true, value: () => [] });
+    const scroll = vi.spyOn(panel, "scrollIntoView").mockImplementation(() => {});
+    toggle(details, true);
+    return { ...view, details, panel, readStyle, scroll };
+  }
+
+  async function advance(milliseconds: number) {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(milliseconds);
+    });
+  }
+
+  it("renders a closed details element initially", () => {
+    const c = render(<SourcesPanel citations={makeCitations(2, true, true)} />).container;
+    expect(c.querySelector("details")?.open).toBe(false);
+  });
+
+  it.each([false, true])("aligns after layout without a resize transition, reduced motion %s", async (reduce) => {
+    preference.reduce = reduce;
+    const view = expand();
+    expect(view.scroll).not.toHaveBeenCalled();
+    await advance(32);
+    expect(view.scroll).toHaveBeenCalledOnce();
+    expect(view.scroll).toHaveBeenCalledWith({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+    view.rerender(<SourcesPanel citations={makeCitations(4, true, true)} />);
+    await advance(500);
+    expect(view.scroll).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    {
+      properties: "opacity, block-size, content-visibility",
+      durations: "800ms, 0.24s, 900ms",
+      delays: "0s",
+      wait: 240,
+    },
+    { properties: "height, opacity", durations: "120ms, 2s", delays: "80ms, 0s", wait: 200 },
+    { properties: "opacity, block-size", durations: "0.24s", delays: "-40ms", wait: 200 },
+    { properties: "all", durations: "0.24s", delays: "0s", wait: 240 },
+  ])("waits for computed $properties timing without native animation signals", async (timing) => {
+    const view = expand(timing.properties, timing.durations, timing.delays);
+    await advance(16 + timing.wait - 1);
+    expect(view.scroll).not.toHaveBeenCalled();
+    await advance(17);
+    expect(view.scroll).toHaveBeenCalledOnce();
+    expect(view.readStyle).toHaveBeenCalledWith(view.details, "::details-content");
+    expect(view.scroll).toHaveBeenCalledWith({ block: "nearest", behavior: "smooth" });
+  });
+
+  it.each([
+    { reduce: true, properties: "block-size", durations: "240ms" },
+    { reduce: false, properties: "opacity", durations: "2s" },
+    { reduce: false, properties: "", durations: "" },
+  ])("skips unrelated or disabled transition waits: $properties / reduced $reduce", async (timing) => {
+    preference.reduce = timing.reduce;
+    const view = expand(timing.properties, timing.durations);
+    await advance(32);
+    expect(view.scroll).toHaveBeenCalledOnce();
+  });
+
+  it.each(["close", "scroll", "wheel", "touchmove", "pointerdown", "keydown", "unmount", "reduce"])(
+    "cancels pending reveal on %s",
+    async (action) => {
+      const view = expand("block-size", "240ms");
+      await advance(80);
+      expect(view.scroll).not.toHaveBeenCalled();
+      if (action === "close") toggle(view.details, false);
+      else if (action === "unmount") view.unmount();
+      else if (action === "reduce") {
+        preference.reduce = true;
+        view.rerender(<SourcesPanel citations={makeCitations(2, true, true)} />);
+      } else fireEvent(document, new Event(action, { bubbles: true }));
+      await advance(500);
+      expect(view.scroll).not.toHaveBeenCalled();
+    },
+  );
+
+  it("discards an older expansion when the panel closes and reopens", async () => {
+    const view = expand("block-size", "240ms");
+    await advance(80);
+    toggle(view.details, false);
+    toggle(view.details, true);
+    await advance(200);
+    expect(view.scroll).not.toHaveBeenCalled();
+    await advance(80);
+    expect(view.scroll).toHaveBeenCalledOnce();
   });
 });
 

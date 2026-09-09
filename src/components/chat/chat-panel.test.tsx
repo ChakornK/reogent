@@ -378,6 +378,18 @@ describe("ChatPanel reset lifecycle", () => {
 });
 
 describe("ChatPanel reduced motion", () => {
+  it("bounds empty suggestions locally while retaining wrapping and touch-sized pills", async () => {
+    const { getByRole } = renderPanel();
+    await act(async () => {});
+    const suggestions = getByRole("navigation", { name: "Suggested questions" }).querySelectorAll("button");
+    expect(suggestions.length).toBeGreaterThan(0);
+    for (const suggestion of suggestions) {
+      for (const className of ["min-w-0", "max-w-full", "whitespace-normal", "min-h-11", "shrink-0"]) {
+        expect(suggestion.classList.contains(className)).toBe(true);
+      }
+    }
+  });
+
   it("removes empty and typing presence without duration or vertical travel", async () => {
     api.chat.mockImplementation(() => new Promise(() => {}));
     const { container, getByRole } = renderPanel();

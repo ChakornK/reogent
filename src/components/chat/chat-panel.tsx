@@ -688,7 +688,7 @@ export function ChatPanel({ sessionId: initialSessionId }: { sessionId: string |
                     onClick={() => send(suggestion)}
                     disabled={sending}
                     style={{ animationDelay: `${index * 60}ms` }}
-                    className="animate-message-in text-center"
+                    className="animate-message-in max-w-full min-w-0 text-center"
                   >
                     {suggestion}
                   </Button>

@@ -284,6 +284,7 @@ body {
   scroll-margin-block: 4px;
 }
 
+[data-thinking-scroll]:focus-visible,
 [data-grade-chart-scroll]:focus-visible {
   outline-offset: -2px;
 }
@@ -1524,14 +1525,19 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
 }
 
 .assistant-markdown .task-list-item {
-  align-items: flex-start;
-  display: flex;
-  gap: 0.5rem;
+  position: relative;
+  padding-inline-start: calc(0.8125rem + 0.5rem);
 }
 
-.assistant-markdown .task-list-item input {
+.assistant-markdown .task-list-item > input[type="checkbox"],
+.assistant-markdown .task-list-item > p > input[type="checkbox"] {
+  position: absolute;
+  top: 0.32rem;
+  inset-inline-start: 0;
+  width: 0.8125rem;
+  height: 0.8125rem;
+  margin: 0;
   accent-color: var(--primary);
-  margin-top: 0.32rem;
 }
 
 .markdown-image-alt {

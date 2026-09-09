@@ -52,14 +52,12 @@ const LazyMarkdown = lazy(() =>
 
 const markdownComponents = (citations: Citation[] | null | undefined) => {
   const inject = (children: React.ReactNode) => injectChips(children, citations);
-  // Renders the real tag with citation chips injected into its string leaves.
-  // Returning bare `inject(children)` would drop the wrapping element — for
-  // table cells that yields a text node directly under <tr>, an invalid-HTML
-  // hydration error. `style` carries GFM column alignment on th/td.
+  // Preserve tags, GFM classes, and table alignment while injecting string-leaf citations.
+  // Table cells must stay wrapped in th/td to keep rows valid.
   const leaf =
     (tag: string) =>
-    ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) =>
-      createElement(tag, style ? { style } : {}, inject(children));
+    ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) =>
+      createElement(tag, { style, className }, inject(children));
   return {
     a: ({ href, title, children }: { href?: string; title?: string; children?: React.ReactNode }) => {
       const opensNewTab = typeof href === "string" && /^https?:\/\//i.test(href);
@@ -102,14 +100,16 @@ const markdownComponents = (citations: Citation[] | null | undefined) => {
 function AssistantMarkdown({ content, citations }: { content: string; citations?: Citation[] }) {
   const raw = <p className="break-words whitespace-pre-wrap">{content}</p>;
   return (
-    <div className="assistant-markdown">
-      <ErrorBoundary fallback={raw}>
-        <Suspense fallback={raw}>
-          <LazyMarkdown content={content} citations={citations} />
-        </Suspense>
-      </ErrorBoundary>
+    <>
+      <div className="assistant-markdown">
+        <ErrorBoundary fallback={raw}>
+          <Suspense fallback={raw}>
+            <LazyMarkdown content={content} citations={citations} />
+          </Suspense>
+        </ErrorBoundary>
+      </div>
       <SourcesPanel citations={citations} />
-    </div>
+    </>
   );
 }
 
@@ -174,14 +174,19 @@ function ThinkingBlock({ content, compact = false }: { content: string; compact?
       onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
       className={`group bg-surface-container-low rounded-lg ${compact ? "" : "mb-2"}`}
     >
-      <summary className="focus-visible:ring-primary/40 text-muted flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium select-none focus-visible:ring-2 focus-visible:ring-offset-1">
+      <summary className="focus-visible:ring-primary/40 text-muted flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium select-none focus-visible:ring-2 focus-visible:ring-offset-1 sm:min-h-8">
         <Icon name="bling" size={14} className="text-muted shrink-0" />
         <span className="truncate">Thinking…</span>
         <Icon name="down" size={12} className="ml-auto shrink-0 transition-transform group-open:rotate-180" />
       </summary>
       {content ? (
         <div className="border-border-subtle overflow-hidden border-t">
-          <p className="text-muted max-h-40 overflow-auto px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap">
+          <p
+            data-thinking-scroll
+            // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users scroll the bounded thinking text.
+            tabIndex={0}
+            className="text-muted max-h-40 overflow-auto px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap"
+          >
             {content}
           </p>
         </div>
