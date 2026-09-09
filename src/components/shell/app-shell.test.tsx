@@ -188,6 +188,8 @@ describe("10.4 — AppShell layouts (REQ-2.1, REQ-4.1, REQ-7.1)", () => {
   it("inline AI renders chat + Answer Canvas with the skip target on chat", () => {
     const { container, getByTestId } = renderShell(true);
     expect(container.querySelector("#main-content")?.getAttribute("data-pane")).toBe("chat");
+    expect(container.querySelector(".chat-map-area")?.classList.contains("sidebar-content-offset")).toBe(true);
+    expect(container.querySelector("#main-content")?.classList.contains("sidebar-content-offset")).toBe(false);
     expect(container.querySelector("[data-workspace-surface]")).toBeNull();
     expect(getByTestId("chat-children")).toBeDefined();
     expect(container.querySelector('[data-testid="session-list"]')).not.toBeNull();

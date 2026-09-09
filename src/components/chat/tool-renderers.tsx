@@ -116,7 +116,7 @@ function sectionLine(course: CourseDoc): string | null {
 }
 
 function CourseCard({ course, detailed = false }: { course: CourseDoc; detailed?: boolean }) {
-  const { setWorkspaceView, setUserDismissedPane, setAnswerSheetOpen, setRightPaneCollapsed } = useChatShell();
+  const { setActiveChannel } = useChatShell();
   const times = sectionLine(course);
   return (
     <article className="bg-surface-container-low rounded-lg p-3">
@@ -143,10 +143,7 @@ function CourseCard({ course, detailed = false }: { course: CourseDoc; detailed?
           size="pill"
           onClick={(event) => {
             event.stopPropagation();
-            setUserDismissedPane(false);
-            setAnswerSheetOpen(true);
-            setRightPaneCollapsed(false);
-            setWorkspaceView({ paneId: "course-lookup", state: { code: course.code } });
+            setActiveChannel("course-lookup", { code: course.code });
           }}
         >
           <Icon name="book2" size={12} /> Course details
@@ -159,10 +156,7 @@ function CourseCard({ course, detailed = false }: { course: CourseDoc; detailed?
             size="pill"
             onClick={(event) => {
               event.stopPropagation();
-              setUserDismissedPane(false);
-              setAnswerSheetOpen(true);
-              setRightPaneCollapsed(false);
-              setWorkspaceView({ paneId: "prereq-tree", state: { root: course.code, selections: {} } });
+              setActiveChannel("prereq-tree", { root: course.code, query: course.code, selections: {} });
             }}
           >
             <Icon name="tree" size={12} /> Prereq Tree
@@ -242,8 +236,7 @@ function formatEventTime(start: string | null | undefined, end: string | null | 
 /** The show_widget tool returns { type, result } where `result` mirrors the
  *  internal tool it delegated to. Each case renders the matching widget. */
 function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
-  const { setWorkspaceView, setActiveChannel, setUserDismissedPane, setAnswerSheetOpen, setRightPaneCollapsed } =
-    useChatShell();
+  const { setActiveChannel } = useChatShell();
   const [coursesExpanded, setCoursesExpanded] = useState(false);
   const coursesId = useId();
   const outer = call.result as { type?: string; result?: unknown } | undefined;
@@ -261,10 +254,7 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
           type="button"
           onClick={(event) => {
             event.stopPropagation();
-            setUserDismissedPane(false);
-            setAnswerSheetOpen(true);
-            setRightPaneCollapsed(false);
-            setWorkspaceView({ paneId: "course-lookup", state: { code: course.code } });
+            setActiveChannel("course-lookup", { code: course.code });
           }}
           className={toolResultRowClasses(true)}
         >
@@ -742,7 +732,8 @@ function richWidgetOwnsActivation(call: ToolCall): boolean {
  */
 export function ResponseWidget({ call, callKey }: { call: ToolCall; callKey?: string }) {
   const reduce = useReducedMotion();
-  const { activeCallKey, activateCanvasView, setUserDismissedPane, setRightPaneCollapsed } = useChatShell();
+  const { activeCallKey, activateCanvasView, setUserDismissedPane, setRightPaneCollapsed, setAnswerSheetOpen } =
+    useChatShell();
   const view = useMemo(() => toolCallToCanvasView(call), [call]);
   const mapped = view !== null;
   const interactive = mapped && !richWidgetOwnsActivation(call);
@@ -753,6 +744,7 @@ export function ResponseWidget({ call, callKey }: { call: ToolCall; callKey?: st
 
   const toggle = () => {
     setUserDismissedPane(false);
+    setAnswerSheetOpen(true);
     setRightPaneCollapsed(false);
     activateCanvasView(call, callKey);
   };

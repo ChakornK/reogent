@@ -1,11 +1,21 @@
 // @vitest-environment happy-dom
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createRef, useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { DialogActions, DialogHeader, DialogPanel, DialogRoot } from "./dialog";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { canRestoreFocus, DialogActions, DialogHeader, DialogPanel, DialogRoot } from "./dialog";
+
+beforeEach(() => {
+  // HappyDOM has no layout; model rects only within the dialog fixtures.
+  vi.spyOn(HTMLElement.prototype, "getClientRects").mockImplementation(function (this: HTMLElement) {
+    return (this.closest("[data-dialog-root]") && !this.closest("details:not([open]) > :not(summary)")
+      ? [new DOMRect(0, 0, 100, 44)]
+      : []) as unknown as DOMRectList;
+  });
+});
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   document.body.style.overflow = "";
 });
 
@@ -34,7 +44,76 @@ function DialogHarness({ dismissDisabled = false }: { dismissDisabled?: boolean 
   );
 }
 
+describe("canRestoreFocus", () => {
+  it("accepts a native summary without a tabindex attribute", () => {
+    render(
+      <details>
+        <summary>Return to course</summary>
+      </details>,
+    );
+    const summary = screen.getByText("Return to course");
+    expect(summary.hasAttribute("tabindex")).toBe(false);
+    expect(canRestoreFocus(summary)).toBe(true);
+  });
+
+  it.each(["hidden", "inert", "aria-hidden"])("rejects a summary under %s ancestry", (attribute) => {
+    const { container } = render(
+      <details>
+        <summary>Unavailable course</summary>
+      </details>,
+    );
+    container.setAttribute(attribute, "true");
+    expect(canRestoreFocus(screen.getByText("Unavailable course"))).toBe(false);
+  });
+});
+
 describe("Dialog", () => {
+  it("keeps native summary navigation inside the dialog and wraps at its visible boundaries", () => {
+    render(
+      <DialogRoot onDismiss={() => {}} backdropLabel="Close courses">
+        <DialogPanel aria-label="Courses">
+          <button type="button" data-dialog-initial-focus>
+            First course action
+          </button>
+          <details>
+            <summary>Course details</summary>
+            <button type="button">Closed course action</button>
+          </details>
+          <div hidden>
+            <button type="button">Hidden action</button>
+          </div>
+          <div inert>
+            <button type="button">Inert action</button>
+          </div>
+          <div aria-hidden="true">
+            <button type="button">Aria-hidden action</button>
+          </div>
+        </DialogPanel>
+      </DialogRoot>,
+    );
+    const first = screen.getByText("First course action");
+    const summary = screen.getByText("Course details");
+    // HappyDOM reports -1 for native summaries; browsers report 0.
+    vi.spyOn(summary, "tabIndex", "get").mockReturnValue(0);
+    expect(summary.hasAttribute("tabindex")).toBe(false);
+    expect(document.activeElement).toBe(first);
+    const interiorTab = new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true });
+    fireEvent(first, interiorTab);
+    expect(interiorTab.defaultPrevented).toBe(false);
+    fireEvent.keyDown(first, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(summary);
+    fireEvent.keyDown(summary, { key: "Tab" });
+    expect(document.activeElement).toBe(first);
+
+    const details = summary.closest("details")!;
+    details.open = true;
+    fireEvent.keyDown(first, { key: "Tab", shiftKey: true });
+    const content = screen.getByText("Closed course action");
+    expect(document.activeElement).toBe(content);
+    fireEvent.keyDown(content, { key: "Tab" });
+    expect(document.activeElement).toBe(first);
+  });
+
   it("shares title semantics, responsive insets, and action spacing", async () => {
     render(
       <DialogRoot onDismiss={() => {}} backdropLabel="Close profile">

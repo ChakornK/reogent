@@ -278,7 +278,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
     </ShellRouteContent>
   ) : mode === "ai" ? (
-    <div className="chat-map-area flex min-h-0 min-w-0 flex-1">
+    <div className="chat-map-area sidebar-content-offset flex min-h-0 min-w-0 flex-1">
       <ShellRouteContent
         identity={routeIdentity}
         pending={navigation.pending}
@@ -288,7 +288,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main
           id="main-content"
           data-pane="chat"
-          className="sidebar-content-offset flex min-h-0 min-w-0 flex-1 lg:min-w-88"
+          className="flex min-h-0 min-w-0 flex-1 lg:min-w-88"
           inert={sheetOpen || undefined}
         >
           <WorkspaceHostProvider host="chat" navigation={sidebarToggle}>

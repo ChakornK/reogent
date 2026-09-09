@@ -62,7 +62,7 @@ export interface ChatShellState {
   setRightPaneCollapsed: (c: boolean) => void;
 
   activeChannel: ActiveChannel;
-  /** Sets the active pane (`null` collapses to the map rail). */
+  /** Opens an explicitly selected pane, or clears the canvas for null. */
   setActiveChannel: (id: PaneId | null, state?: PaneState) => void;
 
   highlight: MapHighlight | null;
@@ -273,10 +273,13 @@ export function ChatShellProvider({ initialMode = "ai", children }: { initialMod
         setWorkspaceView(null);
         return;
       }
+      setUserDismissedPane(false);
+      setAnswerSheetOpen(true);
+      setRightPaneCollapsed(false);
       setWorkspaceView({ paneId: id, state: resolveActivationState(id, state) });
       setActiveCallKey(null);
     },
-    [setWorkspaceView],
+    [setWorkspaceView, setRightPaneCollapsed],
   );
 
   const addOptimisticSession = useCallback((sessionId: string, title: string) => {

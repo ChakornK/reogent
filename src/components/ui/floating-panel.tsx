@@ -5,7 +5,7 @@ import { useCallback, useLayoutEffect, useRef, useState, type ComponentPropsWith
 import { createPortal } from "react-dom";
 
 const EDGE = 8;
-const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]';
+const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [tabindex], [contenteditable="true"]';
 
 export type FloatingPanelProps = ComponentPropsWithRef<"div"> & {
   anchorRef: RefObject<HTMLElement | null>;
@@ -23,7 +23,7 @@ export function tabStops(root: ParentNode): HTMLElement[] {
       return (
         element.tabIndex >= 0 &&
         !element.matches(":disabled") &&
-        !element.closest("[inert], [hidden]") &&
+        !element.closest('[inert], [hidden], [aria-hidden="true"]') &&
         element.getClientRects().length > 0 &&
         style.visibility !== "hidden" &&
         style.visibility !== "collapse"

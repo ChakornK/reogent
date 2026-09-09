@@ -2,6 +2,8 @@
 
 import type { CanvasView } from "@/src/components/shell/pane-registry";
 import { lockBodyScroll } from "@/src/components/ui/body-scroll-lock";
+import { canRestoreFocus } from "@/src/components/ui/dialog";
+import { tabStops } from "@/src/components/ui/floating-panel";
 import {
   useEffect,
   useLayoutEffect,
@@ -12,8 +14,6 @@ import {
   type ReactNode,
 } from "react";
 
-const FOCUSABLE =
-  'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 const DISMISS_VELOCITY = 700;
 const DEFAULT_SPLIT_POSITION = 50;
 const MIN_SPLIT_POSITION = 25;
@@ -39,17 +39,23 @@ function answerPaneBasis(splitPosition: number): string {
 }
 
 function readSplitBounds(sheet: HTMLElement): SplitBounds {
-  const rect = sheet.parentElement?.getBoundingClientRect();
-  if (!rect || rect.width <= 0) {
-    return { left: rect?.left ?? 0, width: 0, min: MIN_SPLIT_POSITION, max: MAX_SPLIT_POSITION };
-  }
+  const parent = sheet.parentElement;
+  const rect = parent?.getBoundingClientRect();
+  const style = parent ? window.getComputedStyle(parent) : null;
+  const leftInset =
+    (Number.parseFloat(style?.paddingLeft ?? "") || 0) + (Number.parseFloat(style?.borderLeftWidth ?? "") || 0);
+  const rightInset =
+    (Number.parseFloat(style?.paddingRight ?? "") || 0) + (Number.parseFloat(style?.borderRightWidth ?? "") || 0);
+  const left = (rect?.left ?? 0) + leftInset;
+  const width = Math.max(0, (rect?.width ?? 0) - leftInset - rightInset);
+  if (width === 0) return { left, width, min: MIN_SPLIT_POSITION, max: MAX_SPLIT_POSITION };
 
   const computedMinWidth = Number.parseFloat(window.getComputedStyle(sheet).minWidth);
   const minPaneWidth = computedMinWidth > 0 ? computedMinWidth : FALLBACK_MIN_PANE_WIDTH;
-  const responsiveMin = ((minPaneWidth + SPLITTER_WIDTH / 2) / rect.width) * 100;
+  const responsiveMin = ((minPaneWidth + SPLITTER_WIDTH / 2) / width) * 100;
   const min = roundSplitPosition(Math.min(50, Math.max(MIN_SPLIT_POSITION, responsiveMin)));
   const max = roundSplitPosition(Math.max(50, Math.min(MAX_SPLIT_POSITION, 100 - responsiveMin)));
-  return { left: rect.left, width: rect.width, min, max };
+  return { left, width, min, max };
 }
 
 function applySplitPosition(sheet: HTMLElement, splitter: HTMLElement, requestedPosition: number): number {
@@ -64,8 +70,8 @@ function applySplitPosition(sheet: HTMLElement, splitter: HTMLElement, requested
   return position;
 }
 
-function releaseResizePointer(splitter: HTMLHRElement, pointerId: number) {
-  if (splitter.hasPointerCapture?.(pointerId)) splitter.releasePointerCapture(pointerId);
+function releasePointer(element: HTMLElement, pointerId: number) {
+  if (element.hasPointerCapture?.(pointerId)) element.releasePointerCapture(pointerId);
 }
 
 /** Returns whether a downward sheet gesture crosses the distance or velocity threshold. */
@@ -99,6 +105,9 @@ export function AnswerSheet({
 
   useEffect(() => {
     if (!open) {
+      const handle = sheetRef.current?.querySelector<HTMLElement>("[data-answer-drag-handle]");
+      if (handle && dragStart.current) releasePointer(handle, dragStart.current.pointerId);
+      dragStart.current = null;
       setDragY(0);
       setDragging(false);
       return;
@@ -109,7 +118,7 @@ export function AnswerSheet({
     const activeSheet: HTMLDivElement = sheet;
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const releaseScroll = lockBodyScroll();
-    activeSheet.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+    (tabStops(activeSheet).find(canRestoreFocus) ?? activeSheet).focus();
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.defaultPrevented || activeSheet.closest("[inert]")) return;
@@ -126,7 +135,7 @@ export function AnswerSheet({
         return;
       }
       if (event.key !== "Tab") return;
-      const focusable = [...activeSheet.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      const focusable = tabStops(activeSheet).filter(canRestoreFocus);
       if (focusable.length === 0) {
         event.preventDefault();
         activeSheet.focus();
@@ -148,7 +157,7 @@ export function AnswerSheet({
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       releaseScroll();
-      if (previous?.isConnected) previous.focus();
+      if (canRestoreFocus(previous)) previous.focus();
     };
   }, [open]);
 
@@ -208,7 +217,7 @@ export function AnswerSheet({
     resizeFromClientX(event.clientX);
     resizeStart.current = null;
     delete event.currentTarget.dataset.resizing;
-    releaseResizePointer(event.currentTarget, event.pointerId);
+    releasePointer(event.currentTarget, event.pointerId);
   }
 
   function cancelResize(event: PointerEvent<HTMLHRElement>) {
@@ -219,7 +228,7 @@ export function AnswerSheet({
     if (sheet && splitter) splitPosition.current = applySplitPosition(sheet, splitter, start.position);
     resizeStart.current = null;
     delete event.currentTarget.dataset.resizing;
-    releaseResizePointer(event.currentTarget, event.pointerId);
+    releasePointer(event.currentTarget, event.pointerId);
   }
 
   function resizeWithKeyboard(event: ReactKeyboardEvent<HTMLHRElement>) {
@@ -266,7 +275,7 @@ export function AnswerSheet({
     const distance = Math.max(0, event.clientY - start.y);
     const velocity = (distance / Math.max(1, event.timeStamp - start.time)) * 1000;
     dragStart.current = null;
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    releasePointer(event.currentTarget, event.pointerId);
     setDragging(false);
     setDragY(0);
     if (shouldDismissAnswerSheet(distance, velocity, sheetRef.current?.offsetHeight ?? 0)) onClose();
@@ -274,19 +283,21 @@ export function AnswerSheet({
 
   function cancelDrag(event: PointerEvent<HTMLDivElement>) {
     dragStart.current = null;
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    releasePointer(event.currentTarget, event.pointerId);
     setDragging(false);
     setDragY(0);
   }
 
-  const slotClass = `flex min-h-0 flex-col max-sm:transition-[transform,opacity,visibility] max-sm:duration-300 max-sm:[transition-timing-function:var(--neu-ease)] sm:h-full ${
+  const slotClass = `flex min-h-0 flex-col max-sm:neu-panel max-sm:bg-surface max-sm:fixed max-sm:inset-x-0 max-sm:bottom-[var(--app-viewport-bottom,0px)] max-sm:z-50 max-sm:h-[calc(var(--app-viewport-height,100dvh)*0.8)] max-sm:overflow-hidden max-sm:rounded-t-2xl max-sm:pb-[env(safe-area-inset-bottom)] max-sm:duration-300 max-sm:[transition-timing-function:var(--neu-ease)] sm:h-full ${
+    open ? "max-sm:transition-[translate,opacity]" : "max-sm:transition-[translate,opacity,visibility]"
+  } ${
     splitVisible
       ? "sm:grow-0 sm:shrink-0 sm:overflow-hidden sm:visible sm:min-w-72 sm:max-w-[calc(100%-18.75rem)] sm:opacity-100 lg:min-w-88 lg:max-w-[calc(100%-22.75rem)]"
       : "sm:basis-0 sm:grow-0 sm:overflow-hidden sm:invisible sm:min-w-0 sm:pointer-events-none sm:opacity-0"
   } ${
     open
-      ? "max-sm:neu-panel max-sm:bg-surface max-sm:fixed max-sm:inset-x-0 max-sm:bottom-[var(--app-viewport-bottom,0px)] max-sm:z-50 max-sm:h-[calc(var(--app-viewport-height,100dvh)*0.8)] max-sm:overflow-hidden max-sm:rounded-t-2xl max-sm:pb-[env(safe-area-inset-bottom)] max-sm:visible max-sm:translate-y-0 max-sm:opacity-100"
-      : "max-sm:fixed max-sm:inset-x-0 max-sm:bottom-[var(--app-viewport-bottom,0px)] max-sm:z-50 max-sm:invisible max-sm:pointer-events-none max-sm:translate-y-full max-sm:opacity-0"
+      ? "max-sm:visible max-sm:translate-y-0 max-sm:opacity-100"
+      : "max-sm:invisible max-sm:pointer-events-none max-sm:translate-y-full max-sm:opacity-0"
   }`;
 
   return (
@@ -336,6 +347,8 @@ export function AnswerSheet({
         ref={sheetRef}
         {...(open ? { role: "dialog", "aria-modal": true, "aria-label": "Answer canvas", tabIndex: -1 } : {})}
         data-answer-sheet={open ? "open" : "closed"}
+        inert={(!open && !splitVisible) || undefined}
+        aria-hidden={(!open && !splitVisible) || undefined}
         className={slotClass}
         style={splitVisible ? { flexBasis: answerPaneBasis(splitPosition.current) } : undefined}
       >
@@ -343,19 +356,17 @@ export function AnswerSheet({
           className={`flex h-full min-h-0 flex-col ${dragging ? "" : "transition-transform duration-250 [transition-timing-function:var(--neu-ease)]"}`}
           style={{ transform: `translateY(${dragY}px)` }}
         >
-          {open && (
-            <div
-              aria-hidden="true"
-              data-answer-drag-handle
-              onPointerDown={beginDrag}
-              onPointerMove={moveDrag}
-              onPointerUp={finishDrag}
-              onPointerCancel={cancelDrag}
-              className="flex shrink-0 cursor-grab touch-none items-center justify-center px-4 pt-3 pb-1 active:cursor-grabbing sm:hidden"
-            >
-              <span className="bg-outline/40 h-1.5 w-10 rounded-full" />
-            </div>
-          )}
+          <div
+            aria-hidden="true"
+            data-answer-drag-handle
+            onPointerDown={beginDrag}
+            onPointerMove={moveDrag}
+            onPointerUp={finishDrag}
+            onPointerCancel={cancelDrag}
+            className="flex shrink-0 cursor-grab touch-none items-center justify-center px-4 pt-3 pb-1 active:cursor-grabbing sm:hidden"
+          >
+            <span className="bg-outline/40 h-1.5 w-10 rounded-full" />
+          </div>
           {children}
         </div>
       </div>

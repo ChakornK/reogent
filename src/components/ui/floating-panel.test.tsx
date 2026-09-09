@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createRef, useLayoutEffect, useState, type RefObject } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { FloatingPanel, type FloatingPanelProps } from "./floating-panel";
+import { FloatingPanel, tabStops, type FloatingPanelProps } from "./floating-panel";
 
 let anchorBounds: DOMRect;
 let naturalHeight: number;
@@ -125,6 +125,69 @@ function resize() {
     for (const observer of observers) observer.callback([], observer as unknown as ResizeObserver);
   });
 }
+
+describe("tabStops", () => {
+  it("includes native summaries without tabindex attributes in keyboard order", () => {
+    const { container } = render(
+      <div>
+        <button type="button">First native stop</button>
+        <details>
+          <summary>Course details</summary>
+        </details>
+        <button type="button">Second priority</button>
+        <button type="button">First priority</button>
+        <button type="button" tabIndex={-1}>
+          Programmatic only
+        </button>
+      </div>,
+    );
+    screen.getByText("Second priority").tabIndex = 2;
+    screen.getByText("First priority").tabIndex = 1;
+    const summary = screen.getByText("Course details");
+    // HappyDOM reports -1 for native summaries; browsers report 0.
+    vi.spyOn(summary, "tabIndex", "get").mockReturnValue(0);
+    expect(summary.hasAttribute("tabindex")).toBe(false);
+    expect(tabStops(container)).toEqual([
+      screen.getByText("First priority"),
+      screen.getByText("Second priority"),
+      screen.getByText("First native stop"),
+      summary,
+    ]);
+  });
+
+  it("excludes hidden, aria-hidden, inert, disabled, and closed-details descendants", () => {
+    const { container } = render(
+      <div>
+        <button type="button">Visible stop</button>
+        <div hidden>
+          <button type="button">Hidden stop</button>
+        </div>
+        <div aria-hidden="true">
+          <button type="button">Aria-hidden stop</button>
+        </div>
+        <div inert>
+          <button type="button">Inert stop</button>
+        </div>
+        <button type="button" disabled>
+          Disabled stop
+        </button>
+        <details>
+          <summary tabIndex={-1}>Closed details</summary>
+          <button type="button">Closed content</button>
+        </details>
+      </div>,
+    );
+    const closedContent = screen.getByText("Closed content");
+    // HappyDOM has no layout; closed details content has no browser client rects.
+    const details = container.querySelector("details")!;
+    Object.defineProperty(closedContent, "getClientRects", {
+      value: () => (details.open ? [new DOMRect(0, 0, 100, 44)] : []),
+    });
+    expect(tabStops(container)).toEqual([screen.getByText("Visible stop")]);
+    details.open = true;
+    expect(tabStops(container)).toEqual([screen.getByText("Visible stop"), closedContent]);
+  });
+});
 
 describe("FloatingPanel placement", () => {
   it("keeps layout-less consumer fixtures open when anchor bounds are zero", () => {

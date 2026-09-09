@@ -2,6 +2,7 @@
 import { ChatShellProvider, useChatShell, type ChatShellState } from "@/src/components/chat/chat-shell-context";
 import { renderers, ResponseWidget } from "@/src/components/chat/tool-renderers";
 import type { ToolCall } from "@/src/lib/api-types";
+import { cachePaneState, getCachedPaneState } from "@/src/lib/pane-state-cache";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -24,6 +25,7 @@ const storagePolyfill: Storage = {
 
 beforeAll(() => {
   Object.defineProperty(window, "sessionStorage", { value: storagePolyfill, configurable: true, writable: true });
+  Object.defineProperty(window, "localStorage", { value: storagePolyfill, configurable: true, writable: true });
   Object.defineProperty(window, "matchMedia", {
     value: () => ({
       matches: false,
@@ -136,6 +138,42 @@ describe("5.3 — ResponseWidget (REQ-3, REQ-4)", () => {
     expect(badge.getAttribute("aria-pressed")).toBe("true");
   });
 
+  it("reopens a dismissed phone canvas through an explicit mapped action", () => {
+    const { container } = renderWidget(keyDatesCall, "reopened");
+    act(() => {
+      shellRef.current?.setUserDismissedPane(true);
+      shellRef.current?.setAnswerSheetOpen(false);
+      shellRef.current?.setRightPaneCollapsed(true);
+    });
+    fireEvent.click(container.querySelector('[data-widget="show_widget"]')!);
+    expect(shellRef.current?.answerSheetOpen).toBe(true);
+    expect(shellRef.current?.rightPaneCollapsed).toBe(false);
+    expect(shellRef.current?.userDismissedPane).toBe(false);
+    expect(shellRef.current?.activeCallKey).toBe("reopened");
+  });
+
+  it.each([
+    ["Add to Calendar", "calendar"],
+    ["Show on map", "map"],
+  ])("opens the visible destination for %s after a phone dismissal", (action, pane) => {
+    const { getByRole } = renderWidget({
+      name: "show_widget",
+      input: { type: "event" },
+      result: { type: "event", result: { events: [{ title: "Campus event", start_date: "2026-10-01" }] } },
+    });
+    act(() => {
+      shellRef.current?.setUserDismissedPane(true);
+      shellRef.current?.setAnswerSheetOpen(false);
+      shellRef.current?.setRightPaneCollapsed(true);
+    });
+    fireEvent.click(getByRole("button", { name: action }));
+    expect(shellRef.current?.workspaceView?.paneId).toBe(pane);
+    expect(shellRef.current?.answerSheetOpen).toBe(true);
+    expect(shellRef.current?.rightPaneCollapsed).toBe(false);
+    expect(shellRef.current?.userDismissedPane).toBe(false);
+    expect(shellRef.current?.activeCallKey).toBeNull();
+  });
+
   it("unmapped tools render a static, non-focusable summary", () => {
     const { container } = renderWidget(tuitionCall);
     const widget = container.querySelector('[data-widget="get_tuition"]') as HTMLElement;
@@ -204,6 +242,17 @@ describe("5.3 — ResponseWidget (REQ-3, REQ-4)", () => {
     expect(widget.getAttribute("tabindex")).toBeNull();
     fireEvent.click(getByRole("button", { name: "Course details" }));
     expect(shellRef.current?.workspaceView?.paneId).toBe("course-lookup");
+  });
+
+  it("uses the clicked prerequisite root instead of a different cached query", () => {
+    cachePaneState("prereq-tree", { root: "MATH 200", query: "MATH 200", selections: {} });
+    expect(getCachedPaneState("prereq-tree")?.query).toBe("MATH 200");
+    const { getByRole } = renderWidget(courseCall);
+    act(() => shellRef.current?.setActiveChannel("calendar", { cursor: "2026-10" }));
+    fireEvent.click(getByRole("button", { name: "Prereq Tree" }));
+    const state = shellRef.current?.workspaceView?.state;
+    expect(state?.root).toBe("CPSC_V 110");
+    expect(state?.query || state?.root).toBe("CPSC_V 110");
   });
 
   it("renders study-space evidence as static rows when no concrete row action exists", () => {

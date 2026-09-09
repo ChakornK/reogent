@@ -1,13 +1,11 @@
 "use client";
 
 import { lockBodyScroll } from "@/src/components/ui/body-scroll-lock";
+import { tabStops } from "@/src/components/ui/floating-panel";
 import { Heading } from "@/src/components/ui/heading";
 import { useOverlayPresence } from "@/src/components/ui/use-overlay-presence";
 import { createContext, useContext, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-
-const FOCUSABLE =
-  'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
 const DialogPanelContext = createContext<React.MutableRefObject<HTMLElement | null> | null>(null);
 const inertOwners = new WeakMap<HTMLElement, { count: number; previous: boolean }>();
@@ -34,7 +32,7 @@ export function canRestoreFocus(element: HTMLElement | null): element is HTMLEle
     !element?.isConnected ||
     element.matches(':disabled, input[type="hidden"]') ||
     element.closest('[inert], [hidden], [aria-hidden="true"]') ||
-    !element.matches('a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]')
+    !element.matches('a[href], button, input, select, textarea, summary, [tabindex], [contenteditable="true"]')
   )
     return false;
   for (let current: HTMLElement | null = element; current; current = current.parentElement) {
@@ -98,7 +96,7 @@ export function DialogRoot({
         return;
       }
       if (event.key !== "Tab") return;
-      const focusable = [...activePanel.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      const focusable = tabStops(activePanel).filter(canRestoreFocus);
       if (focusable.length === 0) {
         event.preventDefault();
         activePanel.focus();
