@@ -17,7 +17,7 @@ export function SidebarListNav({
   return (
     <nav
       aria-label={label}
-      data-sidebar-list
+      data-sidebar-list={collapsed ? "collapsed" : "expanded"}
       data-tool-list={toolList || undefined}
       className={`bg-surface-container-low/60 min-h-0 flex-1 overflow-x-hidden overflow-y-auto [overscroll-behavior-y:contain] ${
         collapsed ? "rounded-xl p-1" : "rounded-2xl p-2"

@@ -92,6 +92,10 @@ describe("shell loading surfaces", () => {
     expect(container.querySelector(".shell-boot-sidebar")).not.toBeNull();
     expect(container.querySelector("[data-shell-boot-brand]")?.className).toContain("h-15");
     expect(container.querySelector("[data-shell-boot-footer]")).not.toBeNull();
+    expect(container.querySelectorAll("[data-shell-boot-modes] > [data-skeleton]")).toHaveLength(3);
+    expect(container.querySelector("[data-shell-boot-expand]")?.classList.contains("size-9")).toBe(true);
+    expect(container.querySelector("[data-shell-boot-new]")).not.toBeNull();
+    expect(container.querySelector("[data-shell-boot-account]")).not.toBeNull();
     expect(boot?.querySelector("[data-chat-frame] > header .shell-boot-menu")).not.toBeNull();
     expect(boot?.querySelector("[data-mobile-navigation]")?.getAttribute("aria-hidden")).toBe("true");
     const tabs = boot?.querySelector("[data-mobile-navigation] > div");

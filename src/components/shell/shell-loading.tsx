@@ -187,24 +187,30 @@ export function ShellBootLoading({ pathname = "/chat" }: { pathname?: string }) 
       <div className="shell-body min-h-0 flex-1">
         <div className="chat-workspace shell-boot-layout relative min-h-0 min-w-0 flex-1">
           <aside className="sessions-aside shell-boot-sidebar absolute top-3 bottom-3 left-3 z-10 hidden min-h-0 w-68 overflow-hidden">
-            <div className="neu-panel bg-surface flex h-full flex-col rounded-2xl p-2 pt-0">
+            <div data-shell-boot-frame className="neu-panel bg-surface flex h-full flex-col rounded-2xl p-2 pt-0">
               <div data-shell-boot-brand className="flex h-15 shrink-0 items-center gap-2 px-2">
                 <Skeleton className="size-9 rounded-lg" />
                 <Skeleton className="h-4 w-24 rounded" />
               </div>
-              {mode === "ai" ? (
-                <div className="pb-3">
-                  <Skeleton className="h-11 w-full rounded-lg" />
-                </div>
-              ) : null}
-              <div className="bg-surface-container-low/60 flex min-h-0 flex-1 flex-col gap-2 rounded-xl p-2">
+              <Skeleton data-shell-boot-expand className="hidden size-9 self-center rounded-lg" />
+              <div data-shell-boot-new className="hidden pb-3">
+                <Skeleton className="h-11 w-full rounded-lg sm:h-9" />
+              </div>
+              <div
+                data-shell-boot-list
+                className="bg-surface-container-low/60 flex min-h-0 flex-1 flex-col gap-2 rounded-2xl p-2"
+              >
                 <Skeleton className="h-9 w-full rounded-lg" />
                 <Skeleton className="h-9 w-5/6 rounded-lg" />
                 <Skeleton className="h-9 w-full rounded-lg" />
               </div>
               <div data-shell-boot-footer className="mt-2 flex flex-col gap-2">
-                <Skeleton className="h-9 w-full rounded-lg" />
-                <Skeleton className="h-9 w-full rounded-lg" />
+                <div data-shell-boot-modes className="flex gap-1 rounded-xl p-1">
+                  {[0, 1, 2].map((key) => (
+                    <Skeleton key={key} className="h-9 flex-1 rounded-lg" />
+                  ))}
+                </div>
+                <Skeleton data-shell-boot-account className="h-9 w-full rounded-lg" />
               </div>
             </div>
           </aside>

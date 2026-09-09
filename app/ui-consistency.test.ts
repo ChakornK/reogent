@@ -118,14 +118,39 @@ describe("mobile workspace framing", () => {
 
   it("keeps drawer session controls touch-sized and reveals actions without hover", () => {
     const drawerRows =
-      globalsCss.match(/\.shell-sidebar-drawer \[data-session-item\] \[data-sidebar-item\]\s*\{([\s\S]*?)\}/)?.[1] ??
-      "";
+      globalsCss.match(
+        /\.shell-sidebar-drawer :where\(\[data-session-item\]\) \[data-sidebar-item\]\s*\{([\s\S]*?)\}/,
+      )?.[1] ?? "";
     expect(drawerRows).toContain("height: 3rem;");
     expect(drawerRows).toContain("padding-right: 3.25rem;");
     expect(globalsCss).toMatch(/\.shell-sidebar-drawer \[data-session-editor-controls\]\s*\{\s*min-height: 3rem;/);
     const actions = globalsCss.match(/\[data-session-actions\]\s*\{([\s\S]*?)\}/)?.[1] ?? "";
     expect(actions).toContain("opacity: 1;");
     expect(globalsCss).toMatch(/@media \(min-width: 640px\) and \(hover: hover\)/);
+  });
+
+  it("avoids a scrollbar gutter shifting the collapsed icon column", () => {
+    expect(globalsCss).toMatch(/\[data-sidebar-list="collapsed"\]\s*\{\s*scrollbar-width: none;/);
+    expect(globalsCss).toMatch(/\[data-sidebar-list="collapsed"\]::-webkit-scrollbar\s*\{\s*display: none;/);
+    expect(globalsCss).toContain("scrollbar-width: thin;");
+  });
+
+  it("insets collapsed brand focus without an outward ring", () => {
+    const focus = globalsCss.match(/\[data-sidebar-brand="collapsed"\] a:focus-visible\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    expect(focus).toContain("outline-offset: -2px;");
+    expect(focus).toContain("box-shadow: none;");
+  });
+
+  it("keeps collapsed boot branding and footer geometry aligned with the rail", () => {
+    const brand = globalsCss.match(/\[data-shell-boot-brand\]\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    expect(brand).toContain("height: 3rem;");
+    expect(brand).toContain("padding-inline: 0;");
+    expect(brand).toContain("justify-content: center;");
+    const frame = globalsCss.match(/\[data-shell-boot-frame\]\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+    expect(frame).toContain("padding-inline: 0.125rem;");
+    expect(globalsCss).toContain("[data-shell-boot-brand] > :where(:last-child)");
+    expect(globalsCss).toContain("[data-shell-boot-account]");
+    expect(globalsCss).toContain("[data-shell-boot-modes] > [data-skeleton]");
   });
 
   it("flattens live chat without changing the landing-page example", () => {

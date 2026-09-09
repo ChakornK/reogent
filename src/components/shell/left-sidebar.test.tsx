@@ -101,6 +101,30 @@ function modeLink(container: HTMLElement, label: string): HTMLAnchorElement {
 }
 
 describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
+  it.each(["/chat", "/tools/map", "/pulse"])(
+    "centers the collapsed account without shrinking expanded modes at %s",
+    async (path) => {
+      pathname.value = path;
+      const view = render(
+        <ChatShellProvider>
+          <LeftSidebar collapsed />
+        </ChatShellProvider>,
+      );
+      await act(async () => {});
+      expect(view.getByRole("button", { name: "Account menu" }).parentElement?.classList.contains("items-center")).toBe(
+        true,
+      );
+      view.rerender(
+        <ChatShellProvider>
+          <LeftSidebar />
+        </ChatShellProvider>,
+      );
+      expect(view.getByRole("button", { name: "Account menu" }).parentElement?.classList.contains("items-center")).toBe(
+        false,
+      );
+    },
+  );
+
   it.each([
     [false, "rounded-2xl", "p-2"],
     [true, "rounded-xl", "p-1"],
@@ -113,6 +137,7 @@ describe("9.3 — ModeToggle + LeftSidebar (REQ-1.1, REQ-1.4, REQ-6.3)", () => {
     const well = view.getByRole("navigation", { name: "Tools" });
     expect(well.classList.contains(radius)).toBe(true);
     expect(well.classList.contains(padding)).toBe(true);
+    expect(well.getAttribute("data-sidebar-list")).toBe(collapsed ? "collapsed" : "expanded");
   });
 
   it("renders bottom navigation as three labeled, flat links with the routed area current", () => {

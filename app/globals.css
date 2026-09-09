@@ -717,6 +717,19 @@ html.vt-active *::after {
   padding-left: max(0.75rem, env(safe-area-inset-left));
 }
 
+[data-sidebar-list="collapsed"] {
+  scrollbar-width: none;
+}
+
+[data-sidebar-list="collapsed"]::-webkit-scrollbar {
+  display: none;
+}
+
+[data-sidebar-brand="collapsed"] a:focus-visible {
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
 [data-session-actions] {
   opacity: 1;
   transition: opacity 150ms ease-out;
@@ -734,7 +747,7 @@ html.vt-active *::after {
   }
 }
 
-.shell-sidebar-drawer [data-session-item] [data-sidebar-item] {
+.shell-sidebar-drawer :where([data-session-item]) [data-sidebar-item] {
   height: 3rem;
   padding-right: 3.25rem;
 }
@@ -743,8 +756,7 @@ html.vt-active *::after {
   min-height: 3rem;
 }
 
-.shell-sidebar-drawer [data-session-actions] > button,
-.shell-sidebar-drawer [data-session-editor-controls] > button {
+.shell-sidebar-drawer :where([data-session-actions], [data-session-editor-controls]) > button {
   width: 2.75rem;
   height: 2.75rem;
 }
@@ -841,6 +853,55 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
     animation: none;
     display: none;
   }
+}
+
+:where(html[data-shell-mode="ai"]) [data-shell-boot-new] {
+  display: block;
+}
+
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-frame] {
+  padding-inline: 0.125rem;
+}
+
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-brand] {
+  height: 3rem;
+  padding-inline: 0;
+  justify-content: center;
+}
+
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-brand] > :where(:last-child),
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-new] {
+  display: none;
+}
+
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-expand] {
+  display: block;
+}
+
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-list] {
+  border-radius: 0.75rem;
+  padding: 0.25rem;
+}
+
+:where(html[data-sidebar-collapsed="true"][data-shell-mode="ai"]) .shell-boot-sidebar [data-shell-boot-list] {
+  visibility: hidden;
+}
+
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-footer] {
+  align-items: center;
+}
+
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-modes] {
+  flex-direction: column;
+}
+
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-modes] > [data-skeleton] {
+  width: 2.25rem;
+  flex: none;
+}
+
+:where(html[data-sidebar-collapsed="true"]) .shell-boot-sidebar [data-shell-boot-account] {
+  width: 2.25rem;
 }
 
 .shell-boot-workspace {

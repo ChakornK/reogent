@@ -30,6 +30,8 @@ Reserve top and side safe areas in the shell and the bottom safe area in the mod
 
 ## Optical geometry
 
+Keep the collapsed rail 48px wide with a 60px reserved offset; expanded dimensions stay 272px/284px. A 48px collapsed brand row gives its 36px tile equal 6px clearance. Center the account under the mode controls without shrinking the expanded group. The collapsed brand link uses a square 44px target and inward focus paint. Hide scrollbar gutters only in collapsed icon lists while retaining native scrolling and the expand control. Match these brand and footer dimensions during shell boot.
+
 Center leading controls on the workspace's 28px title anchor without shrinking their hit targets. Plain rail content and discovery searches share the header's 16px horizontal inset; dense card/list bodies retain their explicit spacing. Keep ThemeToggle intrinsic-width and non-shrinking at 144px phone/108px wider-screen so each radio fills its grid track. Wrap the account Appearance row with an 8px row gap when its label and control cannot share a line.
 
 Derive close matching curves from real border-box insets: expanded navigation 16/8/8, collapsed navigation and theme 12/4/8, segmented controls 8/4/4, and timetable 12/2/10 followed by 10/2/8 (outer radius/inset/inner radius). The single-line composer keeps a 44px field inside a 56px well; action radius/inset is 10/6 on phones and 6/10 on wider screens. Preserve phone flattening and independent cards, avatars, input fields, and interior rows. Confirm measurements with original-scale images and enlarged details; reject image estimates that contradict actual bounds.

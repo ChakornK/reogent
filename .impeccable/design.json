@@ -389,6 +389,7 @@
       "Do use [data-theme=\"dark\"] for theme switching — never prefers-color-scheme media query.",
       "Do keep mobile pages and their primary workspace regions flat and edge-to-edge. Use resting depth on controls, contained cards, desktop panels, and overlays.",
       "Do derive close inset corner radii from measured edges and preserve independent card geometry.",
+      "Do distinguish the 48px collapsed rail from its 60px reserved offset, center its controls, contain keyboard focus paint, and match its boot geometry.",
       "Do use one compact session-action menu, retain touch/no-hover access, preserve drafts and errors, and commit local mutations after server success.",
       "Do use asymmetric bubble radii to indicate message direction.",
       "Do use opacity modifiers on color tokens for tinted backgrounds.",

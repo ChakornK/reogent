@@ -88,7 +88,7 @@ export function LeftSidebar({
 }) {
   const { mode } = useChatShell();
   const footer = (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${collapsed ? "items-center" : ""}`}>
       <ModeToggle collapsed={collapsed} onNavigate={onClose} />
       <UserMenu collapsed={collapsed} onNavigate={onClose} />
     </div>

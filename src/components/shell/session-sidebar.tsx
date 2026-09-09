@@ -354,19 +354,17 @@ interface SessionSidebarProps {
   footer?: ReactNode;
 }
 
-/** Reodite brand header: the sidebar's 60px top row, aligned with the chat and
- *  data-panel header band. Collapsed rail shows only the logo tile. `trailing`
- *  carries row actions (collapse chevron on desktop, close in the mobile drawer). */
+/** Renders a 60px brand header or a 48px collapsed logo row. `trailing` holds sidebar controls. */
 export function BrandHeader({ collapsed = false, trailing }: { collapsed?: boolean; trailing?: ReactNode }) {
   return (
     <div
-      data-sidebar-brand
-      className={`flex h-15 shrink-0 items-center gap-2 ${collapsed ? "justify-center" : "justify-between px-2"}`}
+      data-sidebar-brand={collapsed ? "collapsed" : "expanded"}
+      className={`flex shrink-0 items-center gap-2 ${collapsed ? "h-12 justify-center" : "h-15 justify-between px-2"}`}
     >
       <Link
         href="/"
         aria-label="Go to Reodite homepage"
-        className="group focus-visible:ring-primary/40 flex min-h-11 min-w-0 items-center gap-2.5 rounded-lg focus-visible:ring-2 focus-visible:ring-offset-1"
+        className={`group focus-visible:ring-primary/40 flex min-h-11 min-w-0 items-center gap-2.5 focus-visible:ring-2 focus-visible:ring-offset-1 ${collapsed ? "w-11 justify-center rounded-xl" : "rounded-lg"}`}
       >
         <span className="bg-surface-container-low text-primary group-hover:text-on-surface flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-150">
           <Icon name="school" size={18} />
