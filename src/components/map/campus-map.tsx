@@ -1228,7 +1228,7 @@ export function CampusMap({
         <div
           role="alert"
           data-map-entrance-notice
-          className="ui-notice-enter neu-panel bg-surface absolute right-3 bottom-32 z-20 flex max-w-64 items-center gap-2 rounded-xl p-2"
+          className="ui-notice-enter neu-panel bg-surface absolute right-20 bottom-32 z-20 flex max-w-[min(16rem,calc(100%-6rem))] items-center gap-2 rounded-xl p-2"
         >
           <span className="text-on-surface-variant text-xs">Entrance markers unavailable.</span>
           <Button variant="ghost" size="compact" onClick={() => setEntranceNonce((nonce) => nonce + 1)}>

@@ -1127,10 +1127,6 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
     bottom: 5rem;
   }
 
-  [data-map-explorer] [data-map-entrance-notice] {
-    bottom: 12rem;
-  }
-
   [data-map-explorer] .maplibregl-ctrl-bottom-left {
     bottom: 4rem;
   }

@@ -199,6 +199,14 @@ describe("mobile workspace framing", () => {
     expect(mobileLayout).not.toMatch(/(?:^|\n)\s*\.chat-message-well\s*\{/);
   });
 
+  it("keeps map failure notices outside the dedicated control column", () => {
+    const map = uiFiles.find(({ path }) => path === "src/components/map/campus-map.tsx")?.source ?? "";
+    const notice = map.match(/data-map-entrance-notice\s+className="([^"]+)"/)?.[1] ?? "";
+    expect(notice).toContain("right-20");
+    expect(notice).toContain("max-w-[min(16rem,calc(100%-6rem))]");
+    expect(globalsCss).not.toContain("[data-map-explorer] [data-map-entrance-notice]");
+  });
+
   it("keeps the mobile timetable flush and weekend day tabs scrollable", () => {
     expect(mobileLayout).toContain("[data-schedule-canvas]");
     expect(mobileLayout).toContain("[data-schedule-grid-frame]");
