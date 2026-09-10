@@ -814,7 +814,7 @@ function ActionsSection({
                       <span className="text-on-surface font-medium">{block.code}</span>
                       <span className="text-muted"> · {block.place}</span>
                     </p>
-                    <p className="text-on-surface-variant mt-0.5 text-xs leading-snug">
+                    <p className="text-on-surface-variant mt-1 text-xs leading-snug">
                       {block.issues.map(describeIssue).join(" ")}
                     </p>
                   </button>

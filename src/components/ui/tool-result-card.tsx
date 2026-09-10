@@ -78,7 +78,7 @@ export function ToolResultRowContent({
 }: ToolResultRowContentProps) {
   return (
     <>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className={`text-on-surface truncate text-sm font-medium ${titleClassName ?? ""}`}>{title}</span>
         {description ? <span className="text-muted truncate text-xs">{description}</span> : null}
         {metadata != null ? <span className="text-muted flex flex-wrap gap-2 text-xs">{metadata}</span> : null}

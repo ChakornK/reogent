@@ -421,7 +421,7 @@ export function CourseExplorer({ onSelect }: { onSelect?: (code: string) => void
                             <td className="text-on-surface-variant min-w-0 px-3 py-1.5 text-xs">
                               <span className="block truncate">{course.title}</span>
                               {mobileFacts ? (
-                                <span className="text-muted mt-0.5 block truncate sm:hidden">{mobileFacts}</span>
+                                <span className="text-muted mt-1 block truncate sm:hidden">{mobileFacts}</span>
                               ) : null}
                             </td>
                             <td className="px-3 py-1.5 text-right font-mono text-xs whitespace-nowrap max-sm:hidden">

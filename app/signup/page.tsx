@@ -30,7 +30,7 @@ function SignupContent() {
           <span className="neu-raised bg-surface text-primary mb-8 flex size-14 items-center justify-center rounded-2xl">
             <Icon name="school" size={27} />
           </span>
-          <Heading as="h1" size="title" className="mb-2 text-center">
+          <Heading as="h1" size="title" className="mb-1 text-center">
             Create an account
           </Heading>
           <p className="text-muted mb-6 text-center text-sm">Sign up to start using Reodite — it&apos;s free</p>

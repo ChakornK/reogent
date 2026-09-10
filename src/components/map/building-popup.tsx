@@ -87,7 +87,7 @@ function DetailCard({
           />
         )}
       </div>
-      <div className="flex flex-col gap-0.5 px-2.5 py-2">
+      <div className="flex flex-col gap-1 px-2.5 py-2">
         <span className="text-on-surface flex items-center gap-1.5 text-sm font-medium">
           {dot && (
             // The sub line states the availability in words; the dot is decoration.
@@ -116,7 +116,7 @@ function DetailCard({
 
 function Section({ title, note, children }: { title: string; note?: string | null; children: React.ReactNode }) {
   return (
-    <section className="ui-content-enter border-border-subtle border-t pt-2.5">
+    <section className="ui-content-enter border-border-subtle border-t pt-3 first:border-t-0 first:pt-0">
       <Heading as="h3" size="subsection" className="mb-2">
         {title}
         {note && <span className="text-muted ml-1.5 text-xs font-normal">{note}</span>}
@@ -184,11 +184,11 @@ export function BuildingPopup({ building, onClose }: { building: SelectedBuildin
           <Heading as="h2" size="section" className="truncate">
             {building.name}
           </Heading>
-          <p className="text-on-surface-variant mt-0.5 truncate font-mono text-xs">
+          <p className="text-on-surface-variant mt-1 truncate font-mono text-xs">
             {[building.code, building.usage].filter(Boolean).join(" · ")}
           </p>
           {(building.floors || building.address) && (
-            <p className="text-muted mt-0.5 truncate text-xs">
+            <p className="text-muted mt-1 truncate text-xs">
               {[building.floors && `${building.floors} floors`, building.address].filter(Boolean).join(" · ")}
             </p>
           )}
@@ -200,7 +200,10 @@ export function BuildingPopup({ building, onClose }: { building: SelectedBuildin
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto [overscroll-behavior-y:contain] px-3.5 py-3">
         {!details && !failed && (
-          <SkeletonGroup label="Loading building details" className="border-border-subtle border-t pt-2.5">
+          <SkeletonGroup
+            label="Loading building details"
+            className="border-border-subtle border-t pt-3 first:border-t-0 first:pt-0"
+          >
             <Skeleton className="mb-2 h-5 w-28" />
             <div className="flex items-center gap-1">
               <Skeleton className="size-11 rounded-full" />

@@ -128,7 +128,7 @@ function BuildingDetailItem({
           <p className={`text-on-surface text-sm font-medium ${truncateTitle ? "truncate" : "wrap-anywhere"}`}>
             {title}
           </p>
-          <p className="text-on-surface-variant mt-0.5 text-xs">{summary}</p>
+          <p className="text-on-surface-variant mt-1 text-xs">{summary}</p>
           {detail ? <p className="text-muted mt-1 text-xs">{detail}</p> : null}
         </div>
         {action}
@@ -337,7 +337,7 @@ function BuildingRow({
       </span>
       <span className="min-w-0 flex-1">
         <span className="text-on-surface block truncate text-sm font-medium">{building.name}</span>
-        <span className="text-muted block truncate text-xs">
+        <span className="text-muted mt-1 block truncate text-xs">
           <span className="font-mono">{building.code}</span>
           {building.address ? ` · ${building.address}` : ""}
         </span>

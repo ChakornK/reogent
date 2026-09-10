@@ -11,7 +11,7 @@ import { useId } from "react";
 
 function FieldRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col gap-1">
       <dt className="text-muted text-xs font-medium tracking-[0.05em] uppercase">{label}</dt>
       <dd className={mono ? "font-mono text-sm" : "text-sm"}>{value}</dd>
     </div>
@@ -72,7 +72,7 @@ function formatPct(v: unknown): string | null {
 
 function StatBox({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="neu-inset bg-surface-container-low flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-2 py-2">
+    <div className="neu-inset bg-surface-container-low flex min-w-0 flex-col items-center gap-1 rounded-lg px-2 py-2">
       <span className="text-muted text-xs font-medium tracking-[0.05em] uppercase">{label}</span>
       <span className="text-sm font-medium">{children}</span>
     </div>
@@ -115,27 +115,29 @@ export function CourseDetailCard({
   const hasDistribution = buckets != null;
   return (
     <article className="flex flex-col gap-3">
-      <header className="flex flex-wrap items-baseline gap-1.5">
-        {/* Catalog codes carry a _V campus suffix after the subject; display strips it. */}
-        <Heading as="h2" size="section" className="font-mono">
-          {record.code.replace(/_V(?=\b|$)/, "")}
-        </Heading>
-        {sess ? <InfoChip>{sess}</InfoChip> : null}
-        {record.credits != null ? <InfoChip>{record.credits} cr</InfoChip> : null}
-        {record.prerequisite && onOpenPrereqs ? (
-          <Button
-            data-action="open-prereq-tree"
-            data-code={record.code}
-            variant="outline"
-            size="pill"
-            onClick={() => onOpenPrereqs(record.code)}
-          >
-            <Icon name="tree" size={14} /> Prereq Tree
-          </Button>
-        ) : null}
+      <header className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-baseline gap-1.5">
+          {/* Catalog codes carry a _V campus suffix after the subject; display strips it. */}
+          <Heading as="h2" size="section" className="font-mono">
+            {record.code.replace(/_V(?=\b|$)/, "")}
+          </Heading>
+          {sess ? <InfoChip>{sess}</InfoChip> : null}
+          {record.credits != null ? <InfoChip>{record.credits} cr</InfoChip> : null}
+          {record.prerequisite && onOpenPrereqs ? (
+            <Button
+              data-action="open-prereq-tree"
+              data-code={record.code}
+              variant="outline"
+              size="pill"
+              onClick={() => onOpenPrereqs(record.code)}
+            >
+              <Icon name="tree" size={14} /> Prereq Tree
+            </Button>
+          ) : null}
+        </div>
+        <p className="text-sm font-medium">{record.title}</p>
+        {record.description && <p className="text-on-surface-variant text-sm leading-relaxed">{record.description}</p>}
       </header>
-      <p className="text-sm font-medium">{record.title}</p>
-      {record.description && <p className="text-on-surface-variant text-sm leading-relaxed">{record.description}</p>}
       {hasDistribution && <CourseStatsBand record={record as unknown as Record<string, unknown>} isRecent={isRecent} />}
       {buckets ? (
         <GradeDistributionChart
@@ -143,11 +145,13 @@ export function CourseDetailCard({
           highlightBucket={(record as { highlightBucket?: string }).highlightBucket}
         />
       ) : null}
-      <dl className="flex flex-col gap-1.5">
-        {record.prerequisite && <FieldRow label="Prerequisite" value={record.prerequisite} mono />}
-        {record.corequisite && <FieldRow label="Corequisite" value={record.corequisite} mono />}
-        {record.terms?.length > 0 && <FieldRow label="Offered" value={record.terms.join(", ")} />}
-      </dl>
+      {record.prerequisite || record.corequisite || record.terms?.length > 0 ? (
+        <dl className="flex flex-col gap-2">
+          {record.prerequisite && <FieldRow label="Prerequisite" value={record.prerequisite} mono />}
+          {record.corequisite && <FieldRow label="Corequisite" value={record.corequisite} mono />}
+          {record.terms?.length > 0 && <FieldRow label="Offered" value={record.terms.join(", ")} />}
+        </dl>
+      ) : null}
       {record.sections?.length > 0 && <SectionTable sections={record.sections} />}
     </article>
   );

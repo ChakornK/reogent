@@ -71,6 +71,7 @@ describe("tool result primitives", () => {
     expect(metadata.className).not.toMatch(/truncate|shrink-0|whitespace-nowrap/);
     expect(description.className).toContain("truncate");
     expect(title.parentElement?.className).toContain("min-w-0");
+    expect(title.parentElement?.classList.contains("gap-1")).toBe(true);
     expect(title.parentElement?.nextElementSibling).toBe(getByText("Trailing action"));
   });
 

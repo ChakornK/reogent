@@ -271,7 +271,7 @@ export function CalendarPane({ state, setState }: { state: Partial<State>; setSt
                             />
                             <span className="min-w-0">
                               <span className="text-on-surface block truncate text-xs font-medium">{event.label}</span>
-                              <span className="text-muted block truncate text-xs">
+                              <span className="text-muted mt-1 block truncate text-xs">
                                 {styleOf(event).label}
                                 {event.tags.length > 0 ? ` · ${event.tags[0]}` : ""}
                               </span>
@@ -583,7 +583,7 @@ function DayAgendaDialog({
               <span aria-hidden className={`h-8 w-1 shrink-0 rounded-full ${styleOf(event).bar}`} />
               <span className="min-w-0">
                 <span className="text-on-surface block text-sm font-medium">{event.label}</span>
-                <span className="text-muted block text-xs">{styleOf(event).label}</span>
+                <span className="text-muted mt-1 block text-xs">{styleOf(event).label}</span>
               </span>
             </Button>
           ))}

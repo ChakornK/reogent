@@ -30,7 +30,7 @@ function LoginContent() {
           <span className="neu-raised bg-surface text-primary mb-8 flex size-14 items-center justify-center rounded-2xl">
             <Icon name="school" size={27} />
           </span>
-          <Heading as="h1" size="title" className="mb-2 text-center">
+          <Heading as="h1" size="title" className="mb-1 text-center">
             Welcome back
           </Heading>
           <p className="text-muted mb-6 text-center text-sm">Sign in to continue to Reodite</p>

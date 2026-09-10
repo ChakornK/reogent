@@ -72,7 +72,7 @@ export function UserMenu({ collapsed = false, onNavigate }: { collapsed?: boolea
           >
             <div className="px-3 py-2">
               <p className="text-muted text-xs font-medium">Signed in as</p>
-              <p className="text-body-sm text-on-surface mt-0.5 truncate" title={auth.user?.username ?? undefined}>
+              <p className="text-body-sm text-on-surface mt-1 truncate" title={auth.user?.username ?? undefined}>
                 {username}
               </p>
             </div>

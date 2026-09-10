@@ -45,18 +45,20 @@ function SessionPicker({ session, onChange }: { session: string; onChange: (sess
 function CourseDetailSkeleton() {
   return (
     <SkeletonGroup label="Loading course details" className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Skeleton className="h-5 w-28" />
-        <Skeleton className="h-5 w-16 rounded-full" />
-        <Skeleton className="h-5 w-12 rounded-full" />
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Skeleton className="h-5 w-28" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-5 w-12 rounded-full" />
+        </div>
+        <Skeleton className="h-5 w-80" />
+        <SkeletonText className="py-1" />
       </div>
-      <Skeleton className="h-5 w-80" />
-      <SkeletonText className="py-1" />
       <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
         {[0, 1, 2, 3].map((index) => (
           <div
             key={index}
-            className="neu-inset bg-surface-container-low flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-2 py-2"
+            className="neu-inset bg-surface-container-low flex min-w-0 flex-col items-center gap-1 rounded-lg px-2 py-2"
           >
             <Skeleton className="my-0.5 h-3 w-16" />
             <Skeleton className="my-1 h-3 w-12" />
@@ -68,9 +70,9 @@ function CourseDetailSkeleton() {
         <Skeleton className="h-10 w-full" />
         <Skeleton className="mx-auto h-3 w-48" />
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         {[0, 1].map((index) => (
-          <div key={index} className="flex flex-col gap-0.5">
+          <div key={index} className="flex flex-col gap-1">
             <Skeleton className="my-0.5 h-3 w-24" />
             <Skeleton className="my-1 h-3 w-2/3" />
           </div>

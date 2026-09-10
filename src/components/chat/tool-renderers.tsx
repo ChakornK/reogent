@@ -124,13 +124,13 @@ function CourseCard({ course, detailed = false }: { course: CourseDoc; detailed?
         <span className="text-body-sm text-primary font-mono font-medium">{course.code.replace("_V", "")}</span>
         {course.credits !== null ? <InfoChip className="shrink-0">{course.credits} cr</InfoChip> : null}
       </div>
-      <Heading as="h4" size="subsection" className="mt-0.5 line-clamp-2">
+      <Heading as="h4" size="subsection" className="mt-1 line-clamp-2">
         {course.title}
       </Heading>
       {detailed && course.description && (
-        <p className="text-body-sm text-on-surface-variant mt-1.5 line-clamp-3 leading-relaxed">{course.description}</p>
+        <p className="text-body-sm text-on-surface-variant mt-1 line-clamp-3 leading-relaxed">{course.description}</p>
       )}
-      {times && <p className="text-on-surface-variant mt-1.5 font-mono text-xs">{times}</p>}
+      {times && <p className="text-on-surface-variant mt-1 font-mono text-xs">{times}</p>}
       <p className="text-muted mt-1 line-clamp-2 text-xs">
         {course.prerequisite ? `Prereq: ${course.prerequisite}` : "No prerequisites"}
         {detailed && course.corequisite ? ` · Coreq: ${course.corequisite}` : ""}
@@ -471,7 +471,7 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
               <Heading as="h3" size="subsection">
                 {e.title}
               </Heading>
-              {e.text && <p className="text-muted mt-0.5 line-clamp-2 text-xs">{e.text}</p>}
+              {e.text && <p className="text-muted mt-1 line-clamp-2 text-xs">{e.text}</p>}
             </div>
             {startDate && (
               <div className="bg-surface-container flex size-11 shrink-0 flex-col items-center justify-center rounded-md">
@@ -492,7 +492,7 @@ function ShowWidgetRenderer({ call }: ToolCallRendererProps) {
               </div>
             )}
           </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="primary"
               size="field"

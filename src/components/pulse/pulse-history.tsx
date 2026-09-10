@@ -31,17 +31,17 @@ export function PulseHistory() {
   const loading = !rounds && !error;
 
   return (
-    <section aria-labelledby="pulse-history-heading" className="mt-6 flex flex-col gap-3">
-      <Heading as="h2" size="section" id="pulse-history-heading">
-        Previous rounds
-      </Heading>
+    <section aria-labelledby="pulse-history-heading" className="flex flex-col gap-3">
+      <header className="flex flex-col gap-1">
+        <Heading as="h2" size="section" id="pulse-history-heading">
+          Previous rounds
+        </Heading>
+        {rounds?.length === 0 ? <p className="ui-content-enter text-muted text-sm">No previous rounds yet.</p> : null}
+      </header>
       {loading ? <PulseCardsLoading label="Loading previous rounds" /> : null}
       {error ? (
         <RetryState message={error} onRetry={() => void fetchHistory()} compact className="ui-notice-enter py-4" />
       ) : null}
-      {rounds?.length === 0 && (
-        <p className="ui-content-enter text-muted py-4 text-center text-sm">No previous rounds yet.</p>
-      )}
       {rounds?.map((round) => (
         <div key={round.id} className="flex flex-col gap-3">
           <Heading as="h3" size="label" tone="muted" className="tracking-[0.05em] uppercase">

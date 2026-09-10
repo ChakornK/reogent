@@ -46,7 +46,7 @@ export function PeoplePanel({ people, meId, onToggle, onEnableAll }: Props) {
                 }`}
               >
                 <AvatarChip avatar={p.avatar} size={30} title={displayName} />
-                <span className="flex min-w-0 flex-1 flex-col">
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="text-on-surface truncate text-sm font-medium">
                     {displayName}
                     {p.id === meId && <span className="text-muted ml-1.5 text-xs font-medium">(you)</span>}

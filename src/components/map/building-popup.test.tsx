@@ -43,7 +43,8 @@ describe("BuildingPopup loading", () => {
     const close = screen.getByRole("button", { name: "Close building details" });
     const loading = screen.getByRole("status", { name: "Loading building details" });
     expect(loading.parentElement?.className).toContain("px-3.5 py-3");
-    expect(loading.className).toContain("border-t pt-2.5");
+    expect(loading.className).toContain("border-t pt-3");
+    expect(loading.className).toContain("first:border-t-0 first:pt-0");
     expect(loading.querySelectorAll("[data-skeleton]")).toHaveLength(7);
     expect(loading.querySelector(".h-32")).toBeTruthy();
     expect(container.querySelector(".animate-pulse")).toBeNull();
@@ -59,7 +60,10 @@ describe("BuildingPopup loading", () => {
       }),
     );
     expect(screen.queryByRole("status", { name: "Loading building details" })).toBeNull();
-    expect(screen.getByText("IBLC 100")).toBeTruthy();
+    expect(screen.getByText("IBLC 100").closest("div")?.classList.contains("gap-1")).toBe(true);
+    expect(screen.getByRole("heading", { name: "Rooms (1)" }).parentElement?.className).toContain(
+      "first:border-t-0 first:pt-0",
+    );
     expect(screen.getByRole("button", { name: "Previous rooms" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: building.name })).toBe(identity);
     expect(screen.getByRole("button", { name: "Close building details" })).toBe(close);

@@ -485,7 +485,7 @@ export function CourseSearchField({
                             <span className="text-on-surface-variant truncate text-xs">{candidate.title}</span>
                           </span>
                           {candidatePresentation.annotation ? (
-                            <span className="text-muted mt-0.5 block truncate text-xs">
+                            <span className="text-muted mt-1 block truncate text-xs">
                               {candidatePresentation.annotation}
                             </span>
                           ) : null}

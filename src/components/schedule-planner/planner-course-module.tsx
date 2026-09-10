@@ -145,7 +145,7 @@ function PlannerSectionRow({
       {summary ? (
         <div className="text-muted mt-1 text-xs leading-4">
           <p>{sectionMeetingLabel(summary)}</p>
-          {current?.snapshot.instructor ? <p className="mt-0.5">{current.snapshot.instructor}</p> : null}
+          {current?.snapshot.instructor ? <p className="mt-1">{current.snapshot.instructor}</p> : null}
         </div>
       ) : (
         <p className="text-muted mt-1 text-xs leading-4">Not selected</p>

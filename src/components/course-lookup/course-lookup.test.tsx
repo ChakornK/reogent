@@ -88,6 +88,10 @@ describe("CourseDetailCard — render with sections (13.6, REQ-2.1)", () => {
     expect(container.textContent).toContain("Computation, Programs, and Programming");
     expect(container.textContent).toContain("4 cr");
     expect(container.textContent).toContain("Foundations of computation and programs.");
+    const identity = article?.querySelector("header");
+    expect(identity?.classList.contains("gap-1")).toBe(true);
+    expect(identity?.contains(screen.getByText(fullRecord.title))).toBe(true);
+    expect(identity?.contains(screen.getByText(fullRecord.description))).toBe(true);
     expect(container.textContent).toContain("Prerequisite");
     expect(container.textContent).toContain("CPSC 103");
     expect(container.textContent).toContain("2026-27 Winter Term 1");
@@ -108,6 +112,7 @@ describe("CourseDetailCard — null-or-empty field omission (13.7, REQ-2.2)", ()
     expect(container.textContent).not.toContain("Offered");
     expect(screen.queryByText("Mon Wed Fri")).toBeNull();
     expect(container.querySelector('[data-action="open-prereq-tree"]')).toBeNull();
+    expect(container.querySelector("dl")).toBeNull();
   });
 });
 

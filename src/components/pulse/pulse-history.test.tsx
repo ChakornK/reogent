@@ -20,6 +20,16 @@ afterEach(() => {
 });
 
 describe("PulseHistory", () => {
+  it("groups an empty-history explanation with its heading", async () => {
+    getPulseHistory.mockResolvedValue({ rounds: [] });
+    render(<PulseHistory />);
+    const description = await screen.findByText("No previous rounds yet.");
+    const heading = screen.getByRole("heading", { name: "Previous rounds" });
+    expect(description.parentElement).toBe(heading.parentElement);
+    expect(description.parentElement?.className).toContain("gap-1");
+    expect(description.className).not.toMatch(/\bp[ty]-|text-center/);
+  });
+
   it("reserves its heading and result footprint while loading", () => {
     getPulseHistory.mockReturnValue(new Promise(() => {}));
     render(<PulseHistory />);

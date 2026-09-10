@@ -184,7 +184,7 @@ export default function SettingsPage() {
                 <span className="bg-primary-container text-on-primary-container flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-medium">
                   {initial}
                 </span>
-                <div className="min-w-0">
+                <div className="min-w-0 space-y-1">
                   <p className="text-on-surface truncate text-sm font-medium" title={username}>
                     {username}
                   </p>
@@ -199,7 +199,7 @@ export default function SettingsPage() {
           </WorkspacePanel>
           <WorkspacePanel title="Appearance" padding="md">
             <div className="flex flex-col gap-3">
-              <div>
+              <div className="space-y-1">
                 <p className="text-on-surface text-sm font-medium">Theme</p>
                 <p className="text-muted text-xs">Light, match system, or dark</p>
               </div>
@@ -215,16 +215,17 @@ export default function SettingsPage() {
           aria-labelledby="settings-profile-title"
           className="mx-auto flex w-full max-w-2xl flex-col gap-4"
         >
-          <Heading as="h2" size="section" id="settings-profile-title">
-            Student profile
-          </Heading>
-          {auth.isGuest ? (
-            <p className="text-on-surface-variant text-sm">
-              Guest sessions do not save student defaults. Sign in to set your program, year, and student type.
-            </p>
-          ) : (
-            <ProfileForm />
-          )}
+          <header className="flex flex-col gap-1">
+            <Heading as="h2" size="section" id="settings-profile-title">
+              Student profile
+            </Heading>
+            {auth.isGuest ? (
+              <p className="text-on-surface-variant text-sm">
+                Guest sessions do not save student defaults. Sign in to set your program, year, and student type.
+              </p>
+            ) : null}
+          </header>
+          {!auth.isGuest ? <ProfileForm /> : null}
         </section>
       </WorkspaceCanvas>
     </WorkspacePage>

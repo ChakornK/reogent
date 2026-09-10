@@ -130,7 +130,7 @@ function PlannerImportDialog({
                       <Heading as="h3" size="subsection">
                         {code || match.source.title}
                       </Heading>
-                      <p className="text-muted mt-0.5 truncate text-xs">{match.source.title}</p>
+                      <p className="text-muted mt-1 truncate text-xs">{match.source.title}</p>
                       <p className="text-on-surface-variant mt-1 text-xs">{meetingLabel}</p>
                     </div>
                     <InfoChip
