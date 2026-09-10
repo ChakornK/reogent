@@ -365,7 +365,18 @@ describe("SchedulePlannerPane explicit course flow", () => {
     expect(list?.className).toContain("[contain:size]");
     expect(list?.className).toContain("overflow-y-auto");
     expect(footer?.className).toContain("shrink-0");
-    expect(view.getByRole("button", { name: /Import Workday schedule/ })).toBeTruthy();
+    const dropzone = view.getByRole("button", { name: /Import Workday schedule/ });
+    expect(dropzone.className).toContain("border-dashed");
+    expect(dropzone.className).toContain("min-h-20");
+  });
+
+  it("keeps the empty-term explanation beside its heading without extra padding", () => {
+    const view = render(<SchedulePlannerPane />);
+    const heading = view.getByRole("heading", { name: "Courses in this term" });
+    const description = view.getByText("Add a course from search to configure its lecture, lab, and tutorial here.");
+    expect(heading.parentElement?.className).toContain("mb-1");
+    expect(description.className).not.toMatch(/\bp[ty]-/);
+    expect(description.closest("section")).toBe(heading.closest("section"));
   });
 
   it("moves to course controls and focuses search from the empty timetable", async () => {

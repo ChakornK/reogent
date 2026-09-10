@@ -432,7 +432,6 @@ function ScheduleAppInner({ groupCode }: Props) {
         My schedule
       </Heading>
       <UploadDropzone
-        presentation="button"
         label={meHasSchedule ? "Replace my schedule" : "Import my schedule"}
         onParsed={(schedule) => setDraftSchedule(schedule)}
       />

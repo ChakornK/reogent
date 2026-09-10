@@ -580,7 +580,7 @@ function SchedulePlannerPaneInner() {
         aria-labelledby="planner-course-list-title"
         className="border-border-subtle min-h-48 flex-1 [scrollbar-gutter:stable] overflow-y-auto border-t px-4 py-3 [contain:size]"
       >
-        <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="mb-1 flex items-center justify-between gap-2">
           <Heading as="h2" size="subsection" id="planner-course-list-title">
             Courses in this term
           </Heading>
@@ -624,7 +624,7 @@ function SchedulePlannerPaneInner() {
           {initialLoading ? (
             <PlannerCoursesSkeleton />
           ) : pickedCodes.size === 0 ? (
-            <p className="text-muted py-4 text-sm leading-relaxed">
+            <p className="text-muted text-sm leading-relaxed">
               Add a course from search to configure its lecture, lab, and tutorial here.
             </p>
           ) : null}
@@ -637,15 +637,14 @@ function SchedulePlannerPaneInner() {
         </Heading>
         <p className="text-muted mt-1 mb-2 text-xs leading-relaxed">Add or replace registered sections from Excel.</p>
         {importLoading ? (
-          <div role="status" className="bg-surface-container-low text-muted rounded-lg px-3 py-3 text-sm">
+          <div
+            role="status"
+            className="border-border text-muted flex min-h-20 items-center justify-center rounded-lg border border-dashed px-4 py-3 text-center text-sm"
+          >
             Matching Workday sections to the catalog…
           </div>
         ) : (
-          <UploadDropzone
-            presentation="button"
-            label="Import Workday schedule"
-            onParsed={(schedule) => void prepareImport(schedule)}
-          />
+          <UploadDropzone onParsed={(schedule) => void prepareImport(schedule)} />
         )}
       </section>
     </div>

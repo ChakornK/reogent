@@ -47,7 +47,7 @@ export function ScheduleControlsSkeleton({ label, includeGroup = false }: { labe
       </div>
       <div className="border-border-subtle space-y-2 border-t py-4">
         <Skeleton className="h-5 w-24" />
-        <Skeleton className="h-11 w-full rounded-lg" />
+        <Skeleton className="h-20 w-full rounded-lg" />
       </div>
     </SkeletonGroup>
   );

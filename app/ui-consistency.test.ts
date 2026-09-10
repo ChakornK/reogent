@@ -87,7 +87,6 @@ describe("shared UI ownership", () => {
     const owners = new Set([
       "src/components/ui/button.tsx",
       "src/components/schedule/avatar-picker.tsx",
-      "src/components/schedule/upload-dropzone.tsx",
       "src/components/landing/product-mock.tsx",
     ]);
     const copies = uiFiles.filter(
