@@ -1,4 +1,4 @@
-import type { Meilisearch } from "meilisearch";
+import type { EnqueuedTask, Meilisearch } from "meilisearch";
 import type { DatasetModule, DataWriter } from "./core/types";
 import { recordIndexFreshness } from "./freshness";
 
@@ -9,26 +9,47 @@ export function sanitizeMeiliId(id: string): string {
   return id.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
-/** Indexes all dataset modules into Meilisearch. Creates indexes if absent,
- *  applies settings, then adds documents in batches. */
+/**
+ * Indexes datasets sequentially: creates missing indexes, applies settings, and batches documents.
+ * Checks each Meilisearch task and attempts the remaining indexes before rejecting with aggregated failures.
+ */
 export async function runIngest(modules: DatasetModule[], search: Meilisearch, store: DataWriter): Promise<void> {
+  const failures: Error[] = [];
+  const waitForTask = async (task: Promise<EnqueuedTask>) => {
+    const result = await search.tasks.waitForTask((await task).taskUid);
+    if (result.status !== "succeeded") {
+      throw new Error(`Task ${result.uid} ${result.status}: ${result.error?.message ?? "No error details"}`, {
+        cause: result.error,
+      });
+    }
+  };
+
   for (const module of modules) {
     for (const idx of module.indices) {
       try {
-        // Create or update index
         try {
-          await search.createIndex(idx.index, { primaryKey: "id" });
+          await waitForTask(search.createIndex(idx.index, { primaryKey: "id" }));
           console.log(`${idx.index}: created index`);
-        } catch {
-          // Index already exists
+        } catch (e) {
+          const cause = e instanceof Error ? e.cause : null;
+          if (
+            typeof cause !== "object" ||
+            cause === null ||
+            !("code" in cause) ||
+            cause.code !== "index_already_exists"
+          ) {
+            throw e;
+          }
         }
 
         const index = search.index(idx.index);
-        await index.updateSettings({
-          searchableAttributes: idx.settings.searchableAttributes,
-          filterableAttributes: idx.settings.filterableAttributes,
-          sortableAttributes: idx.settings.sortableAttributes,
-        });
+        await waitForTask(
+          index.updateSettings({
+            searchableAttributes: idx.settings.searchableAttributes,
+            filterableAttributes: idx.settings.filterableAttributes,
+            sortableAttributes: idx.settings.sortableAttributes,
+          }),
+        );
 
         // Batch documents
         let batch: Record<string, unknown>[] = [];
@@ -36,8 +57,7 @@ export async function runIngest(modules: DatasetModule[], search: Meilisearch, s
 
         const flush = async () => {
           if (batch.length === 0) return;
-          const task = await index.addDocuments(batch);
-          await search.tasks.waitForTask(task.taskUid);
+          await waitForTask(index.addDocuments(batch));
           batch = [];
         };
 
@@ -64,8 +84,11 @@ export async function runIngest(modules: DatasetModule[], search: Meilisearch, s
         // a failed ingest never advertises fresh data.
         await recordIndexFreshness(idx.index);
       } catch (e) {
-        console.error(`${idx.index}: failed — ${e instanceof Error ? e.message : e}`);
+        const error = new Error(`${idx.index}: failed: ${e instanceof Error ? e.message : String(e)}`, { cause: e });
+        failures.push(error);
+        console.error(error.message);
       }
     }
   }
+  if (failures.length > 0) throw new AggregateError(failures, "Ingest failed");
 }

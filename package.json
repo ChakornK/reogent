@@ -15,7 +15,7 @@
     "colors:check": "tsx scripts/generate-color-tokens.ts --check",
     "lint": "biome lint .",
     "test": "vitest run --passWithNoTests",
-    "ingest": "tsx scripts/ingest.ts",
+    "ingest": "node --env-file-if-exists=.env --import tsx scripts/ingest.ts",
     "pulse:publish": "tsx scripts/pulse-publish.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

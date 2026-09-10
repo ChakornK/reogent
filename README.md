@@ -106,6 +106,8 @@ npm run dev
 
 The server opens at http://localhost:3000 and applies the Postgres schema on startup. The sample environment points host processes at `localhost`; Docker Compose overrides those service URLs with container hostnames.
 
+`npm run ingest` loads the root `.env` when present and preserves variables you set in the shell or Docker. Set `MEILI_MASTER_KEY` to the key used by the Meilisearch service. Ingestion attempts the remaining indexes after a failure and exits nonzero if any index fails.
+
 ### Environment variables
 
 | Variable            | Description                                         |
