@@ -87,7 +87,7 @@ export function CourseInfoPopup({
       onPointerDown={(event) => event.stopPropagation()}
       className="neu-panel bg-surface flex w-80 flex-col gap-2.5 rounded-2xl p-4 text-sm wrap-anywhere [&>*]:shrink-0"
     >
-      <div className="flex items-start gap-2">
+      <div className="bg-surface sticky top-0 z-10 -mx-4 -mt-4 -mb-2.5 flex items-start gap-2 px-4 pt-4 pb-2.5">
         <Heading as="h4" size="subsection" className="min-w-0 flex-1">
           {course.code}
           {course.title && <span className="text-on-surface-variant"> — {course.title}</span>}

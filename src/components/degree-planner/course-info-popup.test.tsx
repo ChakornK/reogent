@@ -103,6 +103,23 @@ describe("CourseInfoPopup", () => {
     expect(panel.style.overflow).toBe("auto");
     expect(document.activeElement).toBe(panel);
 
+    const close = screen.getByRole("button", { name: "Close course details" });
+    const header = close.parentElement!;
+    expect(header.parentElement).toBe(panel);
+    expect(header.contains(screen.getByRole("heading", { level: 4 }))).toBe(true);
+    expect(header.contains(screen.getByText(description.trim()))).toBe(false);
+    expect(header.classList.contains("sticky")).toBe(true);
+    expect(header.classList.contains("top-0")).toBe(true);
+    expect(header.classList.contains("z-10")).toBe(true);
+    expect(header.classList.contains("bg-surface")).toBe(true);
+    expect(header.classList.contains("-mx-4")).toBe(true);
+    expect(header.classList.contains("-mt-4")).toBe(true);
+    expect(header.classList.contains("-mb-2.5")).toBe(true);
+    expect(header.classList.contains("px-4")).toBe(true);
+    expect(header.classList.contains("pt-4")).toBe(true);
+    expect(header.classList.contains("pb-2.5")).toBe(true);
+    expect(panel.querySelector(".overflow-y-auto, .overflow-auto")).toBeNull();
+
     const finder = screen.getByRole("link", { name: "Open in Course Finder" });
     expect(finder.getAttribute("href")).toBe("/tools/courses/CPSC310");
     finder.focus();

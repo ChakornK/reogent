@@ -397,7 +397,7 @@ describe("course-lookup-pane — tools-mode list/detail split", () => {
     expect(screen.getByRole("region", { name: "Advanced course filters" })).not.toBeNull();
     const results = container.querySelector("[data-workspace-canvas]")?.parentElement;
     expect(results?.className).toContain("min-h-64");
-    expect(container.querySelector("[data-workspace-page]")?.className).toContain("overflow-y-auto");
+    expect(container.querySelector("[data-workspace-scroll]")?.className).toContain("overflow-y-auto");
     expect(results?.querySelector("footer")).not.toBeNull();
   });
 
@@ -432,6 +432,11 @@ describe("course-lookup-pane — tools-mode list/detail split", () => {
     render(<CourseLookupPane state={{ code: "MATH 100" }} setState={vi.fn()} />);
     const back = await screen.findByRole("button", { name: "Back to results" });
     expect(back.textContent).toBe("");
+    expect(back.getAttribute("title")).toBe("Back to results");
+    expect(back.querySelector("svg")?.getAttribute("width")).toBe("20");
+    expect(back.querySelector("svg")?.innerHTML).not.toBe("");
+    expect(back.className).toContain("sm:size-11");
+    expect(back.closest("[data-workspace-scroll]")).toBeNull();
     fireEvent.click(back);
     expect(routerPush).toHaveBeenCalledWith("/tools/courses");
   });
@@ -460,6 +465,18 @@ describe("course-lookup-pane — tools-mode list/detail split", () => {
 });
 
 describe("course loading consistency", () => {
+  it("keeps embedded search and session controls outside long course records", async () => {
+    shellState.mode = "ai";
+    apiState.getCourse.mockResolvedValue(fullRecord);
+    const { container } = render(<CourseLookupPane state={{ code: "CPSC 110" }} setState={vi.fn()} />);
+    const details = await screen.findByRole("region", { name: "Course details" });
+    expect(details.className).toContain("overflow-y-auto");
+    expect(details.getAttribute("tabindex")).toBe("0");
+    expect(details.contains(screen.getByLabelText("Course code"))).toBe(false);
+    expect(details.contains(screen.getByLabelText("Session"))).toBe(false);
+    expect(container.querySelector("[data-course-lookup-embedded]")?.className).toContain("overflow-hidden");
+  });
+
   it.each(["ai", "tools"])("uses one shared detail composition in %s mode", (mode) => {
     shellState.mode = mode;
     apiState.getCourse.mockReturnValue(new Promise(() => {}));

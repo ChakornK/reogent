@@ -728,7 +728,7 @@ function CampusMapExplorer() {
           message="The map can stay open while you retry building search."
           onRetry={() => setCatalogNonce((nonce) => nonce + 1)}
           compact
-          align="start"
+          className="min-h-full justify-center"
         />
       </WorkspacePanel>
     ) : (

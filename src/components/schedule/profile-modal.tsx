@@ -63,50 +63,52 @@ export function ProfileModal({ schedule, currentHandle, currentAvatar, title, sa
         aria-label={title}
         aria-busy={saving}
         size="md"
+        padding="none"
+        className="flex flex-col overflow-hidden"
         onSubmit={(event) => {
           event.preventDefault();
           void save();
         }}
       >
-        <DialogHeader title={title} />
+        <DialogHeader title={title} className="p-4 pb-0 sm:p-6 sm:pb-0" />
 
-        <div className="bg-surface-container-low mt-4 flex items-center gap-3 rounded-lg p-3">
-          {handle.trim() ? (
-            <AvatarChip avatar={liveAvatar} size={40} />
-          ) : (
-            <span className="neu-panel text-muted flex size-10 items-center justify-center rounded-full">
-              <Icon name="group" size={18} />
-            </span>
-          )}
-          <div>
-            <div className="text-on-surface font-medium">{handle.trim() || "Your schedule"}</div>
-            {sectionCount > 0 && (
-              <div className="text-on-surface-variant text-xs">
-                {courseCount} courses · {sectionCount} sections
-              </div>
+        <div data-dialog-scroll className="min-h-0 space-y-4 overflow-y-auto p-4 sm:px-6">
+          <div className="bg-surface-container-low flex items-center gap-3 rounded-lg p-3">
+            {handle.trim() ? (
+              <AvatarChip avatar={liveAvatar} size={40} />
+            ) : (
+              <span className="neu-panel text-muted flex size-10 items-center justify-center rounded-full">
+                <Icon name="group" size={18} />
+              </span>
             )}
+            <div className="space-y-1">
+              <div className="text-on-surface font-medium">{handle.trim() || "Your schedule"}</div>
+              {sectionCount > 0 && (
+                <div className="text-on-surface-variant text-xs">
+                  {courseCount} courses · {sectionCount} sections
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        <Field label="Handle" htmlFor="schedule-profile-handle" error={error} className="mt-4">
-          <TextInput
-            id="schedule-profile-handle"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? "schedule-profile-handle-error" : undefined}
-            type="text"
-            data-dialog-initial-focus
-            value={handle}
-            disabled={saving}
-            maxLength={24}
-            placeholder="e.g. max"
-            onChange={(event) => {
-              setHandle(event.target.value);
-              setError("");
-            }}
-          />
-        </Field>
+          <Field label="Handle" htmlFor="schedule-profile-handle" error={error}>
+            <TextInput
+              id="schedule-profile-handle"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? "schedule-profile-handle-error" : undefined}
+              type="text"
+              data-dialog-initial-focus
+              value={handle}
+              disabled={saving}
+              maxLength={24}
+              placeholder="e.g. max"
+              onChange={(event) => {
+                setHandle(event.target.value);
+                setError("");
+              }}
+            />
+          </Field>
 
-        <div className="mt-4">
           <AvatarPicker
             handle={handle}
             avatar={liveAvatar}
@@ -117,14 +119,16 @@ export function ProfileModal({ schedule, currentHandle, currentAvatar, title, sa
           />
         </div>
 
-        <DialogActions>
-          <Button size="prominent" disabled={saving} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary" size="prominent" disabled={saving}>
-            {saving ? "Saving…" : saveLabel}
-          </Button>
-        </DialogActions>
+        <footer className="shrink-0 px-4 pb-4 sm:px-6 sm:pb-6">
+          <DialogActions spacing="none">
+            <Button size="prominent" disabled={saving} onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" size="prominent" disabled={saving}>
+              {saving ? "Saving…" : saveLabel}
+            </Button>
+          </DialogActions>
+        </footer>
       </DialogPanel>
     </DialogRoot>
   );

@@ -6,6 +6,7 @@ import icons from "@iconify-json/mingcute/icons.json";
 // Map of app icon names to mingcute icon IDs
 const ICON_MAP = {
   arrowUp: "arrow-up-line",
+  arrowLeft: "arrow-left-line",
   stop: "stop-fill",
   add: "add-line",
   chat1: "chat-1-line",

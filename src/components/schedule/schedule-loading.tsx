@@ -64,44 +64,46 @@ export function ScheduleProfileSkeleton({
 }) {
   return (
     <DialogRoot onDismiss={onCancel} backdropLabel="Cancel schedule profile">
-      <DialogPanel aria-label={title} size="md">
-        <DialogHeader title={title} />
-        <SkeletonGroup
-          label="Loading schedule profile"
-          className="bg-surface-container-low mt-4 flex items-center gap-3 rounded-lg p-3"
-        >
-          <Skeleton className="size-10 rounded-full" />
-          <SkeletonText lines={2} className="flex-1" />
-        </SkeletonGroup>
-        <div className="mt-4">
+      <DialogPanel aria-label={title} size="md" padding="none" className="flex flex-col overflow-hidden">
+        <DialogHeader title={title} className="p-4 pb-0 sm:p-6 sm:pb-0" />
+        <div data-dialog-scroll className="min-h-0 space-y-4 overflow-y-auto p-4 sm:px-6">
+          <SkeletonGroup
+            label="Loading schedule profile"
+            className="bg-surface-container-low flex items-center gap-3 rounded-lg p-3"
+          >
+            <Skeleton className="size-10 rounded-full" />
+            <SkeletonText lines={2} className="flex-1" />
+          </SkeletonGroup>
           <SkeletonFields label="Loading handle field" fields={1} />
+          <SkeletonGroup label="Loading avatar choices" className="flex flex-col gap-2">
+            <Skeleton className="h-4 w-12" />
+            <div className="flex gap-1.5">
+              {[0, 1, 2].map((tab) => (
+                <Skeleton key={tab} className="h-11 flex-1 rounded-lg sm:h-9" />
+              ))}
+            </div>
+            {avatarKind === "emoji" ? (
+              <Skeleton className="h-40 w-full rounded-lg" />
+            ) : avatarKind === "image" ? (
+              <Skeleton className="h-11 w-full rounded-xl sm:h-10" />
+            ) : null}
+            <div className="flex flex-wrap gap-1.5">
+              {AVATAR_COLORS.map((color) => (
+                <div key={color} className="flex size-11 items-center justify-center sm:size-8">
+                  <Skeleton className="size-6 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </SkeletonGroup>
         </div>
-        <SkeletonGroup label="Loading avatar choices" className="mt-4 flex flex-col gap-2">
-          <Skeleton className="h-4 w-12" />
-          <div className="flex gap-1.5">
-            {[0, 1, 2].map((tab) => (
-              <Skeleton key={tab} className="h-11 flex-1 rounded-lg sm:h-9" />
-            ))}
-          </div>
-          {avatarKind === "emoji" ? (
-            <Skeleton className="h-40 w-full rounded-lg" />
-          ) : avatarKind === "image" ? (
-            <Skeleton className="h-11 w-full rounded-xl sm:h-10" />
-          ) : null}
-          <div className="flex flex-wrap gap-1.5">
-            {AVATAR_COLORS.map((color) => (
-              <div key={color} className="flex size-11 items-center justify-center sm:size-8">
-                <Skeleton className="size-6 rounded-full" />
-              </div>
-            ))}
-          </div>
-        </SkeletonGroup>
-        <DialogActions>
-          <Button size="prominent" data-dialog-initial-focus onClick={onCancel}>
-            Cancel
-          </Button>
-          <Skeleton className="h-11 w-36 rounded-xl sm:h-10" />
-        </DialogActions>
+        <footer className="shrink-0 px-4 pb-4 sm:px-6 sm:pb-6">
+          <DialogActions spacing="none">
+            <Button size="prominent" data-dialog-initial-focus onClick={onCancel}>
+              Cancel
+            </Button>
+            <Skeleton className="h-11 w-36 rounded-xl sm:h-10" />
+          </DialogActions>
+        </footer>
       </DialogPanel>
     </DialogRoot>
   );

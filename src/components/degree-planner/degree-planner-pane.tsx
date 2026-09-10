@@ -504,26 +504,29 @@ export function DegreePlannerPane() {
           </WorkspaceRail>
         }
       >
-        <WorkspaceCanvas role="region" aria-label="Degree plan" tabIndex={0} padding="md">
-          <div
-            className="grid min-h-min flex-1 gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${years.length}, minmax(18rem, 1fr))`,
-              minWidth: `${years.length * 18 + Math.max(0, years.length - 1)}rem`,
-            }}
-          >
-            {years.map((year) => (
-              <YearColumn key={year.id} year={year} courseIndex={courseIndex} validations={validations} />
-            ))}
-          </div>
+        <div className="relative h-full min-h-0">
+          <WorkspaceCanvas role="region" aria-label="Degree plan" tabIndex={0} padding="md">
+            <div
+              className="grid min-h-min flex-1 gap-4"
+              style={{
+                gridTemplateColumns: `repeat(${years.length}, minmax(18rem, 1fr))`,
+                minWidth: `${years.length * 18 + Math.max(0, years.length - 1)}rem`,
+              }}
+            >
+              {years.map((year) => (
+                <YearColumn key={year.id} year={year} courseIndex={courseIndex} validations={validations} />
+              ))}
+            </div>
+          </WorkspaceCanvas>
           {activeDrag ? (
-            <div className="pointer-events-none sticky bottom-2 z-20 mx-auto h-0 w-72">
-              <div className="pointer-events-auto -translate-y-14">
-                <TrashBin />
-              </div>
+            <div
+              data-planner-remove-target
+              className="absolute bottom-4 left-1/2 z-20 w-72 max-w-[calc(100%-2rem)] -translate-x-1/2"
+            >
+              <TrashBin />
             </div>
           ) : null}
-        </WorkspaceCanvas>
+        </div>
       </WorkspacePage>
 
       <DragOverlay dropAnimation={activeDrag?.kind === "lookup" ? null : DRAG_DROP_ANIMATION}>

@@ -5,26 +5,26 @@ import { Icon } from "@/src/components/icons";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { ButtonLink } from "@/src/components/ui/button";
 import { Heading } from "@/src/components/ui/heading";
-import { motion, useReducedMotion } from "motion/react";
 import { Suspense } from "react";
 
 function SignupContent() {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
-    <div className="auth-canvas flex min-h-svh flex-col px-4 py-8">
-      <nav className="flex items-center">
-        <ButtonLink href="/" variant="ghost" size="field">
-          <Icon name="left" size={16} />
-          <span>Home</span>
+    <div className="auth-canvas flex min-h-svh flex-col pb-8">
+      <nav className="bg-background sticky top-0 z-20 flex shrink-0 items-center pt-[max(1rem,env(safe-area-inset-top))] pb-4">
+        <ButtonLink
+          href="/"
+          size="icon"
+          shadowOn="background"
+          className="sm:size-11"
+          aria-label="Back to home"
+          title="Back to home"
+        >
+          <Icon name="arrowLeft" size={20} />
         </ButtonLink>
       </nav>
-      <motion.div
+      <div
         data-auth-content
-        className="flex flex-1 flex-col items-center justify-center py-6 sm:py-12"
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+        className="ui-content-enter flex flex-1 flex-col items-center justify-center py-6 sm:py-12"
       >
         <div className="flex w-full max-w-sm flex-col items-center">
           <span className="neu-raised bg-surface text-primary mb-8 flex size-14 items-center justify-center rounded-2xl">
@@ -38,7 +38,7 @@ function SignupContent() {
             <AuthForm mode="signup" />
           </Suspense>
         </div>
-      </motion.div>
+      </div>
       <footer className="flex items-center justify-center pb-2">
         <ThemeToggle />
       </footer>

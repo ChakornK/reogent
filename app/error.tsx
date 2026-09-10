@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/src/components/icons";
 import { Button, ButtonLink } from "@/src/components/ui/button";
 import { FullPageState, sanitizePublicErrorMessage } from "@/src/components/ui/feedback";
 
@@ -22,8 +23,14 @@ export default function RouteError({ error, reset }: { error: Error & { digest?:
           <Button variant="primary" size="prominent" onClick={reset}>
             Try again
           </Button>
-          <ButtonLink href="/" size="prominent">
-            Go home
+          <ButtonLink
+            href="/"
+            size="icon"
+            className="self-center sm:size-11"
+            aria-label="Back to home"
+            title="Back to home"
+          >
+            <Icon name="arrowLeft" size={20} />
           </ButtonLink>
         </>
       }

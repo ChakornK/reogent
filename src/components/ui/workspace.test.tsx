@@ -73,7 +73,11 @@ describe("WorkspacePage", () => {
     expect(page?.dataset.workspaceHost).toBe("tools");
     expect(page?.querySelector("h1")?.textContent).toBe("Degree Planner");
     expect(page?.querySelectorAll("main")).toHaveLength(0);
-    expect(page?.className).toContain("overflow-y-auto");
+    const scroller = page?.querySelector("[data-workspace-scroll]");
+    expect(page?.className).toContain("overflow-hidden");
+    expect(scroller?.className).toContain("overflow-y-auto");
+    expect(scroller?.contains(page?.querySelector("[data-workspace-header]") ?? null)).toBe(false);
+    expect(scroller?.contains(page?.querySelector("[data-workspace-toolbar]") ?? null)).toBe(true);
     expect(page?.querySelector(".workspace-page-layout")?.className).toContain("min-h-min");
     expect(page?.querySelector(".workspace-page-body")?.className).toContain("min-h-80");
     const heading = page?.querySelector("[data-workspace-heading]");
@@ -186,7 +190,7 @@ describe("WorkspacePage", () => {
     const panelBody = container.querySelector("[data-workspace-panel-body]");
     expect(panel?.className).toContain("neu-panel");
     expect(panel?.hasAttribute("data-workspace-panel-leading")).toBe(true);
-    expect(panel?.querySelector("header")?.className).toContain("h-12");
+    expect(panel?.querySelector("header")?.className).toContain("min-h-15");
     expect(panel?.querySelector("header button + div h2")?.textContent).toBe("Controls");
     expect(panel?.querySelector("header > div")?.className).toContain("gap-1.5");
     expect(panelBody?.className).toContain("overflow-hidden");

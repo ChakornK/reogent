@@ -101,7 +101,26 @@ describe.each([
     expect(html).toContain(`aria-label="${loading}"`);
     expect(html).not.toContain('id="auth-username"');
     expect(html).toContain("sm:py-12");
+    expect(html).toContain("ui-content-enter");
+    expect(html).not.toContain('style="opacity:');
     expect(navigation.router.replace).not.toHaveBeenCalled();
+  });
+
+  it("keeps an accessible back arrow in sticky navigation outside the animated content", () => {
+    const { container } = renderPage();
+    const back = screen.getByRole("link", { name: "Back to home" });
+    const nav = back.closest("nav");
+
+    expect(back.getAttribute("href")).toBe("/");
+    expect(back.getAttribute("title")).toBe("Back to home");
+    expect(back.textContent).toBe("");
+    expect(back.querySelector("svg")?.getAttribute("width")).toBe("20");
+    expect(back.querySelector("svg")?.innerHTML).not.toBe("");
+    expect(back.className).toContain("size-11");
+    expect(nav?.classList.contains("sticky")).toBe(true);
+    expect(nav?.classList.contains("top-0")).toBe(true);
+    expect(nav?.parentElement).toBe(container.querySelector(".auth-canvas"));
+    expect(container.querySelector("[data-auth-content]")?.contains(nav)).toBe(false);
   });
 
   it.each([false, true])("redirects fresh authentication to settings once (guest=%s)", async (isGuest) => {

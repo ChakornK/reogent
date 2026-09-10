@@ -43,14 +43,17 @@ describe("shared UI ownership", () => {
     expect(focus).toContain("scroll-margin-block: 4px;");
   });
 
-  it.each(["[data-thinking-scroll]", "[data-grade-chart-scroll]", ".schedule-toast-stack"])(
-    "keeps %s focus paint inside its scroll boundary",
-    (selector) => {
-      const rule = globalsCss.match(/\[data-thinking-scroll\]:focus-visible,[\s\S]*?\{([^}]+)\}/)?.[0] ?? "";
-      expect(rule).toContain(`${selector}:focus-visible`);
-      expect(rule).toContain("outline-offset: -2px;");
-    },
-  );
+  it.each([
+    "[data-thinking-scroll]",
+    "[data-grade-chart-scroll]",
+    "[data-course-detail-scroll]",
+    "[data-dialog-scroll]",
+    ".schedule-toast-stack",
+  ])("keeps %s focus paint inside its scroll boundary", (selector) => {
+    const rule = globalsCss.match(/\[data-thinking-scroll\]:focus-visible,[\s\S]*?\{([^}]+)\}/)?.[0] ?? "";
+    expect(rule).toContain(`${selector}:focus-visible`);
+    expect(rule).toContain("outline-offset: -2px;");
+  });
 
   it("insets only edge-mounted Disclosure controls without changing padded descendants", () => {
     const rule = globalsCss.match(/\[data-disclosure-content\] > :focus-visible\s*\{([^}]+)\}/)?.[1] ?? "";
@@ -114,7 +117,7 @@ describe("mobile workspace framing", () => {
 
   it("bleeds workspace content while preserving command insets and overlay material", () => {
     expect(mobileLayout).toContain('.workspace-page:not([data-workspace-host="answer-canvas"])');
-    expect(mobileLayout).toContain("padding: 1rem 0 0;");
+    expect(mobileLayout).toMatch(/\.workspace-page-layout\s*\{\s*padding: 0;/);
     expect(mobileLayout).toMatch(/\.workspace-page-layout\s*>\s*:not\(\.workspace-page-body\)/);
     expect(mobileLayout).toContain("margin-inline: 1rem;");
     expect(mobileLayout).toContain(":is([data-workspace-canvas], [data-workspace-panel])");

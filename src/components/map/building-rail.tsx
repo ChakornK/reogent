@@ -507,8 +507,8 @@ export function BuildingRail(props: BuildingRailProps) {
       title={title}
       leading={
         backLabel ? (
-          <Button variant="ghost" size="denseIcon" onClick={props.onBack} aria-label={backLabel} title={backLabel}>
-            <Icon name="left" size={17} />
+          <Button size="icon" className="sm:size-11" onClick={props.onBack} aria-label={backLabel} title={backLabel}>
+            <Icon name="arrowLeft" size={20} />
           </Button>
         ) : undefined
       }

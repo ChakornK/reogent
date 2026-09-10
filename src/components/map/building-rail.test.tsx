@@ -164,6 +164,23 @@ function props(overrides: Partial<BuildingRailProps> = {}): BuildingRailProps {
 afterEach(cleanup);
 
 describe("BuildingRail", () => {
+  it.each([
+    ["details", "Back to all buildings"],
+    ["directions", "Back to building details"],
+  ] as const)("keeps the %s back arrow outside the content scroller", (mode, label) => {
+    const onBack = vi.fn();
+    const { container } = render(<BuildingRail {...props({ mode, selected: iblc, onBack })} />);
+    const back = screen.getByRole("button", { name: label });
+    expect(back.textContent).toBe("");
+    expect(back.getAttribute("title")).toBe(label);
+    expect(back.querySelector("svg")?.getAttribute("width")).toBe("20");
+    expect(back.querySelector("svg")?.innerHTML).not.toBe("");
+    expect(back.className).toContain("sm:size-11");
+    expect(container.querySelector("[data-workspace-panel-body]")?.contains(back)).toBe(false);
+    fireEvent.click(back);
+    expect(onBack).toHaveBeenCalledOnce();
+  });
+
   it("keeps identity, actions and details in one bounded panel scroller", () => {
     const railProps = props({ mode: "details", selected: iblc, details: { status: "loading" } });
     const view = render(<BuildingRail {...railProps} />);

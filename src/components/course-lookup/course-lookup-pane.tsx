@@ -157,8 +157,8 @@ export function CourseLookupPane({
         description={`Review ${propCode} catalog details, grades, prerequisites, and sections.`}
         leading={
           <Button
-            variant="ghost"
-            size="denseIcon"
+            size="icon"
+            className="sm:size-11"
             onClick={() => {
               setCode("");
               navigate("/tools/courses");
@@ -166,7 +166,7 @@ export function CourseLookupPane({
             aria-label="Back to results"
             title="Back to results"
           >
-            <Icon name="left" size={17} />
+            <Icon name="arrowLeft" size={20} />
           </Button>
         }
         toolbar={
@@ -228,7 +228,7 @@ export function CourseLookupPane({
   }
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-y-auto p-3">
+    <div data-course-lookup-embedded className="flex h-full min-h-0 flex-col gap-3 overflow-hidden p-3">
       <SessionPicker session={session} onChange={setSession} />
       <CourseSearchField
         value={code}
@@ -240,12 +240,25 @@ export function CourseLookupPane({
         error={error}
         rejected={rejected}
         record={record}
-        loadingFallback={canonicalize(code)?.kind === "code" ? <CourseDetailSkeleton /> : undefined}
+        loadingFallback={
+          canonicalize(code)?.kind === "code" ? (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <CourseDetailSkeleton />
+            </div>
+          ) : undefined
+        }
       />
       {record ? (
-        <div aria-busy={status === "loading"}>
+        <section
+          data-course-detail-scroll
+          aria-label="Course details"
+          aria-busy={status === "loading"}
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users need to scroll long course records.
+          tabIndex={0}
+          className="min-h-0 flex-1 overflow-y-auto"
+        >
           <CourseDetailCard record={record} session={session} onOpenPrereqs={openPrereqs} />
-        </div>
+        </section>
       ) : null}
     </div>
   );

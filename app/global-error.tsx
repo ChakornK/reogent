@@ -1,5 +1,7 @@
 "use client";
 
+import { Icon } from "@/src/components/icons";
+
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   // Log digest for correlation with server-side logs
   if (error.digest) console.error("[GlobalError]", error.digest, error.message);
@@ -57,9 +59,14 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
               </button>
               <a
                 href="/"
+                aria-label="Back to home"
+                title="Back to home"
                 style={{
                   minHeight: "2.75rem",
-                  padding: "0.625rem 1rem",
+                  width: "2.75rem",
+                  boxSizing: "border-box",
+                  alignSelf: "center",
+                  padding: 0,
                   borderRadius: "0.75rem",
                   display: "flex",
                   alignItems: "center",
@@ -73,7 +80,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
                   fontWeight: 500,
                 }}
               >
-                Go home
+                <Icon name="arrowLeft" size={20} />
               </a>
             </div>
           </div>

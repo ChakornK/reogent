@@ -34,17 +34,19 @@ describe("ScheduleProfileSkeleton", () => {
     render(<ScheduleProfileSkeleton title="Replace your schedule" onCancel={vi.fn()} />);
     const dialog = screen.getByRole("dialog", { name: "Replace your schedule" });
     expect(dialog.className).toContain("max-w-md");
-    expect(dialog.className).toContain("p-4 sm:p-6");
-    expect(within(dialog).getByRole("heading", { name: "Replace your schedule" })).toBeTruthy();
+    expect(dialog.className).toContain("p-0");
+    expect(dialog.className).toContain("overflow-hidden");
+    const body = dialog.querySelector("[data-dialog-scroll]");
+    const heading = within(dialog).getByRole("heading", { name: "Replace your schedule" });
+    expect(body?.contains(heading)).toBe(false);
+    expect(body?.className).toContain("space-y-4");
     const summary = within(dialog).getByRole("status", { name: "Loading schedule profile" });
-    expect(summary.className).toContain("mt-4");
+    expect(summary.parentElement).toBe(body);
     expect(summary.className).toContain("p-3");
     expect(summary.querySelector("[data-skeleton]")).toBeTruthy();
-    expect(within(dialog).getByRole("status", { name: "Loading handle field" }).parentElement?.className).toContain(
-      "mt-4",
-    );
+    expect(within(dialog).getByRole("status", { name: "Loading handle field" }).parentElement).toBe(body);
     const avatarChoices = within(dialog).getByRole("status", { name: "Loading avatar choices" });
-    expect(avatarChoices.className).toContain("mt-4");
+    expect(avatarChoices.parentElement).toBe(body);
     const palette = avatarChoices.querySelector(".flex-wrap");
     expect(palette?.children).toHaveLength(AVATAR_COLORS.length);
     for (const target of palette?.children ?? []) {
@@ -54,7 +56,10 @@ describe("ScheduleProfileSkeleton", () => {
     }
     expect(within(dialog).getAllByRole("button")).toHaveLength(1);
     expect(dialog.querySelector("input, select, textarea")).toBeNull();
-    expect(within(dialog).getByRole("button", { name: "Cancel" }).parentElement?.className).toContain("mt-6");
+    const cancel = within(dialog).getByRole("button", { name: "Cancel" });
+    expect(body?.contains(cancel)).toBe(false);
+    expect(cancel.closest("footer")?.className).toContain("shrink-0");
+    expect(cancel.parentElement?.className).not.toContain("mt-6");
     for (const skeleton of dialog.querySelectorAll("[data-skeleton]")) {
       expect(skeleton.getAttribute("aria-hidden")).toBe("true");
     }

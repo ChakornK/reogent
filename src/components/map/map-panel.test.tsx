@@ -333,7 +333,11 @@ describe("MapArea", () => {
     expect(loading.closest("[data-workspace-panel-body]")?.className).toContain("p-0");
     expect(loading.querySelectorAll("[data-skeleton]")).toHaveLength(18);
     const map = screen.getByTestId("campus-map");
-    expect(await screen.findByText("Building catalog unavailable")).toBeTruthy();
+    const recovery = (await screen.findByText("Building catalog unavailable")).closest('[role="alert"]');
+    expect(recovery?.className).toContain("min-h-full");
+    expect(recovery?.className).toContain("justify-center");
+    expect(recovery?.className).toContain("text-center");
+    expect(recovery?.closest("[data-workspace-panel-body]")?.className).toContain("overflow-y-auto");
     expect(screen.queryByRole("status", { name: "Loading building catalog" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     await screen.findByRole("combobox", { name: "Search buildings" });
