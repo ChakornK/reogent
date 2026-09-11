@@ -207,6 +207,12 @@ describe("mobile workspace framing", () => {
     expect(globalsCss).not.toContain("[data-map-explorer] [data-map-entrance-notice]");
   });
 
+  it("keeps the expanded Explore sheet below the map control stack", () => {
+    expect(globalsCss).toContain("--map-explore-sheet-height: min(72%, 36rem, calc(100% - 7.5rem));");
+    expect(globalsCss).toContain("height: var(--map-explore-sheet-height);");
+    expect(globalsCss).toContain("bottom: calc(var(--map-explore-sheet-height) + 0.5rem);");
+  });
+
   it("keeps the mobile timetable flush and weekend day tabs scrollable", () => {
     expect(mobileLayout).toContain("[data-schedule-canvas]");
     expect(mobileLayout).toContain("[data-schedule-grid-frame]");

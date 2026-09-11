@@ -1037,6 +1037,7 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
   }
 
   [data-map-explorer] .workspace-page-body {
+    --map-explore-sheet-height: min(72%, 36rem, calc(100% - 7.5rem));
     position: relative;
     display: block;
     overflow: hidden;
@@ -1054,7 +1055,7 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
     left: 0;
     z-index: 30;
     display: block;
-    height: min(72%, 36rem);
+    height: var(--map-explore-sheet-height);
     pointer-events: none;
     transform: translateY(calc(100% - 4rem));
     transition: transform 280ms var(--neu-ease);
@@ -1141,7 +1142,7 @@ html[data-sidebar-collapsed="true"] .chat-workspace {
   [data-map-explorer]
     .workspace-page[data-workspace-composition="split"][data-workspace-view="rail"]
     .maplibregl-ctrl-bottom-left {
-    bottom: calc(min(72%, 36rem) + 0.5rem);
+    bottom: calc(var(--map-explore-sheet-height) + 0.5rem);
   }
 }
 
