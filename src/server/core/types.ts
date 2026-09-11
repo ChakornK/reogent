@@ -58,6 +58,8 @@ export type SearchClient = Meilisearch;
 // biome-ignore lint/suspicious/noExplicitAny: raw rows are dataset-specific
 export interface IndexDef<TRaw = any> {
   index: string;
+  /** Atomically replaces the complete snapshot instead of upserting documents. */
+  replace?: boolean;
   /** Meilisearch index settings: searchableAttributes, filterableAttributes, sortableAttributes. */
   settings: {
     searchableAttributes?: string[];

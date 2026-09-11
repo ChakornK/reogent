@@ -46,11 +46,23 @@ function fixture(rowCount = 1) {
   }));
   const search = {
     createIndex,
-    index: vi.fn((name: string) => (name === "first" ? first : second)),
+    index: vi.fn((name: string) => (name.startsWith("first") ? first : second)),
     tasks: { waitForTask },
   } as unknown as Meilisearch;
   const modules: DatasetModule[] = [{ name: "fixtures", indices: [first.definition, second.definition], tools: [] }];
   return { first, second, store, search, modules, createIndex, waitForTask };
+}
+
+function replacementFixture(rowCount = 1) {
+  const f = fixture(rowCount);
+  Object.assign(f.first.definition, { replace: true });
+  f.createIndex.mockImplementation(async (name) => ({
+    taskUid: name === "first" ? 1 : name.startsWith("first__") ? 5 : 101,
+  }));
+  const swapIndexes = vi.fn().mockResolvedValue({ taskUid: 6 });
+  const deleteIndex = vi.fn().mockResolvedValue({ taskUid: 7 });
+  Object.assign(f.search, { swapIndexes, deleteIndex });
+  return { ...f, swapIndexes, deleteIndex };
 }
 
 beforeEach(() => {
@@ -247,5 +259,97 @@ describe("runIngest", () => {
     expect(f.first.definition.derive).toHaveBeenCalledExactlyOnceWith(f.store);
     expect(f.second.definition.derive).toHaveBeenCalledExactlyOnceWith(f.store);
     expect(vi.mocked(recordIndexFreshness).mock.calls).toEqual(failures === 1 ? [["second"]] : []);
+  });
+
+  it("loads a complete replacement before swapping it into the live index", async () => {
+    const f = replacementFixture(501);
+
+    await expect(runIngest(f.modules, f.search, f.store)).resolves.toBeUndefined();
+
+    const staging = f.createIndex.mock.calls[0][0];
+    expect(staging).toMatch(/^first__[a-f0-9-]+$/);
+    expect(f.createIndex.mock.calls.map(([name]) => name)).toEqual([staging, "first", "second"]);
+    expect(f.first.addDocuments.mock.calls.map(([docs]) => docs.length)).toEqual([500, 1]);
+    expect(f.swapIndexes).toHaveBeenCalledExactlyOnceWith([{ indexes: ["first", staging], rename: false }]);
+    expect(f.deleteIndex).toHaveBeenCalledExactlyOnceWith(staging);
+    expect(f.waitForTask.mock.calls).toEqual([[5], [2], [3], [4], [1], [6], [7], [101], [102], [103]]);
+    expect(f.first.definition.derive.mock.invocationCallOrder[0]).toBeLessThan(
+      f.swapIndexes.mock.invocationCallOrder[0],
+    );
+    expect(f.swapIndexes.mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(recordIndexFreshness).mock.invocationCallOrder[0],
+    );
+    expect(vi.mocked(recordIndexFreshness).mock.calls).toEqual([["first"], ["second"]]);
+  });
+
+  it.each(["read", "transform", "documents", "derive", "swap"])(
+    "cleans up a failed replacement %s without stamping it",
+    async (stage) => {
+      const f = replacementFixture();
+      const error = new Error(`${stage} failed`);
+      if (stage === "read") {
+        f.first.definition.read.mockImplementation(async function* () {
+          yield { id: "one", title: "First row", kind: "event" };
+          throw error;
+        });
+      } else if (stage === "transform")
+        f.first.definition.transform.mockImplementation(() => {
+          throw error;
+        });
+      else if (stage === "documents") f.first.addDocuments.mockRejectedValueOnce(error);
+      else if (stage === "derive") f.first.definition.derive.mockRejectedValueOnce(error);
+      else f.swapIndexes.mockRejectedValueOnce(error);
+
+      await expect(runIngest(f.modules, f.search, f.store)).rejects.toMatchObject({
+        errors: [expect.objectContaining({ cause: error })],
+      });
+
+      const staging = f.createIndex.mock.calls[0][0];
+      expect(staging).toMatch(/^first__/);
+      expect(f.deleteIndex).toHaveBeenCalledExactlyOnceWith(staging);
+      expect(f.swapIndexes).toHaveBeenCalledTimes(stage === "swap" ? 1 : 0);
+      expect(f.second.definition.derive).toHaveBeenCalledExactlyOnceWith(f.store);
+      expect(vi.mocked(recordIndexFreshness).mock.calls).toEqual([["second"]]);
+    },
+  );
+
+  it("publishes an empty snapshot rather than retaining removed dated records", async () => {
+    const f = replacementFixture(0);
+
+    await expect(runIngest(f.modules, f.search, f.store)).resolves.toBeUndefined();
+
+    expect(f.first.addDocuments).not.toHaveBeenCalled();
+    expect(f.swapIndexes).toHaveBeenCalledOnce();
+    expect(f.deleteIndex).toHaveBeenCalledExactlyOnceWith(f.createIndex.mock.calls[0][0]);
+    expect(vi.mocked(recordIndexFreshness).mock.calls).toEqual([["first"], ["second"]]);
+  });
+
+  it.each([
+    ["creation", 5],
+    ["swap", 6],
+    ["cleanup", 7],
+  ] as const)("reports queued replacement %s failures and attempts other indexes", async (stage, failedTask) => {
+    const f = replacementFixture();
+    f.waitForTask.mockImplementation(async (uid) => ({
+      uid,
+      status: uid === failedTask ? "failed" : "succeeded",
+      error:
+        uid === failedTask
+          ? {
+              message: `${stage} rejected`,
+              code: "task_failed",
+              type: "invalid_request",
+              link: "https://example.invalid/error",
+            }
+          : null,
+    }));
+
+    await expect(runIngest(f.modules, f.search, f.store)).rejects.toThrow("Ingest failed");
+
+    expect(f.swapIndexes).toHaveBeenCalledTimes(stage === "creation" ? 0 : 1);
+    expect(f.deleteIndex).toHaveBeenCalledTimes(stage === "creation" ? 0 : 1);
+    expect(f.deleteIndex).not.toHaveBeenCalledWith("first");
+    expect(f.second.definition.derive).toHaveBeenCalledExactlyOnceWith(f.store);
+    if (stage !== "cleanup") expect(vi.mocked(recordIndexFreshness).mock.calls).toEqual([["second"]]);
   });
 });

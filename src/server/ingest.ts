@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { EnqueuedTask, Meilisearch } from "meilisearch";
 import type { DatasetModule, DataWriter } from "./core/types";
 import { recordIndexFreshness } from "./freshness";
@@ -10,8 +11,8 @@ export function sanitizeMeiliId(id: string): string {
 }
 
 /**
- * Indexes datasets sequentially: creates missing indexes, applies settings, and batches documents.
- * Checks each Meilisearch task and attempts the remaining indexes before rejecting with aggregated failures.
+ * Indexes datasets sequentially and atomically swaps complete replacement snapshots.
+ * Checks Meilisearch tasks, removes temporary indexes, and aggregates failures after attempting other indexes.
  */
 export async function runIngest(modules: DatasetModule[], search: Meilisearch, store: DataWriter): Promise<void> {
   const failures: Error[] = [];
@@ -24,25 +25,31 @@ export async function runIngest(modules: DatasetModule[], search: Meilisearch, s
     }
   };
 
+  const ensureIndex = async (name: string) => {
+    try {
+      await waitForTask(search.createIndex(name, { primaryKey: "id" }));
+      console.log(`${name}: created index`);
+    } catch (e) {
+      const cause = e instanceof Error ? e.cause : null;
+      if (typeof cause !== "object" || cause === null || !("code" in cause) || cause.code !== "index_already_exists") {
+        throw e;
+      }
+    }
+  };
+
   for (const module of modules) {
     for (const idx of module.indices) {
+      const target = idx.replace ? `${idx.index}__${randomUUID()}` : idx.index;
+      let temporaryCreated = false;
       try {
-        try {
-          await waitForTask(search.createIndex(idx.index, { primaryKey: "id" }));
-          console.log(`${idx.index}: created index`);
-        } catch (e) {
-          const cause = e instanceof Error ? e.cause : null;
-          if (
-            typeof cause !== "object" ||
-            cause === null ||
-            !("code" in cause) ||
-            cause.code !== "index_already_exists"
-          ) {
-            throw e;
-          }
+        if (idx.replace) {
+          await waitForTask(search.createIndex(target, { primaryKey: "id" }));
+          temporaryCreated = true;
+        } else {
+          await ensureIndex(target);
         }
 
-        const index = search.index(idx.index);
+        const index = search.index(target);
         await waitForTask(
           index.updateSettings({
             searchableAttributes: idx.settings.searchableAttributes,
@@ -73,20 +80,36 @@ export async function runIngest(modules: DatasetModule[], search: Meilisearch, s
           if (batch.length >= BATCH_DOCS) await flush();
         }
         await flush();
-        console.log(`${idx.index}: indexed ${count} docs`);
 
         if (idx.derive) {
           await idx.derive(store);
           console.log(`${idx.index}: derived artifacts written`);
         }
+        if (idx.replace) {
+          await ensureIndex(idx.index);
+          await waitForTask(search.swapIndexes([{ indexes: [idx.index, target], rename: false }]));
+        }
 
-        // Stamp the snapshot time only after the rebuild fully succeeded, so
-        // a failed ingest never advertises fresh data.
+        // Freshness describes the completed snapshot; cleanup errors do not roll it back.
         await recordIndexFreshness(idx.index);
+        console.log(`${idx.index}: indexed ${count} docs`);
       } catch (e) {
         const error = new Error(`${idx.index}: failed: ${e instanceof Error ? e.message : String(e)}`, { cause: e });
         failures.push(error);
         console.error(error.message);
+      } finally {
+        if (temporaryCreated) {
+          try {
+            await waitForTask(search.deleteIndex(target));
+          } catch (e) {
+            const error = new Error(
+              `${idx.index}: cleanup failed for ${target}: ${e instanceof Error ? e.message : String(e)}`,
+              { cause: e },
+            );
+            failures.push(error);
+            console.error(error.message);
+          }
+        }
       }
     }
   }
