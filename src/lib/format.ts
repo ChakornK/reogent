@@ -99,6 +99,9 @@ export function describeToolCall(name: string, input: Record<string, unknown>): 
         const q = s("query");
         return q ? `Searched for ${q} costs` : "Searched for student fees";
       }
+      if (kind === "housing") {
+        return has("query") ? `Searched housing fees for ${s("query")}` : "Searched housing fees";
+      }
       if (kind === "living") {
         const item = s("item");
         return item ? `Searched for ${item} costs` : "Searched for living costs";
@@ -138,6 +141,12 @@ export function describeToolCall(name: string, input: Record<string, unknown>): 
     }
     case "get_admission_requirements":
       return has("program") ? `Searched admission requirements for ${s("program")}` : "Searched admission requirements";
+    case "search_student_resources":
+      return has("query") ? `Searched student resources for ${s("query")}` : "Searched student resources";
+    case "get_library_hours": {
+      const target = has("query") ? `${s("query")} hours` : "library hours";
+      return has("date") ? `Searched ${target} for ${s("date")}` : `Searched ${target}`;
+    }
     case "search_ubc_pages":
       return has("query") ? `Searched UBC pages for ${s("query")}` : "Searched UBC pages";
     case "get_prereq_tree":

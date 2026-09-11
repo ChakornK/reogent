@@ -10,7 +10,43 @@ export type CitationExtractor = (result: unknown, input: unknown) => CitationSee
 
 const displaySubject = (s: string): string => s.replace(/_V$/, "");
 
-const urlOrNull = (u: unknown): string | undefined => (typeof u === "string" && u !== "" ? u : undefined);
+const urlOrNull = (value: unknown): string | undefined => {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  try {
+    const url = new URL(value);
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) return undefined;
+    return value.trim();
+  } catch {
+    return undefined;
+  }
+};
+
+type SourceRecord = {
+  title: string;
+  source_url?: string | null;
+  category?: string;
+  retrieved_at?: string | null;
+  source_modified_at?: string | null;
+  source_context_required?: boolean;
+};
+
+function sourceSeed(row: SourceRecord, tool: string, date?: string): CitationSeed {
+  return {
+    label: row.title,
+    kind: "page",
+    tool,
+    source_url: urlOrNull(row.source_url),
+    detail: {
+      ...(date ? { date } : {}),
+      ...(row.category ? { category: row.category } : {}),
+      ...(row.retrieved_at ? { retrieved_at: row.retrieved_at } : {}),
+      ...(row.source_modified_at ? { source_modified_at: row.source_modified_at } : {}),
+      ...(typeof row.source_context_required === "boolean"
+        ? { source_context_required: row.source_context_required }
+        : {}),
+    },
+  };
+}
 
 const courseSeed = (c: CourseDoc, tool: string): CitationSeed => ({
   label: `${displaySubject(c.subject)} ${c.number} \u2014 ${c.title}`,
@@ -20,6 +56,31 @@ const courseSeed = (c: CourseDoc, tool: string): CitationSeed => ({
 });
 
 export const CITATION_EXTRACTORS: Record<string, CitationExtractor> = {
+  search_student_resources: (result) => {
+    const { resources } = (result ?? {}) as { resources?: SourceRecord[] };
+    return (resources ?? []).map((row) => sourceSeed(row, "search_student_resources"));
+  },
+  get_costs: (result) => {
+    const { kind, fee_tables } = (result ?? {}) as { kind?: string; fee_tables?: SourceRecord[] };
+    return kind === "housing" ? (fee_tables ?? []).map((row) => sourceSeed(row, "get_costs")) : [];
+  },
+  get_library_hours: (result) => {
+    const { date, branches } = (result ?? {}) as {
+      date?: string;
+      branches?: (SourceRecord & { scheduled?: Omit<SourceRecord, "title"> & { date?: string } })[];
+    };
+    return (branches ?? []).map((row) =>
+      sourceSeed(
+        {
+          ...row,
+          source_url: row.scheduled?.source_url ?? row.source_url,
+          retrieved_at: row.scheduled ? row.scheduled.retrieved_at : row.retrieved_at,
+        },
+        "get_library_hours",
+        row.scheduled?.date ?? date,
+      ),
+    );
+  },
   find_courses: (result) => {
     const { courses } = (result ?? {}) as { courses?: CourseDoc[] };
     return (courses ?? []).map((c) => courseSeed(c, "find_courses"));

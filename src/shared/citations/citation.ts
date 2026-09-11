@@ -14,5 +14,13 @@ export type Citation = {
   /** Originating tool name. */
   tool: string;
   /** Optional provenance payload for the Sources panel tooltip. */
-  detail?: { subject?: string; number?: string; date?: string };
+  detail?: {
+    subject?: string;
+    number?: string;
+    date?: string;
+    category?: string;
+    retrieved_at?: string;
+    source_modified_at?: string;
+    source_context_required?: boolean;
+  };
 };

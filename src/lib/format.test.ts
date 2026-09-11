@@ -146,7 +146,22 @@ describe("describeToolCall", () => {
     expect(describeToolCall("get_costs", { kind: "fees", query: "U-Pass" })).toBe("Searched for U-Pass costs");
     expect(describeToolCall("get_costs", { kind: "living" })).toBe("Searched for living costs");
     expect(describeToolCall("get_costs", { kind: "living", item: "housing" })).toBe("Searched for housing costs");
+    expect(describeToolCall("get_costs", { kind: "housing", query: "Example House" })).toBe(
+      "Searched housing fees for Example House",
+    );
+    expect(describeToolCall("get_costs", { kind: "housing" })).toBe("Searched housing fees");
     expect(describeToolCall("get_costs", {})).toBe("Searched for costs");
+  });
+
+  it("describes resource and scheduled-hours lookups", () => {
+    expect(describeToolCall("search_student_resources", { query: "academic support" })).toBe(
+      "Searched student resources for academic support",
+    );
+    expect(describeToolCall("search_student_resources", {})).toBe("Searched student resources");
+    expect(describeToolCall("get_library_hours", { query: "Example Library", date: "2026-09-01" })).toBe(
+      "Searched Example Library hours for 2026-09-01",
+    );
+    expect(describeToolCall("get_library_hours", {})).toBe("Searched library hours");
   });
 
   it("describes get_course", () => {

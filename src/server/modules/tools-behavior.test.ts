@@ -374,6 +374,56 @@ describe("get_costs (agent-tool-redesign)", () => {
     expect(fees.fees.length).toBe(1);
   });
 
+  it("routes housing fees without changing cents, unknown amounts, or source conditions", async () => {
+    const tool = costs.tools.find((t) => t.spec.name === "get_costs")!;
+    const table = {
+      id: "housing_page_example_table_0",
+      source_record_id: "housing_page:example:table:0",
+      campus: "vancouver",
+      title: "Example House Fees",
+      source_url: "https://housing.example.test/fees",
+      retrieved_at: "2026-09-01T12:00:00Z",
+      source_modified_at: "2026-08-01T12:00:00Z",
+      record_sha256: "a".repeat(64),
+      page_id: "housing_page:example",
+      residence_ids: ["housing_residence:example"],
+      table_index: 0,
+      section_labels: [],
+      source_context_required: true,
+      values: [123456, null].map((amount_cents, index) => ({
+        source_row: index + 1,
+        source_column: 1,
+        row_label: "Room",
+        column_label: "Amount",
+        period_label: "One term",
+        amount_text: amount_cents === null ? "—" : "$1,234.56*",
+        amount_cents,
+        amount_basis: null,
+        footnote_markers: amount_cents === null ? [] : ["*"],
+      })),
+    };
+    const search = fakeSearch({ housing_fees: [table] });
+
+    const out = await tool.execute({ kind: "housing", query: "Example House" }, search);
+
+    expect(out).toMatchObject({
+      kind: "housing",
+      fee_tables: [
+        {
+          source_record_id: table.source_record_id,
+          values: table.values,
+          source_context_required: true,
+          retrieved_at: table.retrieved_at,
+          source_url: table.source_url,
+        },
+      ],
+      total: 1,
+      has_more: false,
+    });
+    expect(search.calls()).toEqual({ housing_fees: 1 });
+    await expect(tool.execute({ kind: "housing" }, search)).rejects.toThrow(/query/i);
+  });
+
   it("reports missing required params for tuition", async () => {
     const tool = costs.tools.find((t) => t.spec.name === "get_costs")!;
     await expect(tool.execute({ kind: "tuition", program_slug: "x" }, fakeSearch({}))).rejects.toThrow(/requires/);
