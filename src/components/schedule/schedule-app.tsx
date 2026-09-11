@@ -406,7 +406,7 @@ function ScheduleAppInner({ groupCode }: Props) {
 
   const groupSelector =
     groups.length > 0 ? (
-      <section data-control-section="group" aria-labelledby="schedule-groups-heading" className="pb-4">
+      <section data-control-section="group" aria-labelledby="schedule-groups-heading" className="py-4">
         <Field label={<span id="schedule-groups-heading">Group</span>} htmlFor="schedule-group">
           <SelectInput
             id="schedule-group"
@@ -688,7 +688,7 @@ function NoGroupControls({
 }) {
   const [code, setCode] = useState("");
   return (
-    <div className="border-border-subtle flex flex-col gap-4 border-t py-4">
+    <div className="border-border-subtle flex flex-col gap-4 border-t py-4 first:border-t-0">
       <section data-control-section="group-status">
         <Heading as="h2" size="subsection">
           {error ? `${groupLabel ?? "Group"} unavailable` : me ? "Start a group" : "Import from Workday"}

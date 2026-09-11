@@ -25,6 +25,7 @@ describe("ScheduleControlsSkeleton", () => {
     const label = container.querySelector(".h-4.w-16");
     expect(label).not.toBeNull();
     expect(label?.parentElement?.className).toContain("gap-1.5");
+    expect(label?.parentElement?.className).toContain("py-4");
     expect(label?.nextElementSibling?.className).toContain("h-11");
   });
 });

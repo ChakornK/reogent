@@ -17,7 +17,7 @@ export function ScheduleControlsSkeleton({ label, includeGroup = false }: { labe
   return (
     <SkeletonGroup label={label}>
       {includeGroup ? (
-        <div className="flex flex-col gap-1.5 pb-4">
+        <div className="flex flex-col gap-1.5 py-4">
           <Skeleton className="h-4 w-16" />
           <Skeleton className="h-11 w-full rounded-lg" />
         </div>

@@ -226,6 +226,8 @@ describe("ScheduleApp group loading", () => {
     expect(screen.getAllByText("Mon").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Schedule" }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.getByRole("button", { name: "Controls" }).getAttribute("aria-pressed")).toBe("false");
+    const emptyControls = view.container.querySelector('[data-control-section="group-status"]')?.parentElement;
+    expect(emptyControls?.classList.contains("first:border-t-0")).toBe(true);
   });
 
   it("keeps an initial load failure distinct from an empty schedule and retries", async () => {
@@ -367,6 +369,7 @@ describe("ScheduleApp controls", () => {
     expect(screen.getByRole("region", { name: "Right now" }).textContent).toContain("Person A");
     expect(view.container.querySelector("[data-control-section] .neu-panel")).toBeNull();
     expect(screen.getByRole("combobox", { name: "Group" }).className).toContain("rounded-lg");
+    expect(view.container.querySelector('[data-control-section="group"]')?.classList.contains("py-4")).toBe(true);
     expect(screen.getByText("Replace my schedule")).toBeTruthy();
   });
 
