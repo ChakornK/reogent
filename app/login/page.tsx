@@ -13,6 +13,7 @@ function LoginContent() {
       <nav className="bg-background sticky top-0 z-20 flex shrink-0 items-center pt-[max(1rem,env(safe-area-inset-top))] pb-4">
         <ButtonLink
           href="/"
+          variant="ghost"
           size="icon"
           shadowOn="background"
           className="sm:size-11"

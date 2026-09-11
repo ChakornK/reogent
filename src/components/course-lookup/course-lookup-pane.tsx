@@ -159,6 +159,7 @@ export function CourseLookupPane({
         description={`Review ${propCode} catalog details, grades, prerequisites, and sections.`}
         leading={
           <Button
+            variant="ghost"
             size="icon"
             className="sm:size-11"
             onClick={() => {

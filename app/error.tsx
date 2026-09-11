@@ -25,6 +25,7 @@ export default function RouteError({ error, reset }: { error: Error & { digest?:
           </Button>
           <ButtonLink
             href="/"
+            variant="ghost"
             size="icon"
             className="self-center sm:size-11"
             aria-label="Back to home"

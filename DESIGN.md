@@ -457,9 +457,9 @@ Keep neumorphic material defaults in the CSS components layer so utility colors 
 
 ### Buttons
 
-Back actions use an icon-only 20px `arrowLeft` in the shared secondary button or link, with a 44px square target and 12px radius. Supply a destination-specific `aria-label` and `title`; omit visible Home or Back text. Authentication pages keep this navigation sticky outside animated form content. Workspace navigation stays above the content scroller, and panel-local back controls stay in the panel header with room for focus paint.
+Back actions use an icon-only 20px `arrowLeft` in the shared ghost button or link, with the existing 44px square target and 12px radius. Remove the resting border, background, and shadow; retain hover feedback and visible keyboard focus. Supply a destination-specific `aria-label` and `title`; omit visible Home or Back text. Authentication pages keep this navigation sticky outside animated form content. Workspace navigation stays above the content scroller, and panel-local back controls stay in the panel header with room for focus paint.
 
-Use `src/components/ui/button.tsx` for native action buttons. `Button` owns variant, size, focus, disabled, pressed, and parent-material shadow classes while feature code owns the label, icon, layout, and event handler. Use `InlineAction` for compact link-styled choices inside messages and error text; it reaches the 44px mobile touch floor and returns to inline height on larger screens. `RetryAlert` combines the semantic error surface and inline retry action for load failures. Keep links, tabs, radios, menu items, navigation rows, pills, and compound controls on their native contracts.
+Use `src/components/ui/button.tsx` for native action buttons. `Button` owns variant, size, focus, disabled, pressed, and parent-material shadow classes while feature code owns the label, icon, layout, and event handler. Use `InlineAction` for compact link-styled choices inside messages and error text; it retains its 44px mobile target and returns to inline height on larger screens. `RetryAlert` combines the semantic error surface and inline retry action for load failures. Keep links, tabs, radios, menu items, navigation rows, pills, and compound controls on their native contracts.
 
 State changes through shadow transformation + press scale. Buttons never translate on hover or active; the surface stays put and only the shadow, filter, or scale changes.
 
@@ -472,7 +472,7 @@ State changes through shadow transformation + press scale. Buttons never transla
 - **Ghost**: `bg-transparent text-on-surface-variant rounded-xl`. No shadow at rest (the one exception to whisper dimension). Hover: subtle surface background appears. Landing sign-in link uses `text-on-surface-variant hover:text-on-surface` for a softer secondary feel.
 - **Icon Button**: `size-9` (36px) standard. Uses `neu-button` or `neu-panel` shadow. Contains centered icon.
 - **Compact Pill** (inline tool cards): `border border-primary text-primary rounded-full px-3 py-1.5 text-xs font-medium min-h-[44px]`. Smaller padding than suggestion pills; used inside tool result cards where space is tight. Focus: `ring-primary/40 ring-2 ring-offset-2`. Active: `scale-95`.
-- **Sizes**: Standard 36px (h-9), Toolbar 36px (h-9 with 8px radius and caption text), Prominent 40px (h-10), Field Companion 44px (h-11), Compact 32px (h-8), Large 48px (h-12, landing/auth only), Icon 36px. Field Companion aligns an action beside a 44px input. Below 640px, compact, toolbar, standard, prominent, and icon controls expand to the 44px touch floor.
+- **Sizes**: Standard 36px (h-9), Toolbar 36px (h-9 with 8px radius and caption text), Prominent 40px (h-10), Field Companion 44px (h-11), Compact 32px (h-8), Large 48px (h-12, landing/auth only), Icon 36px. Field Companion aligns an action beside a 44px input. Below 640px, compact, toolbar, standard, prominent, and icon controls retain their existing 44px sizing. The general 32px minimum permits smaller purpose-built controls; it does not shrink these documented sizes.
 - **Transitions**: `color`, `background-color`, `box-shadow`, `transform` at 150ms ease-out.
 - **Disabled**: Shared buttons keep native disabled semantics, use 45% opacity with a not-allowed cursor, and suppress hover and active visual states.
 
@@ -498,7 +498,7 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 
 ### Calendar
 
-- **Composition**: Calendar uses the shared split workspace with a 20rem Upcoming panel and the month inside the inset canvas. The header owns month navigation, legend filters, and the bounded Ask AI action. Upcoming rows and header controls reach the 44px compact touch floor.
+- **Composition**: Calendar uses the shared split workspace with a 20rem Upcoming panel and the month inside the inset canvas. The header owns month navigation, legend filters, and the bounded Ask AI action. Upcoming rows and header controls retain their 44px compact targets.
 - **Compact month**: Upcoming opens first below the 55rem threshold. The Calendar view retains a horizontally scrollable seven-day month at a 36rem minimum width. Keep the month grid growing and nonshrinking so the 6rem compact and 8rem wide row minima extend the Calendar days scroller. Let the grid fill spare height. Individual event labels become noninteractive color indicators, and each event day exposes one 44px agenda action. The agenda lists 44px event rows before opening shared event details.
 - **Request states**: Calendar data is cached per cursor and kind set. Initial loading, successful empty, refreshing, stale-with-data, and failed-without-data remain distinct. Refresh and Retry start real requests, stale responses cannot replace a newer month, and failure never reads as an empty calendar.
 
@@ -507,7 +507,7 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 - **Browse composition**: Course Lookup uses one full-width workspace. The command area keeps Find a course, Session, Sort, and Filters visible above the inset results canvas. Year, Average, Enrollment, Credits, and Faculty appear only in the inline Filters disclosure, which shows its active count and owns one Reset action. Search and filter changes update results directly; no separate Show step or Filters destination remains.
 - **Search behavior**: Exact, partial, and subject-shaped course queries use structured catalog parameters before free-text fallback. An exact code resolves to its session record instead of a broad fuzzy list. Loading, stale, error, empty, pagination, and result-count states remain inside the canvas.
 - **Detail composition**: Detail routes use the same single workspace. An icon-only Back action sits immediately before the Course lookup heading, while Session remains in the header toolbar and the record fills the scrolling canvas. Term groups progressively disclose section tables, preventing phone records from expanding into a long wrapped list. Missing codes retain one header-level exit plus relevant alternatives.
-- **Compact flow**: Search leads at phone widths, followed by Session, Sort, and the Filters disclosure. Keep search and advanced filters inset 16px while the results region spans the page. Results show Code and Course name without document overflow; enrollment and average move into each row's secondary line. Controls and rows retain the 44px touch floor. Keep the results region at least 16rem tall so expanded filters extend the page scroller and leave the table and footer reachable.
+- **Compact flow**: Search leads at phone widths, followed by Session, Sort, and the Filters disclosure. Keep search and advanced filters inset 16px while the results region spans the page. Results show Code and Course name without document overflow; enrollment and average move into each row's secondary line. Controls and rows retain their 44px targets. Keep the results region at least 16rem tall so expanded filters extend the page scroller and leave the table and footer reachable.
 
 - **Grade charts**: Keep tick labels inside the chart frame. Use a 16rem inner axis/plot/tick row within a named keyboard-scrollable region, with inset focus paint and the count footer outside that horizontal minimum. Preserve bucket values, ratios, highlighting and the 112px plot.
 
@@ -705,7 +705,7 @@ Under `prefers-reduced-motion: reduce`, use 0.01ms CSS animations with one itera
 
 ## Accessibility Patterns
 
-- **Touch targets**: 44x44px minimum on mobile. Achieved via `size-11` on buttons or `min-h-[44px] min-w-[44px]` on visually smaller controls.
+- **Touch targets (Impeccable override)**: Use a 32x32px minimum active hit area. This user-approved rule overrides Impeccable's default 44px minimum. Keep larger component dimensions where documented; back buttons retain their existing 44px square targets. Preserve spacing between adjacent targets and visible keyboard focus.
 - **Focus indicators**: `focus-visible:ring-primary/40 ring-2 ring-offset-1` on inputs, `ring-offset-2` on pills. `.neu-button`/`.neu-primary-button` use a 2px outline at 40% primary opacity with 2px offset (CSS-defined). Never hidden behind mouse-only styles.
 - **Safe-area insets**: Reserve top and side insets in the phone shell and the bottom inset in its mode bar. Keep 12px of composer bottom padding above that bar. Workspace bodies and the embedded Explore sheet add no second bottom inset. Independent drawers, dialogs, and Answer Canvas sheets retain their own safe-area padding. Use the reported visual viewport at normal scale for the shell and its fixed overlays; verify keyboard and notch behavior on physical devices.
 - **Screen reader**: `sr-only` for status announcements, `aria-label` on icon-only buttons, `role="img"` on labeled icons.
@@ -723,7 +723,7 @@ Under `prefers-reduced-motion: reduce`, use 0.01ms CSS animations with one itera
 - **Do** keep mobile pages and their primary workspace regions flat and edge-to-edge. Use resting depth on controls, contained cards, desktop panels, and overlays.
 - **Do** use asymmetric bubble radii (flat corner on the tail side) to indicate message direction.
 - **Do** use opacity modifiers on color tokens for tinted backgrounds and state indicators.
-- **Do** enforce 44px minimum touch targets on mobile via `size-11` or `min-h-[44px] min-w-[44px]`.
+- **Do** enforce the 32px minimum touch target through `size-8` or equivalent hit-area dimensions. Preserve larger documented targets, including 44px back controls.
 - **Do** use `env(safe-area-inset-bottom)` for bottom-pinned elements on iOS.
 
 ### Don't:

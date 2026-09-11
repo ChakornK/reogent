@@ -117,6 +117,7 @@ describe.each([
     expect(back.querySelector("svg")?.getAttribute("width")).toBe("20");
     expect(back.querySelector("svg")?.innerHTML).not.toBe("");
     expect(back.className).toContain("size-11");
+    expect(back.classList.contains("neu-button")).toBe(false);
     expect(nav?.classList.contains("sticky")).toBe(true);
     expect(nav?.classList.contains("top-0")).toBe(true);
     expect(nav?.parentElement).toBe(container.querySelector(".auth-canvas"));

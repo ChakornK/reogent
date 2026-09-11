@@ -11,6 +11,7 @@ export default function NotFound() {
       actions={
         <ButtonLink
           href="/"
+          variant="ghost"
           size="icon"
           className="self-center sm:size-11"
           aria-label="Back to home"
