@@ -40,6 +40,11 @@ describe("planner loading layout", () => {
     api.getCourseIndex.mockResolvedValue({ courses: [] });
     const { container } = render(<DegreePlannerPane />);
     const trigger = await screen.findByRole("button", { name: "Structure" });
+    const undo = screen.getByRole("button", { name: "Undo" });
+    const redo = screen.getByRole("button", { name: "Redo" });
+    expect(undo.parentElement?.classList.contains("rounded-lg")).toBe(true);
+    expect(undo.classList.contains("rounded-sm")).toBe(true);
+    expect(redo.classList.contains("rounded-sm")).toBe(true);
     fireEvent.click(trigger);
     const structure = screen.getByRole("dialog", { name: "Plan structure" });
     expect(container.contains(structure)).toBe(false);

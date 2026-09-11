@@ -339,10 +339,10 @@ export function ScheduleGrid({
     <section
       aria-label={ariaLabel}
       data-schedule-grid-frame
-      className="schedule-grid bg-border-subtle flex h-full min-h-0 flex-col overflow-hidden rounded-[0.625rem] p-0.5"
+      className="schedule-grid bg-border-subtle flex h-full min-h-0 flex-col overflow-hidden rounded-[0.875rem] p-0.5"
     >
       <div
-        className="schedule-grid-day-tabs bg-surface mb-0.5 flex shrink-0 gap-1 rounded-lg p-1"
+        className="schedule-grid-day-tabs bg-surface mb-0.5 flex shrink-0 gap-1 rounded-xl p-1"
         role="tablist"
         aria-label="Day"
       >
@@ -355,7 +355,7 @@ export function ScheduleGrid({
             tabIndex={day === selectedDay ? 0 : -1}
             onClick={() => onActiveDayChange(day)}
             onKeyDown={(event) => moveDayTab(event, index)}
-            className={`focus-visible:ring-primary/40 min-h-11 flex-1 rounded-sm px-2 text-xs font-medium transition-colors duration-150 focus-visible:ring-2 ${
+            className={`focus-visible:ring-primary/40 min-h-11 flex-1 rounded-lg px-2 text-xs font-medium transition-colors duration-150 focus-visible:ring-2 ${
               day === selectedDay ? "neu-inset bg-surface-container text-on-surface" : "text-on-surface-variant"
             }`}
           >
@@ -367,7 +367,7 @@ export function ScheduleGrid({
         aria-label="Timetable scroll area"
         // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users scroll the timetable before any classes load.
         tabIndex={0}
-        className="bg-surface focus-visible:ring-primary/40 min-h-0 flex-1 [scrollbar-gutter:stable] overflow-auto rounded-lg focus-visible:ring-2 focus-visible:ring-inset"
+        className="bg-surface focus-visible:ring-primary/40 min-h-0 flex-1 [scrollbar-gutter:stable] overflow-auto rounded-xl focus-visible:ring-2 focus-visible:ring-inset"
       >
         <div
           className="schedule-grid-columns border-border-subtle bg-surface sticky top-0 z-30 grid border-b"

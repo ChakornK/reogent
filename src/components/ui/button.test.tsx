@@ -15,7 +15,7 @@ describe("Button", () => {
     expect(button.className).toContain("neu-shadow-on-surface");
     expect(button.className).toContain("h-11");
     expect(button.className).toContain("sm:h-9");
-    expect(button.className).toContain("rounded-xl");
+    expect(button.className).toContain("rounded-lg");
   });
 
   it("supports primary, ghost, size, and shadow context variants", () => {
@@ -81,7 +81,11 @@ describe("Button", () => {
         {size === "icon" ? null : "Action"}
       </Button>,
     );
-    expect(getByRole("button").className).toContain(expectedClass);
+    const button = getByRole("button");
+    expect(button.className).toContain(expectedClass);
+    expect(button.className).toContain(
+      size === "pill" ? "rounded-full" : size === "large" ? "rounded-xl" : "rounded-lg",
+    );
   });
 
   it("shares primary and secondary geometry with navigation links", () => {

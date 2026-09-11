@@ -76,7 +76,7 @@ function GlassButton({
       aria-label={label}
       title={label}
       aria-pressed={pressed}
-      className={`focus-visible:ring-primary/40 neu-panel flex size-11 items-center justify-center rounded-2xl transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:size-10 ${
+      className={`focus-visible:ring-primary/40 neu-panel flex size-11 items-center justify-center rounded-xl transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-1 sm:size-10 ${
         pressed ? "text-primary" : "text-on-surface-variant hover:text-primary"
       }`}
     >

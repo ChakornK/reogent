@@ -23,8 +23,8 @@ export function ScheduleControlsSkeleton({ label, includeGroup = false }: { labe
         </div>
       ) : null}
       <div className="border-border-subtle grid grid-cols-2 gap-2 border-t py-4">
-        <Skeleton className="h-11 rounded-xl sm:h-10" />
-        <Skeleton className="h-11 rounded-xl sm:h-10" />
+        <Skeleton className="h-11 rounded-lg sm:h-10" />
+        <Skeleton className="h-11 rounded-lg sm:h-10" />
       </div>
       <div className="border-border-subtle border-t py-4">
         <div className="mb-2 flex min-h-9 items-center">
@@ -88,7 +88,7 @@ export function ScheduleProfileSkeleton({
             {avatarKind === "emoji" ? (
               <Skeleton className="h-40 w-full rounded-lg" />
             ) : avatarKind === "image" ? (
-              <Skeleton className="h-11 w-full rounded-xl sm:h-10" />
+              <Skeleton className="h-11 w-full rounded-lg sm:h-10" />
             ) : null}
             <div className="flex flex-wrap gap-1.5">
               {AVATAR_COLORS.map((color) => (
@@ -104,7 +104,7 @@ export function ScheduleProfileSkeleton({
             <Button size="prominent" data-dialog-initial-focus onClick={onCancel}>
               Cancel
             </Button>
-            <Skeleton className="h-11 w-36 rounded-xl sm:h-10" />
+            <Skeleton className="h-11 w-36 rounded-lg sm:h-10" />
           </DialogActions>
         </footer>
       </DialogPanel>

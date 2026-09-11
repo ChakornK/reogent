@@ -54,6 +54,7 @@ If a recommended skill is missing when needed, ask the operator to install it be
 
 - Use a 32px minimum touch target instead of Impeccable's default 44px minimum. Larger documented component sizes remain valid; this override does not require a blanket resize.
 - Keep back buttons at their current 44px square size with a 20px arrow. Use the ghost treatment without a resting border or shadow, retain destination-specific accessible names, and preserve visible keyboard focus.
+- Match comparable sibling contours: ordinary actions, fields and segmented-control frames use an 8px radius; peer workspace panels and canvases use 16px. Derive nested corners from the enclosing radius minus the inset. Preserve explicit large-action, floating-overlay, pill and avatar roles rather than flattening those hierarchies.
 
 ## Shortest path
 

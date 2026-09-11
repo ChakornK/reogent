@@ -43,7 +43,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
                 style={{
                   minHeight: "2.75rem",
                   padding: "0.625rem 1rem",
-                  borderRadius: "0.75rem",
+                  borderRadius: "0.5rem",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -67,7 +67,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
                   boxSizing: "border-box",
                   alignSelf: "center",
                   padding: 0,
-                  borderRadius: "0.75rem",
+                  borderRadius: "0.5rem",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",

@@ -106,7 +106,7 @@ components:
   button-primary:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
-    rounded: "{rounded.xl}"
+    rounded: "{rounded.lg}"
     padding: "8px 16px"
     height: "36px"
   button-primary-large:
@@ -118,13 +118,13 @@ components:
   button-secondary:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.on-surface}"
-    rounded: "{rounded.xl}"
+    rounded: "{rounded.lg}"
     padding: "8px 16px"
     height: "36px"
   button-ghost:
     backgroundColor: "transparent"
     textColor: "{colors.on-surface-variant}"
-    rounded: "{rounded.xl}"
+    rounded: "{rounded.lg}"
     padding: "8px 12px"
   card:
     backgroundColor: "{colors.surface}"
@@ -396,10 +396,12 @@ Fallback: without `backdrop-filter` support, renders as solid `var(--surface)`.
 
 **Form language:** Choose radii by role. Derive close inset contours from their surrounding frame and actual edge distances.
 
-- **Major panels** (tablet/desktop chat and workspace panels, sidebar, bottom sheets): `rounded-2xl` (16px)
+- **Major peer surfaces** (tablet/desktop workspace panels and canvases, chat, sidebar, bottom sheets): `rounded-2xl` (16px)
 - **Mobile pages and primary canvases**: square edges and no outer shadow below 640px; preserve rounded contained cards and overlays
-- **Action buttons, icon buttons, collapse/expand controls**: `rounded-xl` (12px)
-- **Inner controls** (session items, details blocks, tool cards, nav items, thinking blocks): `rounded-lg` (8px)
+- **Peer controls** (ordinary actions, icon buttons, fields, segmented-control frames): `rounded-lg` (8px). Match sibling contours in the same command row without changing target dimensions.
+- **Inset segments**: `rounded-sm` (4px) inside an 8px frame with 4px padding. Derive other close contours from their actual inset.
+- **Large auth/marketing actions and floating map-control frames**: `rounded-xl` (12px)
+- **Inner content and navigation rows** (session items, details blocks, tool cards, nav items, thinking blocks): `rounded-lg` (8px)
 - **Small elements** (inline code, small badges, icon containers in tool results): `rounded-md` (6px)
 - **Pills** (action chips, suggestion pills, avatars, dots, credit badges): `rounded-full` (9999px)
 - **Panel-level inputs** (chat composer): `rounded-2xl` (16px), including inside flat mobile pages
@@ -412,15 +414,16 @@ Fallback: without `backdrop-filter` support, renders as solid `var(--surface)`.
 
 For close parallel corners, use `inner radius = outer radius − inset`. Measure the inset between border-box edges, including real borders and padding. Compare the corresponding corner centers in both axes. Shadows and focus rings do not change that distance. Independent cards, avatars, fields, interior rows, and offset panels do not inherit a concentricity requirement.
 
-| Matched contour                                    | Outer radius | Inset | Inner radius |
-| -------------------------------------------------- | ------------ | ----- | ------------ |
-| Expanded navigation well and edge row              | 16px         | 8px   | 8px          |
-| Collapsed navigation well or intrinsic theme group | 12px         | 4px   | 8px          |
-| Workspace, prerequisite, term, and day segments    | 8px          | 4px   | 4px          |
-| Timetable canvas and grid frame                    | 12px         | 2px   | 10px         |
-| Timetable frame and scroll field                   | 10px         | 2px   | 8px          |
-| Single-line composer and action, phone             | 16px         | 6px   | 10px         |
-| Single-line composer and action, wider screen      | 16px         | 10px  | 6px          |
+| Matched contour                                   | Outer radius | Inset | Inner radius |
+| ------------------------------------------------- | ------------ | ----- | ------------ |
+| Expanded navigation well and edge row             | 16px         | 8px   | 8px          |
+| Collapsed navigation well                         | 12px         | 4px   | 8px          |
+| Workspace, prerequisite, term, and theme segments | 8px          | 4px   | 4px          |
+| Timetable canvas and grid frame                   | 16px         | 2px   | 14px         |
+| Timetable frame and scroll field                  | 14px         | 2px   | 12px         |
+| Timetable day strip and selected day              | 12px         | 4px   | 8px          |
+| Single-line composer and action, phone            | 16px         | 6px   | 10px         |
+| Single-line composer and action, wider screen     | 16px         | 10px  | 6px          |
 
 Keep a 28px title anchor in `WorkspacePage`. Center leading controls on that anchor while preserving their full hit targets and the description below the title. Use the panel header's 16px horizontal inset for plain rail content, discovery searches, and control groups. Default panel bodies use 16px padding; dense lists keep their explicit 8px variant and contained bodies own their internal spacing. Loading search frames match the loaded field's position and responsive height.
 
@@ -457,19 +460,19 @@ Keep neumorphic material defaults in the CSS components layer so utility colors 
 
 ### Buttons
 
-Back actions use an icon-only 20px `arrowLeft` in the shared ghost button or link, with the existing 44px square target and 12px radius. Remove the resting border, background, and shadow; retain hover feedback and visible keyboard focus. Supply a destination-specific `aria-label` and `title`; omit visible Home or Back text. Authentication pages keep this navigation sticky outside animated form content. Workspace navigation stays above the content scroller, and panel-local back controls stay in the panel header with room for focus paint.
+Back actions use an icon-only 20px `arrowLeft` in the shared ghost button or link, with the existing 44px square target and the shared 8px control radius. Remove the resting border, background, and shadow; retain hover feedback and visible keyboard focus. Supply a destination-specific `aria-label` and `title`; omit visible Home or Back text. Authentication pages keep this navigation sticky outside animated form content. Workspace navigation stays above the content scroller, and panel-local back controls stay in the panel header with room for focus paint.
 
 Use `src/components/ui/button.tsx` for native action buttons. `Button` owns variant, size, focus, disabled, pressed, and parent-material shadow classes while feature code owns the label, icon, layout, and event handler. Use `InlineAction` for compact link-styled choices inside messages and error text; it retains its 44px mobile target and returns to inline height on larger screens. `RetryAlert` combines the semantic error surface and inline retry action for load failures. Keep links, tabs, radios, menu items, navigation rows, pills, and compound controls on their native contracts.
 
 State changes through shadow transformation + press scale. Buttons never translate on hover or active; the surface stays put and only the shadow, filter, or scale changes.
 
-- **Primary** (`.neu-primary-button`): `bg-primary text-on-primary rounded-xl h-9 px-4 text-sm font-medium`. Shadow: contextual dark and light pair for the parent material. Hover: brightness(1.03) with a wider contextual shadow. Active: contextual inset shadow, scale(0.985).
-- **Primary Large**: Same as primary but `h-12 px-8 text-base`. Used on landing CTAs and auth submit.
+- **Primary** (`.neu-primary-button`): `bg-primary text-on-primary rounded-lg h-9 px-4 text-sm font-medium`. Shadow: contextual dark and light pair for the parent material. Hover: brightness(1.03) with a wider contextual shadow. Active: contextual inset shadow, scale(0.985).
+- **Primary Large**: `h-12 rounded-xl px-8 text-base`. Retains the 12px large-action radius for landing CTAs and auth submit.
 - **Primary Prominent**: `h-10 px-4` — slightly taller than standard for emphasis in error recovery states. Same shadow recipe.
-- **Secondary** (`.neu-button`): `bg-surface text-on-surface rounded-xl h-9 px-4 border-subtle text-sm font-medium`. Shadow: surface shadow. Hover: expanded shadow. Active: inset shadow, scale(0.98).
+- **Secondary** (`.neu-button`): `bg-surface text-on-surface rounded-lg h-9 px-4 border-subtle text-sm font-medium`. Shadow: surface shadow. Hover: expanded shadow. Active: inset shadow, scale(0.98).
 - **Danger**: Secondary material with `text-on-surface-variant`; hover uses `bg-error/10 text-error`. Use for destructive native actions after the label names the consequence.
 - **Secondary Compact**: `h-9 px-3` — reduced horizontal padding for tight layouts (retry buttons, inline actions).
-- **Ghost**: `bg-transparent text-on-surface-variant rounded-xl`. No shadow at rest (the one exception to whisper dimension). Hover: subtle surface background appears. Landing sign-in link uses `text-on-surface-variant hover:text-on-surface` for a softer secondary feel.
+- **Ghost**: `bg-transparent text-on-surface-variant rounded-lg`. No shadow at rest (the one exception to whisper dimension). Hover: subtle surface background appears. Landing sign-in link uses `text-on-surface-variant hover:text-on-surface` for a softer secondary feel.
 - **Icon Button**: `size-9` (36px) standard. Uses `neu-button` or `neu-panel` shadow. Contains centered icon.
 - **Compact Pill** (inline tool cards): `border border-primary text-primary rounded-full px-3 py-1.5 text-xs font-medium min-h-[44px]`. Smaller padding than suggestion pills; used inside tool result cards where space is tight. Focus: `ring-primary/40 ring-2 ring-offset-2`. Active: `scale-95`.
 - **Sizes**: Standard 36px (h-9), Toolbar 36px (h-9 with 8px radius and caption text), Prominent 40px (h-10), Field Companion 44px (h-11), Compact 32px (h-8), Large 48px (h-12, landing/auth only), Icon 36px. Field Companion aligns an action beside a 44px input. Below 640px, compact, toolbar, standard, prominent, and icon controls retain their existing 44px sizing. The general 32px minimum permits smaller purpose-built controls; it does not shrink these documented sizes.
@@ -533,14 +536,14 @@ Use `TextInput`, `SelectInput`, `SearchInput`, `Field`, and `Checkbox` from `src
 
 ### Schedule Workspaces
 
-- **Shared workspace alignment**: `/tools/schedule` and `/pulse/schedule` use `WorkspacePage`: 24px wide/16px compact spacing, a 20rem controls panel, a 16px region gap, and one data canvas. From 640px upward, use the canvas's `padding="frame"` 2px surround: 12px canvas radius, 10px timetable frame, then a second 2px painted gutter around the 8px scroll field. Below 640px, flatten the controls and canvas, remove the timetable's outer padding and corner radius, and let the timetable reach both page edges. Keep search fixed, course modules scrolling, and import fixed inside the contained controls body. Reserve a 12rem minimum for the size-contained course list, with the controls minimum propagated through its rail ancestors. On short screens, scroll the workspace content below navigation when the fixed sections and list floor exceed the available height; dense course contents scroll only inside the list. Hidden compact controls contribute no minimum to the Schedule view.
+- **Shared workspace alignment**: `/tools/schedule` and `/pulse/schedule` use `WorkspacePage`: 24px wide/16px compact spacing, a 20rem controls panel, a 16px region gap, and one data canvas. From 640px upward, use the canvas's `padding="frame"` 2px surround: 16px canvas radius, 14px timetable frame, then a second 2px painted gutter around the 12px scroll field. Below 640px, flatten the controls and canvas, remove the timetable's outer padding and corner radius, and let the timetable reach both page edges. Keep search fixed, course modules scrolling, and import fixed inside the contained controls body. Reserve a 12rem minimum for the size-contained course list, with the controls minimum propagated through its rail ancestors. On short screens, scroll the workspace content below navigation when the fixed sections and list floor exceed the available height; dense course contents scroll only inside the list. Hidden compact controls contribute no minimum to the Schedule view.
 - **Host-aware header**: `WorkspaceHostContext` identifies Chat, Tools, Unity, Answer Canvas, and Settings before rendering, and supplies inline shell navigation. Answer Canvas suppresses the duplicate title immediately, keeps the term toolbar inside the workspace, and portals only bounded actions such as Share. Tools and Unity use the shared page header and reserve compact-menu clearance at their shell breakpoints.
 - **Planner discovery**: Search is discovery only. Partial and full-code results use one 12px floating combobox overlay; typing never changes terms, courses, or the week. Click or Enter explicitly adds. Off-term results name the switch before commit. Search stays fixed, course modules scroll, and the Workday drop area stays fixed below them.
 - **Planner modules**: Selected courses use flat surface modules with 8px radius and a standard 1px border. Known component selectors remain visible. Unrecognized prefixes stay independent under “Additional component types” with a visible count when automatic selection skipped them. A timetable activation focuses the matching selector; drag remains the spatial shortcut.
 - **Week canvas**: The grid renders Monday through Friday, adding both weekend columns when needed. A 56px time gutter anchors an 8 AM–10 PM minimum range at 54px per hour. Day headers and the time gutter stay visible while the canvas scrolls. The grid remains visible in loading and empty states.
 - **Block anatomy**: Planner blocks center the course code and `section · type` on both axes; meetings below the tall threshold place all three on one line without changing time geometry. Sharer blocks keep course and component at the top left because Workday data carries no section identifier. On tall blocks, use up to four 16px avatars plus the remaining count when the footer has at least 6rem of content width; otherwise show the total participant count. Keep the footer at the bottom right and the full roster in accessible labels and details. Full title, time, location, status, and people remain in accessible labels or read-only details. Blocks retain the documented course-color edge and surface mix; conflicts use the error ring.
 - **Sharer flow**: Sharer controls remain read-only and follow one order: group, management, people, common free time, Right now, then personal import. People and live status use flat 44px rows without nested panels. Render the Right now section only for a live selected term with an enabled person who has a schedule; omit its padding and divider when ineligible. Grid, common-free calculations, and Right now share the same enabled-person set. Name the bounded common-free-time list and keep it keyboard-focusable. Keyed loading clears old group content before a new selector value appears; Share is the sole header action.
-- **Radius hierarchy**: 16px for protected modals, mobile sheets, and outer panels; 12px for actions, floating search, and the timetable canvas; 10px for the timetable frame; 8px for course modules, fields, rows, and blocks; 6px for independent compact subcontrols; 4px for selected term/view/day cells inside an 8px group with 4px padding. Full radius belongs to status pills, avatars, and identity dots.
+- **Radius hierarchy**: 16px for protected modals, mobile sheets, and peer outer panels/canvases; 14px for the inset timetable frame; 12px for its scroll field/day strip and independent floating search; 8px for ordinary actions, course modules, fields, rows, blocks, and selected days; 6px for independent compact subcontrols; 4px for selected term/view/theme cells inside an 8px group with 4px padding. Full radius belongs to status pills, avatars, and identity dots.
 - **Notifications**: Keep up to three readable messages in one named keyboard-scrollable stack. Keep the scrollport at least 16px inside its vertical bounds, including above phone navigation, so partially visible messages retain clearance. Include the internal shadow gutter in that bound. Hold expired messages while pointer or keyboard focus remains inside, then remove overdue entries; keep unexpired deadlines. Embedded notifications use the Answer Canvas content bounds and remain inside its focus/inert ownership. Other notification components retain their positioning.
 - **Typography**: Schedule titles use the 20px title step; section headings and buttons use 14px; helper copy uses 13px; labels and metadata use 12px. Planner and sharer surfaces use Aspekta throughout, including course codes, section identifiers, times, rooms, and counts. Schedule controls use no tracked uppercase labels and no text below 12px.
 - **Import**: Both routes parse Workday Excel exports in the browser. First imports and replacements use the same dashed drop area, with an 80px minimum height, 4px between label and hint, and native file-picker and drag-and-drop access. Matching progress and loading placeholders retain that footprint. Planner imports reconcile term, component, days, and times with catalog identifiers, require a choice for ambiguous matches, list skipped rows, and ask whether to merge or replace before one atomic update. Sharer imports remain read-only calendar data.
@@ -606,14 +609,14 @@ Prose within assistant bubbles at `0.875rem`, `line-height: 1.65` (slightly more
 
 ### Map Controls
 
-- **Floating buttons** (`.neu-panel`): `size-10 rounded-2xl`. Text: `text-on-surface-variant hover:text-primary`. Transition: colors 150ms.
+- **Floating buttons** (`.neu-panel`): `size-10 rounded-xl`. Match the 12px outer radius of the adjacent zoom-control frame. Text: `text-on-surface-variant hover:text-primary`. Transition: colors 150ms.
 - **Route info card** (`.neu-panel`): `rounded-2xl px-3 py-2`. Contains icon container (`bg-secondary-container text-on-secondary-container size-8 rounded-md`) + text.
 - **Zoom controls** (`.neu-panel`): `rounded-xl` containing stacked 44px phone/40px wider-screen buttons with a `bg-border-subtle/60 h-px` divider. Round the upper and lower button corners separately and keep the well's overflow visible so keyboard focus can paint outside it.
 - **Bottom sheet** (mobile): `neu-panel bg-surface fixed inset-x-0 bottom-0 h-[80vh] rounded-t-2xl`. Drag handle: `bg-outline/40 h-1.5 w-10 rounded-full`. Header area: cursor-grab touch-none. Dismiss threshold: 20% of height.
 
 ### Theme Toggle
 
-Use an intrinsic-width `w-max shrink-0` grid with three equal tracks, 2px gaps, 4px padding, and a 12px outer radius. Radios use 44px phone/32px wider-screen squares and an 8px radius. The resulting group measures 144px/108px wide; each radio fills its track. Selected: `neu-raised bg-surface text-primary`. Unselected: `text-on-surface-variant hover:text-on-surface`. Options: light, system, dark. Keep the group compact inside Settings as well as the account popup. Let the popup's Appearance row wrap with an 8px row gap when its label and control do not fit; do not squeeze the radio tracks.
+Use an intrinsic-width `w-max shrink-0` grid with three equal tracks, 2px gaps, 4px padding, and the shared 8px control-frame radius. Radios use 44px phone/32px wider-screen squares and a 4px inset radius. The resulting group measures 144px/108px wide; each radio fills its track. Selected: `neu-raised bg-surface text-primary`. Unselected: `text-on-surface-variant hover:text-on-surface`. Options: light, system, dark. Keep the group compact inside Settings as well as the account popup. Let the popup's Appearance row wrap with an 8px row gap when its label and control do not fit; do not squeeze the radio tracks.
 
 View-transition ripple on theme change: `startViewTransition` with `--ripple-x`/`--ripple-y` CSS variables driving `clip-path: circle()` expansion at 400ms ease-in-out.
 

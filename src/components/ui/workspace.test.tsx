@@ -88,6 +88,10 @@ describe("WorkspacePage", () => {
     expect(screen.getByRole("button", { name: "Plan" }).classList.contains("rounded-sm")).toBe(true);
     const canvas = page?.querySelector("[data-workspace-canvas]");
     expect(canvas?.className).toContain("p-4");
+    expect(canvas?.className).toContain("rounded-2xl");
+    for (const panel of page?.querySelectorAll("[data-workspace-panel]") ?? []) {
+      expect(panel.classList.contains("rounded-2xl")).toBe(true);
+    }
     expect(canvas?.className).toContain("neu-inset");
     expect(canvas?.className).toContain("neu-shadow-on-surface");
     expect(canvas?.className).not.toContain("border-border");

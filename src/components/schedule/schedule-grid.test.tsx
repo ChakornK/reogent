@@ -236,6 +236,9 @@ describe("ScheduleGrid", () => {
     const tallFooter = view.getByText("tall-footer avatar");
     expect(tallFooter).toBeTruthy();
     expect(tallFooter.parentElement?.className).toContain("justify-end");
-    expect(view.container.querySelector("[data-schedule-grid-frame]")?.className).toContain("rounded-[0.625rem]");
+    expect(view.container.querySelector("[data-schedule-grid-frame]")?.className).toContain("rounded-[0.875rem]");
+    expect(view.getByRole("region", { name: "Timetable scroll area" }).className).toContain("rounded-xl");
+    expect(view.getByRole("tablist", { name: "Day" }).className).toContain("rounded-xl");
+    expect(view.getByRole("tab", { name: "Mon" }).className).toContain("rounded-lg");
   });
 });

@@ -23,6 +23,8 @@ describe("GlobalError", () => {
     expect(back.style.width).toBe("2.75rem");
     expect(back.style.borderStyle).toBe("none");
     expect(back.style.background).toBe("transparent");
+    expect(back.style.borderRadius).toBe("0.5rem");
+    expect(screen.getByRole("button", { name: "Try again" }).style.borderRadius).toBe("0.5rem");
   });
 });
 

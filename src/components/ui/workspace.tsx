@@ -339,7 +339,7 @@ export function WorkspaceCanvas({ overflow = "auto", padding = "none", children,
   return (
     <div
       data-workspace-canvas
-      className={`neu-inset neu-shadow-on-surface bg-surface-container-low focus-visible:ring-primary/40 relative flex h-full min-h-0 min-w-0 flex-col rounded-xl focus-visible:ring-2 focus-visible:ring-inset ${
+      className={`neu-inset neu-shadow-on-surface bg-surface-container-low focus-visible:ring-primary/40 relative flex h-full min-h-0 min-w-0 flex-col rounded-2xl focus-visible:ring-2 focus-visible:ring-inset ${
         CANVAS_PADDING_CLASSES[padding]
       } ${overflow === "auto" ? "overflow-auto" : "overflow-hidden"}`}
       {...props}

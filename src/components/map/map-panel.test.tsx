@@ -285,6 +285,9 @@ describe("MapArea", () => {
     const well = container.querySelector("[data-map-zoom-controls]")!;
     expect(well.classList.contains("overflow-hidden")).toBe(false);
     expect(well.classList.contains("rounded-xl")).toBe(true);
+    for (const name of ["Show walking paths", "Reset view"]) {
+      expect(screen.getByRole("button", { name }).classList.contains("rounded-xl")).toBe(true);
+    }
     for (const [name, corner] of [
       ["Zoom in", "rounded-t-xl"],
       ["Zoom out", "rounded-b-xl"],

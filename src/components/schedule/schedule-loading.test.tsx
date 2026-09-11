@@ -27,6 +27,7 @@ describe("ScheduleControlsSkeleton", () => {
     expect(label?.parentElement?.className).toContain("gap-1.5");
     expect(label?.parentElement?.className).toContain("py-4");
     expect(label?.nextElementSibling?.className).toContain("h-11");
+    expect(container.querySelectorAll(".rounded-xl")).toHaveLength(0);
   });
 });
 
@@ -61,6 +62,7 @@ describe("ScheduleProfileSkeleton", () => {
     expect(body?.contains(cancel)).toBe(false);
     expect(cancel.closest("footer")?.className).toContain("shrink-0");
     expect(cancel.parentElement?.className).not.toContain("mt-6");
+    expect(cancel.nextElementSibling?.classList.contains("rounded-lg")).toBe(true);
     for (const skeleton of dialog.querySelectorAll("[data-skeleton]")) {
       expect(skeleton.getAttribute("aria-hidden")).toBe("true");
     }

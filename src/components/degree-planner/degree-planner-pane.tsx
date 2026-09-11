@@ -696,10 +696,11 @@ function ActionsSection({
 
   return (
     <div className="flex w-full max-w-full min-w-0 flex-nowrap items-center justify-start gap-2 overflow-x-auto pb-1 @min-[55rem]:ml-auto @min-[55rem]:w-auto @min-[55rem]:flex-wrap @min-[55rem]:justify-end @min-[55rem]:overflow-visible @min-[55rem]:pb-0">
-      <div className="neu-inset bg-surface-container-low flex items-center gap-0.5 rounded-xl p-1">
+      <div className="neu-inset bg-surface-container-low flex items-center gap-0.5 rounded-lg p-1">
         <Button
           variant="ghost"
           size="compact"
+          className="rounded-sm"
           onClick={() => {
             setAutofillResult(null);
             undo();
@@ -713,6 +714,7 @@ function ActionsSection({
         <Button
           variant="ghost"
           size="compact"
+          className="rounded-sm"
           onClick={() => {
             setAutofillResult(null);
             redo();
