@@ -17,7 +17,7 @@ export function sanitizeMeiliId(id: string): string {
 export async function runIngest(modules: DatasetModule[], search: Meilisearch, store: DataWriter): Promise<void> {
   const failures: Error[] = [];
   const waitForTask = async (task: Promise<EnqueuedTask>) => {
-    const result = await search.tasks.waitForTask((await task).taskUid);
+    const result = await search.tasks.waitForTask((await task).taskUid, { timeout: 300_000, interval: 100 });
     if (result.status !== "succeeded") {
       throw new Error(`Task ${result.uid} ${result.status}: ${result.error?.message ?? "No error details"}`, {
         cause: result.error,

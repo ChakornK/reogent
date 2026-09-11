@@ -123,7 +123,7 @@ function matchClause(doc: Record<string, unknown>, clause: string): boolean {
   const eq = clause.match(/^(\w+) = '?([^']*)'?$/);
   if (eq) {
     const raw = eq[2];
-    const want = raw.replace(/'/g, "");
+    const want = raw.startsWith('"') ? JSON.parse(raw) : raw.replace(/'/g, "");
     const v = doc[eq[1]];
     if (Array.isArray(v)) return v.map(String).includes(want);
     if (v === null || v === undefined) return false;

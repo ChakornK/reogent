@@ -35,24 +35,26 @@ See `DESIGN.md`, `PRODUCT.md`, and `.impeccable/surfaces/` for design contracts.
 
 The agent runs a streaming tool-calling loop. Each user message can trigger up to 8 model turns. The model calls tools, receives results, and continues until it can respond. The client receives NDJSON events (`thinking`, `text`, `tool_start`, `tool_end`, `done`).
 
-22 tools across 14 modules:
+The module registry defines data access and presentation tools:
 
-| Module     | Tools                                                          | Data source                                           |
-| ---------- | -------------------------------------------------------------- | ----------------------------------------------------- |
-| courses    | `search_courses`, `get_course`                                 | Course catalog + section schedules                    |
-| tuition    | `get_tuition`                                                  | Tuition rates by program/cohort                       |
-| buildings  | `walking_distance`, `find_building`                            | Building centroids + Dijkstra on a pedestrian network |
-| admissions | `search_programs`, `get_admission_requirements`                | you.ubc.ca program data                               |
-| costs      | `get_cost_estimate`, `get_living_costs`, `search_student_fees` | UBC financial estimates                               |
-| calendar   | `get_key_dates`                                                | Academic calendar dates                               |
-| places     | `find_places`                                                  | Points of interest (cafes, libraries, banks)          |
-| parking    | `find_parking`                                                 | Parking lots with rates and accessibility             |
-| spaces     | `search_study_spaces`, `find_free_rooms`, `get_room_schedule`  | Classrooms + library rooms                            |
-| events     | `search_events`                                                | events.ubc.ca                                         |
-| pages      | `search_ubc_pages`                                             | UBC web pages                                         |
-| grades     | `search_grades`, `get_grades`                                  | UBC pair grade distributions                          |
-| people     | `find_person`                                                  | Faculty/staff profiles from unit directory sites      |
-| food       | `find_food`                                                    | food.ubc.ca outlets                                   |
+| Module          | Tools                                           | Data source                                                        |
+| --------------- | ----------------------------------------------- | ------------------------------------------------------------------ |
+| courses         | `find_courses`, `get_course`                    | Course catalog and section schedules                               |
+| tuition, costs  | `get_costs`                                     | Tuition, cost estimates, student fees and housing fee observations |
+| buildings       | `walking_distance`, `find_building`             | Building coordinates and pedestrian routes                         |
+| admissions      | `find_programs`, `get_admission_requirements`   | Undergraduate programs and requirements                            |
+| calendar        | `get_key_dates`                                 | Academic calendar dates                                            |
+| places, parking | `find_places`                                   | Campus POIs and parking facts                                      |
+| spaces          | `find_study_spaces`                             | Study areas, bookable rooms and availability snapshots             |
+| events          | `find_events`                                   | Campus events                                                      |
+| pages           | `search_ubc_pages`                              | Legacy page excerpts and Prose article metadata                    |
+| prose           | `get_prose_article`                             | Complete indexed Markdown articles and provenance                  |
+| undergraduate   | `search_student_resources`, `get_library_hours` | Housing, libraries, support and policy source/fact records         |
+| grades          | Through `get_course` and grade widgets          | Grade distributions                                                |
+| people          | `find_person`                                   | Faculty/staff directory profiles                                   |
+| food            | `find_food`                                     | Food outlets                                                       |
+| prereq-tree     | `get_prereq_tree`                               | Course prerequisite graph                                          |
+| widgets         | `show_widget`                                   | Presentation of previously retrieved entities                      |
 
 Walking routes use Dijkstra shortest-path on a pedestrian network derived from GeoJSON.
 
@@ -76,12 +78,12 @@ src/
 ├── lib/                      Client utils (API client, formatting, geo)
 └── server/
     ├── agent/                Streaming tool-calling loop
-    ├── modules/              12 data modules (tool definitions + dataset access)
+    ├── modules/              Dataset adapters and tool definitions
     ├── llm/                  LLM adapters (openai, anthropic, google)
     ├── sessions/             Postgres session store
     ├── db/                   Postgres schema + migration
     ├── data.ts               Filesystem store for raw datasets
-    └── search.ts             Meilisearch client
+    └── search.ts             Shared Meilisearch client
 
 scripts/
 └── ingest.ts                 Index datasets into Meilisearch
@@ -90,6 +92,24 @@ scripts/
 ## Data
 
 `ubc-unified-data` is a git submodule holding scraped UBC datasets: courses, tuition, building and walking GeoJSON, study spaces, events, and grade distributions (`data/grades/`, collected from [ubc-pair-grade-data](https://github.com/DonneyF/ubc-pair-grade-data) by the submodule's `grades` collector).
+
+The undergraduate tables contain factual labels, source links, housing fee observations and dated library hours. They do not contain full page bodies. Housing `amount_cents` values retain their exact integer or null value; consult the linked conditions before using a rate. Library `booking_lid` strings belong to a separate namespace from `hours_id`. Hours describe a schedule in `America/Vancouver`, including `closes_next_day`; an absent date remains unknown. See [UNDERGRADUATE-SOURCES.md](ubc-unified-data/UNDERGRADUATE-SOURCES.md) for table contracts.
+
+### Prose
+
+The data submodule includes the Markdown corpus described in [PROSE.md](ubc-unified-data/PROSE.md). `npm run ingest` reads `DATA_PATH/prose/_catalog.json` and its declared article arrays into the `prose` index alongside the other campus datasets. The loader rejects incomplete catalogs, table count/hash mismatches and colliding sanitized IDs.
+
+`search_ubc_pages` searches Prose and legacy pages through the shared Meilisearch client. It returns article metadata and bounded legacy excerpts, preferring normalized articles for matching canonical URLs or source-record joins. `get_prose_article` retrieves a complete indexed Markdown article and verifies its original identity and content hash. Both tools use the same search configuration in development and production; only ingestion reads the corpus files.
+
+Articles retain their source URLs, publisher and retrieval timestamps, source-record joins and conversion warnings. The UI renders safe Markdown without raw HTML or remote image embeds and displays one Prose category with source/topic subcategories. Use the source's scope and dates when answering questions about requirements or availability.
+
+Datasets and crawl caches stay outside application images and standalone output. Mount `DATA_PATH` for filesystem-backed tools and ingestion.
+
+### Snapshot replacement
+
+`student_resources`, `housing_fees`, `library_hours` and `prose` replace their complete snapshots. Ingestion loads and validates a temporary index, waits for its tasks, then swaps it into place. This removes dated records absent from the next library-hours snapshot. A pre-swap failure leaves the previous index active; cleanup errors report failure without rolling back an already published snapshot. Other indexes retain upsert behavior.
+
+Run one ingestion process per destination and allow storage for both generations during replacement. Ingestion requires a writable `DATA_PATH` for derived artifacts; the application can use a read-only data mount. Source `retrieved_at` timestamps remain distinct from index-build times and publisher modification dates.
 
 ## Setup
 
@@ -135,7 +155,7 @@ The server opens at http://localhost:3000 and applies the Postgres schema on sta
 | `npm run lint`          | Biome lint                                                     |
 | `npm test`              | Vitest (unit tests)                                            |
 | `npm run format`        | Prettier format                                                |
-| `npm run ingest`        | Index datasets into Meilisearch                                |
+| `npm run ingest`        | Index campus datasets and Prose into Meilisearch               |
 | `npm run pulse:publish` | Publish a Pulse question round ([guide](data/pulse/README.md)) |
 
 ## API endpoints
@@ -164,7 +184,7 @@ How long is the walk from the Buchanan building to ICICS,
 and what Computer Science courses have no prerequisites?
 ```
 
-This triggers `walking_distance` and `search_courses` in a single agent turn.
+This triggers `walking_distance` and `find_courses` in a single agent turn.
 
 ## License
 

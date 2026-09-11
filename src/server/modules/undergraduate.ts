@@ -191,10 +191,11 @@ function isoDate(value: unknown, field: string): string {
   return result;
 }
 
-function timestamp(value: unknown, field: string): string {
+/** Validates source timestamps without changing their timezone or retrieval time. */
+export function timestamp(value: unknown, field: string): string {
   const result = text(value, field);
   if (
-    !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/u.test(
+    !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/u.test(
       result,
     ) ||
     !Number.isFinite(Date.parse(result))

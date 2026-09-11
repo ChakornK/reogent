@@ -222,16 +222,31 @@ Rules:
       const result = execResults[i];
       toolCalls.push({ name, input, result });
       yield { type: "tool_end", name, result };
+      const content = [{ json: result }];
       const extractor = CITATION_EXTRACTORS[name];
       if (extractor) {
-        pendingCitations.push(...extractor(result, input));
-        yield { type: "citations", citations: allocateCitations(pendingCitations) };
+        const seeds = extractor(result, input);
+        pendingCitations.push(...seeds);
+        const citations = allocateCitations(pendingCitations);
+        yield { type: "citations", citations };
+        const sourceCitations = citations
+          .filter((citation) =>
+            seeds.some(
+              (seed) => seed.label === citation.label && (seed.source_url ?? "") === (citation.source_url ?? ""),
+            ),
+          )
+          .map((citation) => ({
+            citation: `[${citation.index}]`,
+            label: citation.label,
+            source_url: citation.source_url,
+          }));
+        if (sourceCitations.length) content.push({ json: { source_citations: sourceCitations } });
       }
       results.push({
         toolResult: {
           toolUseId,
           name,
-          content: [{ json: result }],
+          content,
           ...(isToolError(result) ? { status: "error" as const } : {}),
         },
       });

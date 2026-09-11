@@ -184,6 +184,33 @@ describe("extractors — Property 19, Source-url honesty", () => {
     },
   );
 
+  it("keeps Prose topic and timestamps through search and full-article citation extraction", () => {
+    const article = {
+      title: "Example procedure",
+      category: "prose",
+      subcategory: "workday",
+      source_url: "https://example.test/procedure",
+      source_modified_at: "2026-08-01T12:00:00Z",
+      retrieved_at: "2026-09-01T12:00:00Z",
+    };
+    const full = extract("get_prose_article")(article, {});
+    const found = extract("search_ubc_pages")(
+      { pages: [{ ...article, url: article.source_url, date: article.source_modified_at }] },
+      {},
+    );
+    for (const seed of [...full, ...found])
+      expect(seed).toMatchObject({
+        kind: "prose",
+        source_url: article.source_url,
+        detail: {
+          category: "prose",
+          subcategory: "workday",
+          retrieved_at: article.retrieved_at,
+          source_modified_at: article.source_modified_at,
+        },
+      });
+  });
+
   it("retains public resource retrieval and publisher timestamps", () => {
     const seeds = extract("search_student_resources")(
       {

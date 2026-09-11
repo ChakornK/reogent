@@ -152,6 +152,51 @@ describe("Property 24 — source_url absent renders no anchor and exposes label 
   });
 });
 
+describe("source safety and provenance", () => {
+  it.each(["javascript:alert(1)", "data:text/html,example", "https://name:secret@example.test"])(
+    "renders unsafe source URLs without navigation: %s",
+    (source_url) => {
+      const citation = { ...makeCitations(1, true)[0], source_url };
+      const view = render(
+        <>
+          <CitationChip citation={citation} />
+          <SourcesPanel citations={[citation]} />
+        </>,
+      );
+      expect(view.container.querySelector("a")).toBeNull();
+      expect(view.container.querySelector("span[data-index]")?.getAttribute("title")).toBe(citation.label);
+    },
+  );
+
+  it("shows one Prose category, its topic and distinct source timestamps", () => {
+    const citation: Citation = {
+      ...makeCitations(1, true, true)[0],
+      kind: "prose",
+      tool: "get_prose_article",
+      detail: {
+        category: "prose",
+        subcategory: "workday",
+        source_modified_at: "2026-08-01T12:00:00Z",
+        retrieved_at: "2026-09-01T12:00:00Z",
+      },
+    };
+    const view = render(<SourcesPanel citations={[citation]} />);
+    expect(view.getByText("Prose · workday")).toBeTruthy();
+    expect(view.container.querySelector('time[datetime="2026-08-01T12:00:00Z"]')?.parentElement?.textContent).toBe(
+      "Source updated 2026-08-01",
+    );
+    expect(view.container.querySelector('time[datetime="2026-09-01T12:00:00Z"]')?.parentElement?.textContent).toBe(
+      "Retrieved 2026-09-01",
+    );
+  });
+
+  it("retains the source-conditions warning for housing observations", () => {
+    const citation = { ...makeCitations(1, true, true)[0], detail: { source_context_required: true } };
+    const view = render(<SourcesPanel citations={[citation]} />);
+    expect(view.getByText("Review source conditions before using this rate.")).toBeTruthy();
+  });
+});
+
 describe("17.8 — Sources panel two-list rendering edge cases", () => {
   it("splits used and unused rows under a 'Sources used' summary when both lists are non-empty", () => {
     const citations = [

@@ -77,6 +77,7 @@ describe("module registry consistency", () => {
         "find_events",
         "get_key_dates",
         "search_ubc_pages",
+        "get_prose_article",
         "search_student_resources",
         "get_library_hours",
         "find_person",
@@ -84,6 +85,12 @@ describe("module registry consistency", () => {
         "show_widget",
       ]),
     );
+  });
+
+  it("includes prose in the dataset registry with snapshot replacement", () => {
+    expect(modules.find((module) => module.name === "prose")?.indices.map((index) => index.index)).toEqual(["prose"]);
+    expect(modules.find((module) => module.name === "prose")?.indices[0].replace).toBe(true);
+    expect(modules.some((module) => module.name === "undergraduate")).toBe(true);
   });
 
   it("every tool spec has typed, described properties and a required list", () => {

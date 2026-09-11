@@ -1,8 +1,8 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { MeilisearchApiError, type Meilisearch, type Task } from "meilisearch";
+import { MeilisearchApiError, type Meilisearch, type Task, type WaitOptions } from "meilisearch";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import packageJson from "../../package.json";
 import type { DatasetModule, DataWriter, IndexDef } from "./core/types";
@@ -39,11 +39,13 @@ function fixture(rowCount = 1) {
   const first = makeIndex("first", 2, 3, rowCount);
   const second = makeIndex("second", 102, 103, 1);
   const createIndex = vi.fn(async (name: string) => ({ taskUid: name === "first" ? 1 : 101 }));
-  const waitForTask = vi.fn(async (uid: number): Promise<Pick<Task, "uid" | "status" | "error">> => ({
-    uid,
-    status: "succeeded",
-    error: null,
-  }));
+  const waitForTask = vi.fn(
+    async (uid: number, _options?: WaitOptions): Promise<Pick<Task, "uid" | "status" | "error">> => ({
+      uid,
+      status: "succeeded",
+      error: null,
+    }),
+  );
   const search = {
     createIndex,
     index: vi.fn((name: string) => (name.startsWith("first") ? first : second)),
@@ -125,6 +127,24 @@ describe("ingest command environment", () => {
   );
 });
 
+describe("ingest command arguments", () => {
+  it("rejects unsupported arguments before indexing", () => {
+    const [, ...args] = packageJson.scripts.ingest.split(" ");
+    const result = spawnSync(process.execPath, [...args, "--unexpected"], {
+      cwd: new URL("../../", import.meta.url),
+      encoding: "utf8",
+      timeout: 15000,
+      env: {
+        MEILI_URL: "http://127.0.0.1:9",
+        MEILI_MASTER_KEY: "synthetic-key",
+      },
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toMatch(/Ingest does not accept arguments/);
+    expect(result.stdout).not.toContain("created index");
+  });
+});
+
 describe("runIngest", () => {
   it("awaits each task, batches sanitized documents, and finishes indexes sequentially", async () => {
     const f = fixture(501);
@@ -135,7 +155,10 @@ describe("runIngest", () => {
       ["first", { primaryKey: "id" }],
       ["second", { primaryKey: "id" }],
     ]);
-    expect(f.waitForTask.mock.calls).toEqual([[1], [2], [3], [4], [101], [102], [103]]);
+    expect(f.waitForTask.mock.calls.map(([uid]) => uid)).toEqual([1, 2, 3, 4, 101, 102, 103]);
+    expect(f.waitForTask.mock.calls.map(([, options]) => options)).toEqual(
+      Array(7).fill({ timeout: 300_000, interval: 100 }),
+    );
     expect(f.first.updateSettings).toHaveBeenCalledExactlyOnceWith(f.first.definition.settings);
     expect(f.first.addDocuments.mock.calls.map(([docs]) => docs.length)).toEqual([500, 1]);
     expect(f.first.addDocuments.mock.calls[0][0][0]).toEqual({
@@ -272,7 +295,7 @@ describe("runIngest", () => {
     expect(f.first.addDocuments.mock.calls.map(([docs]) => docs.length)).toEqual([500, 1]);
     expect(f.swapIndexes).toHaveBeenCalledExactlyOnceWith([{ indexes: ["first", staging], rename: false }]);
     expect(f.deleteIndex).toHaveBeenCalledExactlyOnceWith(staging);
-    expect(f.waitForTask.mock.calls).toEqual([[5], [2], [3], [4], [1], [6], [7], [101], [102], [103]]);
+    expect(f.waitForTask.mock.calls.map(([uid]) => uid)).toEqual([5, 2, 3, 4, 1, 6, 7, 101, 102, 103]);
     expect(f.first.definition.derive.mock.invocationCallOrder[0]).toBeLessThan(
       f.swapIndexes.mock.invocationCallOrder[0],
     );

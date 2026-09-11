@@ -85,6 +85,21 @@ it.each([
   expect(prose.querySelector("script")).toBeNull();
 });
 
+it("preserves article structure while suppressing raw HTML, unsafe links and remote images", async () => {
+  const content =
+    "## Example procedure\n\n1. Review requirements.\n2. Apply before the deadline.\n\n> Approval is required.\n\n[Unsafe](javascript:alert(1)) [Data](data:text/html,example)\n\n![Example illustration](https://assets.example.test/image.png)\n\n<iframe src='https://example.test/embed'></iframe><script>alert(1)</script>";
+  const view = render(<AssistantMessage message={{ id: "article", role: "assistant", content }} />);
+  await waitFor(() =>
+    expect(view.container.querySelector(".assistant-markdown h2")?.textContent).toBe("Example procedure"),
+  );
+  expect(view.container.querySelectorAll(".assistant-markdown ol > li")).toHaveLength(2);
+  expect(view.container.querySelector("blockquote")?.textContent).toContain("Approval is required");
+  expect(view.container.querySelector("script, iframe, img")).toBeNull();
+  for (const anchor of view.container.querySelectorAll(".assistant-markdown a")) {
+    expect(anchor.getAttribute("href") ?? "").not.toMatch(/^(javascript|data):/i);
+  }
+});
+
 it("keeps Sources outside prose spacing while retaining its live Markdown sibling", async () => {
   const { container } = render(
     <AssistantMessage message={{ id: "sources", role: "assistant", content: "Read [1].", citations }} />,

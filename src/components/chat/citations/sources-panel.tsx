@@ -3,6 +3,7 @@
 import { Icon } from "@/src/components/icons";
 import { announce } from "@/src/components/ui/live-region";
 import type { Citation } from "@/src/shared/citations/citation";
+import { safeSourceUrl } from "@/src/shared/citations/url";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
 
@@ -107,6 +108,8 @@ export function SourcesPanel({ citations }: { citations: Citation[] | null | und
 }
 
 function SourceRow({ c }: { c: Citation }) {
+  const url = safeSourceUrl(c.source_url);
+  const detail = c.detail;
   return (
     <li
       data-citation-row={c.index}
@@ -114,11 +117,35 @@ function SourceRow({ c }: { c: Citation }) {
       className="flex min-w-0 items-start gap-1.5 text-xs"
     >
       <span className="text-muted shrink-0 font-mono">{c.index}.</span>
-      <div className="flex min-w-0 flex-col">
+      <div className="flex min-w-0 flex-col gap-1 [overflow-wrap:anywhere]">
         <span className={c.used ? "text-on-surface" : "text-muted"}>{c.label}</span>
-        {c.source_url && (
+        {detail?.category === "prose" ? (
+          <span data-source-category className="text-muted capitalize">
+            {typeof detail.subcategory === "string" ? `Prose · ${detail.subcategory.replaceAll("-", " ")}` : "Prose"}
+          </span>
+        ) : null}
+        {typeof detail?.source_modified_at === "string" ? (
+          <span className="text-muted">
+            Source updated{" "}
+            <time dateTime={detail.source_modified_at} title={detail.source_modified_at}>
+              {detail.source_modified_at.slice(0, 10)}
+            </time>
+          </span>
+        ) : null}
+        {typeof detail?.retrieved_at === "string" ? (
+          <span className="text-muted">
+            Retrieved{" "}
+            <time dateTime={detail.retrieved_at} title={detail.retrieved_at}>
+              {detail.retrieved_at.slice(0, 10)}
+            </time>
+          </span>
+        ) : null}
+        {detail?.source_context_required === true ? (
+          <span className="text-muted">Review source conditions before using this rate.</span>
+        ) : null}
+        {url && (
           <a
-            href={c.source_url}
+            href={url}
             target="_blank"
             rel="noopener noreferrer"
             title="Open source"

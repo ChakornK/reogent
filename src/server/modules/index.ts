@@ -12,6 +12,7 @@ import { pages } from "./pages";
 import { parking } from "./parking";
 import { people } from "./people";
 import { places } from "./places";
+import { prose } from "./prose";
 import { spaces } from "./spaces";
 import { tuition } from "./tuition";
 import { undergraduate } from "./undergraduate";
@@ -33,6 +34,7 @@ const dataModules: DatasetModule[] = [
   spaces,
   events,
   pages,
+  prose,
   undergraduate,
   grades,
   people,
