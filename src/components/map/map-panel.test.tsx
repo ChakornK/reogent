@@ -266,6 +266,9 @@ describe("MapArea", () => {
     expect(loading.className).toContain("absolute inset-0");
     expect(loading.querySelector("[data-skeleton]")?.className).toContain("h-full w-full");
     expect(container.querySelector("[data-workspace-page]")).toBeNull();
+    const surface = container.querySelector("[data-map-status]");
+    expect(surface?.classList.contains("rounded-[inherit]")).toBe(true);
+    expect(surface?.classList.contains("overflow-hidden")).toBe(true);
     expect(container.querySelector(".animate-pulse")).toBeNull();
     expect(screen.getByRole("button", { name: "Show walking paths" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Reset view" })).toBeTruthy();

@@ -287,7 +287,12 @@ function MapSurface({
   }
 
   return (
-    <div ref={surfaceRef} className="relative h-full w-full" aria-busy={status === "loading"} data-map-status={status}>
+    <div
+      ref={surfaceRef}
+      className="relative h-full w-full overflow-hidden rounded-[inherit]"
+      aria-busy={status === "loading"}
+      data-map-status={status}
+    >
       {status === "error" ? (
         <MapFallback highlight={highlight} onRetry={retryMap} />
       ) : (
@@ -869,13 +874,7 @@ function MapExplorerLoading() {
 /** Renders the Tools explorer or the AI map-only surface from the current shell host. */
 export function MapArea() {
   const { mode } = useChatShell();
-  if (mode !== "tools") {
-    return (
-      <div className="relative h-full w-full">
-        <MapSurface />
-      </div>
-    );
-  }
+  if (mode !== "tools") return <MapSurface />;
 
   return (
     <Suspense fallback={<MapExplorerLoading />}>

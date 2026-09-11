@@ -46,7 +46,7 @@ export function AnswerCanvas({ view, titlebar = true }: { view: CanvasView | nul
         {titlebar && (
           <AnswerCanvasTitlebar label={label} Glyph={PaneGlyph} onClose={onClose} onOutlet={setTitlebarOutlet} />
         )}
-        <div className="relative min-h-0 flex-1 overflow-hidden">
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-b-[inherit]">
           <ActiveCanvasView view={view} />
         </div>
       </section>

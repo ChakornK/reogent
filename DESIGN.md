@@ -642,6 +642,8 @@ The Building details and Directions panel headers place icon-only parent-return 
 
 Connected walking routes lift 0.2m above flat ground and draw immediately through three ordered depth passes. One 9px primary stroke at alpha 77 uses `depthCompare: "greater"` to show a single 30%-opacity route where scene geometry is closer. A full-opacity 9px casing and 5px primary trace use `depthCompare: "less-equal"` for visible fragments. Route passes disable depth writes and polygon offset. Building fills, including selected buildings, use alpha 255 with `depthCompare: "less-equal"` and depth writes, so nearer buildings completely occlude farther ones. The shared `beforeId` keeps basemap labels above every pass. Wide Tools keeps the endpoint editor and route summary beside the map. Compact Tools collapses to a time, distance, and endpoint handle after a valid route; reopening restores both editable boxes. AI retains its compact top-left highlight card.
 
+Clip the map, loading surface, and recovery state at `MapSurface` using its inherited host radius. Tools supplies the canvas radius, including square phone edges. Answer Canvas propagates its bottom corners through the content region while keeping the seam below its titlebar flat. Keep floating controls inset enough for keyboard focus paint.
+
 AI building clicks retain the transient raised popup: `.neu-panel absolute top-3 bottom-6 left-3 w-80 max-w-[calc(100%-5rem)] rounded-2xl`. Reserve the map-control column with at least 12px clearance and keep phone controls at 44px. The popup never appears beside the Tools rail.
 
 ### Entrance Geometry

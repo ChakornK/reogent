@@ -1212,8 +1212,7 @@ export function CampusMap({
   }, [highlight, selected, status]);
 
   return (
-    // The outer workspace surface clips the full-bleed map. A second radius
-    // would show a double curve where the map meets its header.
+    // MapSurface clips this full-bleed viewport to the host's corner radii.
     // biome-ignore lint/a11y/noStaticElementInteractions: mouseleave clears tooltip
     <div className="relative h-full w-full overflow-hidden" onMouseLeave={() => setPicked(null)}>
       <div
