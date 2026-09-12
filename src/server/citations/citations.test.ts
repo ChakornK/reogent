@@ -319,6 +319,38 @@ describe("extractors — Property 19, Source-url honesty", () => {
 });
 
 describe("stampUsed — Property 20, Used-only-after-stamp", () => {
+  it.each(["[1,2]", "[1, 2]", "[ 1 , 2 ]", "[2, 1, 2]"])(
+    "marks sources referenced by grouped citations: %s",
+    (marker) => {
+      const citations: Citation[] = [1, 2, 3].map((index) => ({
+        index,
+        label: `Source ${index}`,
+        kind: "page",
+        tool: "get_library_hours",
+        used: false,
+      }));
+      const stamped = stampUsed(citations, `The schedule is unknown ${marker}.`);
+      expect(stamped.map((citation) => citation.used)).toEqual([true, true, false]);
+      expect(citations.every((citation) => !citation.used)).toBe(true);
+      expect(stamped[2]).toBe(citations[2]);
+    },
+  );
+
+  it("ignores invalid grouped references while retaining valid source indices", () => {
+    const citations: Citation[] = [1, 2].map((index) => ({
+      index,
+      label: `Source ${index}`,
+      kind: "page",
+      tool: "get_library_hours",
+      used: false,
+    }));
+    expect(stampUsed(citations, "Read [1, 0, 99, 9007199254740993].").map((citation) => citation.used)).toEqual([
+      true,
+      false,
+    ]);
+    expect(stampUsed(citations, "[1, x] [1-2] [1, 2")).toBe(citations);
+  });
+
   it("live (pre-stamp) citations carry used false; stamping sets used only for indices present in text", () => {
     fc.assert(
       fc.property(fc.array(arbSeed, { maxLength: 8 }), arbTextWithMarkers, (seeds, text) => {

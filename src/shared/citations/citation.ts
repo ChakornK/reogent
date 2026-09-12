@@ -7,7 +7,7 @@ export type Citation = {
   index: number;
   label: string;
   kind: CitationKind;
-  /** True only after `stampUsed` has matched `[index]` in the final text. */
+  /** True after `stampUsed` finds this index in a final-text citation marker. */
   used: boolean;
   /** Omitted entirely when absent or empty (Property 19, REQ-12.3). */
   source_url?: string;
@@ -25,3 +25,15 @@ export type Citation = {
     source_context_required?: boolean;
   };
 };
+
+/** Finds single and comma-separated numeric markers in plain text.
+ * Preserves offsets and digit strings for literal invalid-reference fallback. */
+export function* citationMarkers(text: string) {
+  for (const match of text.matchAll(/\[[ \t]*(\d+(?:[ \t]*,[ \t]*\d+)*)[ \t]*\]/g)) {
+    yield {
+      start: match.index,
+      text: match[0],
+      references: match[1].split(",").map((reference) => reference.trim()),
+    };
+  }
+}

@@ -100,6 +100,29 @@ it("preserves article structure while suppressing raw HTML, unsafe links and rem
   }
 });
 
+it("links grouped Markdown citations without injecting into code or duplicating nested leaves", async () => {
+  const grouped = [1, 2].map((index) => ({
+    index,
+    kind: "page",
+    label: `Source ${index}`,
+    used: true,
+    tool: "get_library_hours",
+    source_url: `https://example.test/source/${index}`,
+  }));
+  const content = "Unknown hours [1, 2]. **More context [2, 1].** Literal code: `[1, 2]`.";
+  const { container } = render(
+    <AssistantMessage message={{ id: "grouped", role: "assistant", content, citations: grouped }} />,
+  );
+  await waitFor(() => expect(container.querySelectorAll(".assistant-markdown a[data-index]")).toHaveLength(4));
+  expect(
+    Array.from(container.querySelectorAll(".assistant-markdown [data-index]"), (element) =>
+      element.getAttribute("data-index"),
+    ),
+  ).toEqual(["1", "2", "2", "1"]);
+  expect(container.querySelector("code")?.textContent).toBe("[1, 2]");
+  expect(container.querySelector("code [data-index]")).toBeNull();
+});
+
 it("keeps Sources outside prose spacing while retaining its live Markdown sibling", async () => {
   const { container } = render(
     <AssistantMessage message={{ id: "sources", role: "assistant", content: "Read [1].", citations }} />,

@@ -103,6 +103,32 @@ describe("Property 23a — in-range [N] becomes a chip at every injected leaf st
   }
 });
 
+describe("grouped citation markers", () => {
+  it.each(["[1,2]", "[1, 2]", "[ 1 , 2 ]"])("links each valid source in %s", (marker) => {
+    const view = render(<div>{injectChips(`Unknown ${marker}.`, makeCitations(2, true, true))}</div>);
+    expect(
+      Array.from(view.container.querySelectorAll("a[data-index]"), (element) => element.getAttribute("data-index")),
+    ).toEqual(["1", "2"]);
+    expect(view.container.textContent).toBe("Unknown [1][2].");
+  });
+
+  it("preserves invalid references without rounding large indices", () => {
+    const view = render(
+      <div>{injectChips("[1, 99, 9007199254740993] and [0, 99]", makeCitations(2, true, true))}</div>,
+    );
+    expect(view.container.querySelectorAll("a[data-index]")).toHaveLength(1);
+    expect(view.container.textContent).toBe("[1][99][9007199254740993] and [0, 99]");
+  });
+
+  it("retains order and duplicates without interpreting malformed groups", () => {
+    const view = render(<div>{injectChips("[2, 1, 2] [1, x] [1-2] [1, 2", makeCitations(2, true, true))}</div>);
+    expect(
+      Array.from(view.container.querySelectorAll("a[data-index]"), (element) => element.getAttribute("data-index")),
+    ).toEqual(["2", "1", "2"]);
+    expect(view.container.textContent).toContain("[1, x] [1-2] [1, 2");
+  });
+});
+
 describe("Property 23b — chip sequence is invariant under re-rendering (REQ-13.4)", () => {
   it("re-rendering the same injected children yields identical data-index sequences", () => {
     const citations = makeCitations(4);
