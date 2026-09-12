@@ -654,6 +654,17 @@ describe("dated library schedules", () => {
 });
 
 describe("undergraduate search tools", () => {
+  it("states missing login and access details beside the retrieved facts", async () => {
+    const service = transformStudentResource(resourceRow("it_service"), "it_service").doc;
+    const { search } = fakeSearch({ student_resources: { hits: [service] } });
+    const result = await resourcesTool.execute({ query: "example" }, search);
+    expect(result).toMatchObject({
+      resources: [service],
+      caveat:
+        "Use only the returned facts and URLs. Missing login links or access requirements are unknown; refer to a returned source_url for those details.",
+    });
+  });
+
   it("returns source/fact rows and available totals, preserving original identities", async () => {
     const branch = branchHit();
     const { search, calls } = fakeSearch({
@@ -671,6 +682,7 @@ describe("undergraduate search tools", () => {
       resources: [transformStudentResource(resourceRow("branch"), "branch").doc],
       total: 2,
       has_more: true,
+      caveat: expect.any(String),
     });
     expect(JSON.stringify(result)).not.toContain(BODY);
   });
@@ -681,9 +693,13 @@ describe("undergraduate search tools", () => {
       resources: [],
       total: 0,
       has_more: false,
+      caveat: expect.any(String),
     });
     const noTotals = fakeSearch({ student_resources: { hits: [] } });
-    expect(await resourcesTool.execute({ query: "example" }, noTotals.search)).toEqual({ resources: [] });
+    expect(await resourcesTool.execute({ query: "example" }, noTotals.search)).toEqual({
+      resources: [],
+      caveat: expect.any(String),
+    });
     expect(noTotals.calls).toHaveBeenCalledExactlyOnceWith("student_resources", "example", {
       filter: undefined,
       limit: 10,

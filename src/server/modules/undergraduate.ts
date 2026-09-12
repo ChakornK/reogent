@@ -641,7 +641,7 @@ export const undergraduate: DatasetModule = {
       spec: {
         name: "search_student_resources",
         description:
-          "Search public housing, library, student-support and policy source/fact records. Supplied audience and campus labels do not establish eligibility.",
+          "Look up IT services, source URLs and audience labels, alongside housing, library, student-support and policy source/fact records. Supplied audience and campus labels do not establish eligibility.",
         inputSchema: {
           json: {
             type: "object",
@@ -671,7 +671,12 @@ export const undergraduate: DatasetModule = {
           limit,
         });
         const resources = array(result.hits, "student_resources results").map(studentResourceHit);
-        return { resources, ...totals(result, resources.length) };
+        return {
+          resources,
+          ...totals(result, resources.length),
+          caveat:
+            "Use only the returned facts and URLs. Missing login links or access requirements are unknown; refer to a returned source_url for those details.",
+        };
       },
     },
     {
